@@ -1,14 +1,30 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { createMemoryRouter, RouterProvider } from 'react-router';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 import { routes } from '@/app/router';
+import { TOKEN_STORAGE_KEY } from '@/lib/token';
+import { createToken } from '../helpers/token';
 
 function renderAt(path: string) {
+  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   const router = createMemoryRouter(routes, { initialEntries: [path] });
 
-  return render(<RouterProvider router={router} />);
+  return render(
+    <QueryClientProvider client={queryClient}>
+      <RouterProvider router={router} />
+    </QueryClientProvider>,
+  );
 }
+
+function authenticate(expiresInSeconds = 3600) {
+  localStorage.setItem(TOKEN_STORAGE_KEY, createToken(expiresInSeconds));
+}
+
+afterEach(() => {
+  localStorage.removeItem(TOKEN_STORAGE_KEY);
+});
 
 describe('app router', () => {
   it('renders the staff login screen at / without app chrome', () => {
@@ -19,7 +35,31 @@ describe('app router', () => {
     expect(screen.queryByText('Inventory Dashboard')).not.toBeInTheDocument();
   });
 
+  it('redirects an authenticated visitor away from the sign-in screen', () => {
+    authenticate();
+    renderAt('/');
+
+    expect(screen.getByRole('heading', { name: 'Dashboard', level: 1 })).toBeInTheDocument();
+    expect(screen.getByRole('navigation')).toBeInTheDocument();
+  });
+
+  it('redirects to the sign-in screen when no token is present', () => {
+    renderAt('/dashboard');
+
+    expect(screen.getByRole('heading', { name: 'Staff Login' })).toBeInTheDocument();
+    expect(screen.queryByRole('navigation')).not.toBeInTheDocument();
+  });
+
+  it('redirects to the sign-in screen when the token is expired', () => {
+    authenticate(-60);
+    renderAt('/dashboard');
+
+    expect(screen.getByRole('heading', { name: 'Staff Login' })).toBeInTheDocument();
+    expect(screen.queryByRole('navigation')).not.toBeInTheDocument();
+  });
+
   it('renders the dashboard inside the app shell', () => {
+    authenticate();
     renderAt('/dashboard');
 
     expect(screen.getByRole('heading', { name: 'Dashboard', level: 1 })).toBeInTheDocument();
@@ -33,6 +73,7 @@ describe('app router', () => {
     ['/pos', 'POS'],
     ['/settings', 'Settings'],
   ])('renders the %s route', (path, heading) => {
+    authenticate();
     renderAt(path);
 
     expect(screen.getByRole('heading', { name: heading, level: 1 })).toBeInTheDocument();
@@ -53,8 +94,10 @@ describe('app router', () => {
 
   it('navigates from the dashboard back to login', async () => {
     const user = userEvent.setup();
+    authenticate();
     renderAt('/dashboard');
 
+    localStorage.removeItem(TOKEN_STORAGE_KEY);
     await user.click(screen.getByRole('link', { name: 'Back to login' }));
 
     expect(screen.getByRole('heading', { name: 'Staff Login' })).toBeInTheDocument();
