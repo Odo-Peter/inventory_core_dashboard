@@ -2,7 +2,7 @@ import { getApiBaseUrl } from '@/config/config';
 import { getStoredToken } from '@/lib/token';
 import axios from 'axios';
 
-const PUBLIC_API_ROUTES = ['/'];
+const PUBLIC_API_ROUTES = ['/', '/auth/login'];
 
 const normalizeUrl = (url: string | undefined) => {
   if (!url) return '';

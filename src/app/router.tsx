@@ -23,6 +23,14 @@ export const routes = [
         ),
       },
       {
+        path: '/auth/login',
+        element: (
+          <GuestRoute>
+            <IndexRoute />
+          </GuestRoute>
+        ),
+      },
+      {
         path: 'dashboard',
         element: (
           <ProtectedRoute>
