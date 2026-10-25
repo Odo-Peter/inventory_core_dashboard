@@ -55,7 +55,9 @@ export function StaffLoginPage() {
         <Card>
           <CardHeader className="justify-items-center text-center">
             <img src="/logo.svg" alt="" aria-hidden="true" className="mb-1 size-8" />
-            <CardTitle>Staff Login</CardTitle>
+            <CardTitle>
+              <h1>Staff Login</h1>
+            </CardTitle>
             <CardDescription>Enter your PIN to start your shift.</CardDescription>
           </CardHeader>
           <CardContent>

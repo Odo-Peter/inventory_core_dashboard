@@ -1,6 +1,10 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { productFormSchema, type ProductFormValues } from './product-form.schema';
+import {
+  productFormSchema,
+  type ProductFormInput,
+  type ProductFormValues,
+} from './product-form.schema';
 import { Field } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -11,7 +15,7 @@ export function ProductForm() {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm<ProductFormValues>({
+  } = useForm<ProductFormInput, unknown, ProductFormValues>({
     resolver: zodResolver(productFormSchema),
     defaultValues: {
       name: '',
