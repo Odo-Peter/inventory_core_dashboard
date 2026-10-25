@@ -4,7 +4,7 @@ function Toaster({ ...props }: ToasterProps) {
   return (
     <Sonner
       data-slot="toaster"
-      theme="system"
+      theme="light"
       className="toaster group"
       toastOptions={{
         classNames: {

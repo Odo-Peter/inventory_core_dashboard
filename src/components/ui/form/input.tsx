@@ -38,9 +38,10 @@ const Input = ({
   const [show, setShow] = useState(false);
 
   const inputType = isPassword ? (show ? 'text' : 'password') : type;
+  const inputId = htmlFor ?? props.id;
 
   return (
-    <Field label={label} htmlFor={htmlFor} required={required} className={containerClassName}>
+    <Field label={label} htmlFor={inputId} required={required} className={containerClassName}>
       <InputGroup className={cn('h-10', error && 'border-destructive')}>
         {Icon && (
           <InputGroupAddon align="inline-start">
@@ -49,12 +50,12 @@ const Input = ({
         )}
 
         <InputGroupInput
-          id={htmlFor}
+          {...props}
+          id={inputId}
           type={inputType}
           aria-invalid={error}
           aria-describedby={error ? `${htmlFor}-error` : undefined}
           className={className}
-          {...props}
         />
 
         {isPassword && (
