@@ -1,5 +1,5 @@
 import { PageHeader } from '@/components/shared/page-header';
-import { Button } from '@/components/ui/button';
+import { buttonVariants } from '@/components/ui/button';
 import { Link } from 'react-router';
 
 export function DashboardRoute() {
@@ -9,9 +9,9 @@ export function DashboardRoute() {
         title="Dashboard"
         description="Overview"
         actions={
-          <Button asChild variant="outline">
-            <Link to="/">Back to login</Link>
-          </Button>
+          <Link to="/" className={buttonVariants({ variant: 'outline' })}>
+            Back to login
+          </Link>
         }
       />
       <div className="border-border bg-card rounded-lg border p-4">
