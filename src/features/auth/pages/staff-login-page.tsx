@@ -1,17 +1,24 @@
-import * as React from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router';
+import { Eye, EyeOff } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Field } from '@/components/ui/field';
-import { Input } from '@/components/ui/input';
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupButton,
+  InputGroupInput,
+} from '@/components/ui/input-group';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import { FieldError } from '@/components/states/validation';
 
 export function StaffLoginPage() {
   const navigate = useNavigate();
-  const [pin, setPin] = React.useState('');
-  const [error, setError] = React.useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [pin, setPin] = useState('');
+  const [showPin, setShowPin] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.replace(/\D/g, '');
@@ -46,25 +53,40 @@ export function StaffLoginPage() {
     <div className="bg-background text-foreground flex min-h-[calc(100vh-3rem)] w-full items-center justify-center px-4">
       <div className="w-full max-w-sm">
         <Card>
-          <CardHeader className="text-center">
-            <CardTitle>Staff Login</CardTitle>
+          <CardHeader className="justify-items-center text-center">
+            <img src="/logo.svg" alt="" aria-hidden="true" className="mb-1 size-8" />
+            <CardTitle>
+              <h1>Staff Login</h1>
+            </CardTitle>
             <CardDescription>Enter your PIN to start your shift.</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="flex flex-col gap-3">
               <Field label="PIN" htmlFor="pin" required>
-                <Input
-                  id="pin"
-                  type="password"
-                  inputMode="numeric"
-                  pattern="[0-9]*"
-                  autoComplete="one-time-code"
-                  placeholder="••••"
-                  value={pin}
-                  onChange={handleChange}
-                  aria-invalid={!!error}
-                  aria-describedby={error ? 'pin-error' : undefined}
-                />
+                <InputGroup className="h-10">
+                  <InputGroupInput
+                    id="pin"
+                    type={showPin ? 'text' : 'password'}
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    autoComplete="one-time-code"
+                    placeholder="••••"
+                    value={pin}
+                    onChange={handleChange}
+                    aria-invalid={!!error}
+                    aria-describedby={error ? 'pin-error' : undefined}
+                  />
+                  <InputGroupAddon align="inline-end">
+                    <InputGroupButton
+                      size="icon-sm"
+                      aria-label={showPin ? 'Hide PIN' : 'Show PIN'}
+                      aria-pressed={showPin}
+                      onClick={() => setShowPin((visible) => !visible)}
+                    >
+                      {showPin ? <EyeOff /> : <Eye />}
+                    </InputGroupButton>
+                  </InputGroupAddon>
+                </InputGroup>
                 <FieldError id="pin-error">{error}</FieldError>
               </Field>
 

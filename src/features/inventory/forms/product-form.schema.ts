@@ -7,4 +7,5 @@ export const productFormSchema = z.object({
   stock: z.coerce.number().int().nonnegative('Stock must be 0 or more'),
 });
 
-export type ProductFormValues = z.infer<typeof productFormSchema>;
+export type ProductFormInput = z.input<typeof productFormSchema>;
+export type ProductFormValues = z.output<typeof productFormSchema>;

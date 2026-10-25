@@ -1,7 +1,6 @@
 import * as React from 'react';
 
 import { cn } from 'cn';
-import { Button } from '@/components/ui/button';
 
 export interface NotFoundStateProps extends React.HTMLAttributes<HTMLDivElement> {
   title?: string;

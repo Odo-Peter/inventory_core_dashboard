@@ -7,7 +7,7 @@ import { PosRoute } from '@/routes/pos';
 import { SettingsRoute } from '@/routes/settings';
 import { NotFoundRoute } from '@/routes/not-found';
 
-export const router = createBrowserRouter([
+export const routes = [
   {
     path: '/',
     element: <Root />,
@@ -20,4 +20,6 @@ export const router = createBrowserRouter([
       { path: '*', element: <NotFoundRoute /> },
     ],
   },
-]);
+];
+
+export const router = createBrowserRouter(routes);
