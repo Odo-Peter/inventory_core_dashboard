@@ -1,14 +1,21 @@
-import { NavLink, Outlet } from 'react-router';
+import { NavLink, Outlet, useLocation } from 'react-router';
 import { cn } from 'cn';
 
 const navItems = [
-  { to: '/', label: 'Dashboard' },
+  { to: '/dashboard', label: 'Dashboard' },
   { to: '/inventory', label: 'Inventory' },
   { to: '/pos', label: 'POS' },
   { to: '/settings', label: 'Settings' },
 ];
 
 export function Root() {
+  const location = useLocation();
+  const isLogin = location.pathname === '/';
+
+  if (isLogin) {
+    return <Outlet />;
+  }
+
   return (
     <div className="bg-background text-foreground min-h-screen">
       <div className="flex min-h-screen flex-col">
@@ -21,7 +28,6 @@ export function Root() {
                   <NavLink
                     key={item.to}
                     to={item.to}
-                    end={item.to === '/'}
                     className={({ isActive }) =>
                       cn(
                         'text-muted-foreground hover:text-foreground rounded-md px-2 py-1 text-sm',
