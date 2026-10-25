@@ -1,4 +1,5 @@
 import { getApiBaseUrl } from '@/config/config';
+import { getStoredToken } from '@/lib/token';
 import axios from 'axios';
 
 const PUBLIC_API_ROUTES = ['/'];
@@ -25,7 +26,7 @@ const axiosInstance = axios.create({
 
 axiosInstance.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('stocktake_access_token');
+    const token = getStoredToken();
 
     if (!token && isProtectedRoute(config.url)) {
       return Promise.reject(new axios.Cancel('User not authenticated'));

@@ -1,12 +1,14 @@
 import { useNavigate } from 'react-router';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { toast } from 'sonner';
 
 import { Form, FormControl, FormField, FormItem } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import { signInFormSchema, type SignInFormInput, type SignInValues } from './sign-in-form.schema';
 import { Input } from '@/components/ui/form/input';
+import { TOKEN_STORAGE_KEY } from '@/lib/token';
 
 import { useLogin } from '../hooks/useAuthMutation';
 
@@ -35,7 +37,8 @@ const SignInForm = () => {
     try {
       const response = await mutateAsync(payload);
       if (response.access_token) {
-        localStorage.setItem('stocktake_access_token', response.access_token);
+        localStorage.setItem(TOKEN_STORAGE_KEY, response.access_token);
+        toast.success('Signed in successfully');
         navigate('/dashboard');
       }
     } catch (error) {

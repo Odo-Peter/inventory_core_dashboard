@@ -1,22 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
-import { jwtDecode } from 'jwt-decode';
 
 import AuthContext from '../context/AuthContext';
 import axiosInstance from '@/lib/axiosInstance';
-
-const isTokenExpired = (token: string | null): boolean => {
-  if (!token) return true;
-
-  try {
-    const decoded: { exp?: number } = jwtDecode(token);
-    if (!decoded.exp) return true;
-
-    const currentTime = Date.now() / 1000;
-    return decoded.exp < currentTime;
-  } catch {
-    return true;
-  }
-};
+import { getStoredToken, isTokenValid, TOKEN_STORAGE_KEY } from '@/lib/token';
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [isLoading, setIsLoading] = useState(true);
@@ -31,10 +17,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const logout = useCallback(async (navigate?: (path: string) => void) => {
     // 1. Capture token BEFORE clearing localStorage
-    const token = localStorage.getItem('stocktake_access_token');
+    const token = getStoredToken();
 
     // 2. Clear local state synchronously
-    localStorage.removeItem('stocktake_access_token');
+    localStorage.removeItem(TOKEN_STORAGE_KEY);
 
     // 3. Navigate immediately
     if (navigate) {
@@ -58,9 +44,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     const checkToken = () => {
-      const token = localStorage.getItem('stocktake_access_token');
+      const token = getStoredToken();
 
-      if (!token || isTokenExpired(token)) {
+      if (!isTokenValid(token)) {
         logout();
       }
     };
