@@ -15,7 +15,7 @@ export function StaffRoleBadge({ role }: { role: StaffRole }) {
 export function StaffStatusBadges({ active, isLocked }: { active: boolean; isLocked: boolean }) {
   return (
     <div className="flex flex-wrap items-center gap-1">
-      <Badge variant={active ? 'success' : 'outline'}>{active ? 'Active' : 'Inactive'}</Badge>
+      <Badge variant={active ? 'success' : 'inactive'}>{active ? 'Active' : 'Inactive'}</Badge>
       {isLocked ? <Badge variant="destructive">Locked</Badge> : null}
     </div>
   );

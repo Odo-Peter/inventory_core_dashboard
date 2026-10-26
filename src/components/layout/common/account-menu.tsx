@@ -1,3 +1,5 @@
+import { LogOut, Settings } from 'lucide-react';
+
 import { buttonVariants } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -9,6 +11,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
+
 import EntityLogo from './entity-logo';
 
 interface AccountMenuProps {
@@ -43,9 +46,11 @@ const AccountMenu = ({ onSettings, onSignOut }: AccountMenuProps) => {
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuItem className="mt-2" onClick={onSettings}>
+          <Settings />
           Settings
         </DropdownMenuItem>
         <DropdownMenuItem variant="destructive" onClick={onSignOut}>
+          <LogOut />
           Sign out
         </DropdownMenuItem>
       </DropdownMenuContent>

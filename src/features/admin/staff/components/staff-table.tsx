@@ -22,9 +22,12 @@ import { StaffAvatar } from './staff-avatar';
 import { StaffRoleBadge, StaffStatusBadges } from './staff-badges';
 import type { Staff } from '../types';
 import { formatStaffDate, formatStaffDateTime } from '../utils';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface StaffTableProps {
   staff: Staff[];
+  isLoading?: boolean;
+  skeletonRows?: number;
   onView: (staff: Staff) => void;
   onEdit: (staff: Staff) => void;
   onResetPin: (staff: Staff) => void;
@@ -36,6 +39,43 @@ interface StaffRowActionsProps extends Pick<
   'onView' | 'onEdit' | 'onResetPin' | 'onDelete'
 > {
   staff: Staff;
+}
+
+function StaffTableSkeletonRows({ rows }: { rows: number }) {
+  return Array.from({ length: rows }).map((_, index) => (
+    <TableRow key={index} aria-hidden="true">
+      {/* Staff: avatar + name + staff code */}
+      <TableCell>
+        <div className="flex items-center gap-3">
+          <Skeleton className="size-8 shrink-0 rounded-full" />
+          <div className="flex flex-col gap-1.5">
+            <Skeleton className="h-3.5 w-28" />
+            <Skeleton className="h-2.5 w-16" />
+          </div>
+        </div>
+      </TableCell>
+      {/* Phone */}
+      <TableCell>
+        <Skeleton className="h-3 w-24" />
+      </TableCell>
+      {/* Role badge */}
+      <TableCell>
+        <Skeleton className="h-5 w-16 rounded-full" />
+      </TableCell>
+      {/* Status badge */}
+      <TableCell>
+        <Skeleton className="h-5 w-14 rounded-full" />
+      </TableCell>
+      {/* Updated */}
+      <TableCell>
+        <Skeleton className="h-3 w-20" />
+      </TableCell>
+      {/* Actions */}
+      <TableCell className="text-right">
+        <Skeleton className="ml-auto size-8 rounded-md" />
+      </TableCell>
+    </TableRow>
+  ));
 }
 
 function StaffRowActions({ staff, onView, onEdit, onResetPin, onDelete }: StaffRowActionsProps) {
@@ -76,7 +116,15 @@ function StaffRowActions({ staff, onView, onEdit, onResetPin, onDelete }: StaffR
   );
 }
 
-export function StaffTable({ staff, onView, onEdit, onResetPin, onDelete }: StaffTableProps) {
+export function StaffTable({
+  staff,
+  onView,
+  onEdit,
+  onResetPin,
+  onDelete,
+  isLoading,
+  skeletonRows = 5,
+}: StaffTableProps) {
   const activeCount = staff.filter((member) => member.active).length;
   const lockedCount = staff.filter((member) => member.is_locked).length;
 
@@ -116,7 +164,9 @@ export function StaffTable({ staff, onView, onEdit, onResetPin, onDelete }: Staf
           </TableRow>
         </TableHeader>
         <TableBody>
-          {staff.length === 0 ? (
+          {isLoading ? (
+            <StaffTableSkeletonRows rows={skeletonRows} />
+          ) : staff.length === 0 ? (
             <TableRow>
               <TableCell colSpan={6} className="text-muted-foreground py-10 text-center text-sm">
                 No staff members found.

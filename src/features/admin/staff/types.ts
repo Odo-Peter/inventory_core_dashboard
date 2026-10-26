@@ -27,3 +27,8 @@ export const staffRoleOptions = [
   { value: 'manager', label: staffRoleLabels.manager },
   { value: 'admin', label: staffRoleLabels.admin },
 ] as const;
+
+export interface StaffResponse {
+  staff: Staff;
+  temporary_pin: 'string';
+}

@@ -1,12 +1,6 @@
 import { z } from 'zod';
 
 export const staffFormSchema = z.object({
-  staff_code: z
-    .string()
-    .trim()
-    .min(1, 'Staff code is required')
-    .max(24, 'Staff code must be 24 characters or fewer')
-    .transform((value) => value.toUpperCase()),
   first_name: z
     .string()
     .trim()
@@ -20,12 +14,16 @@ export const staffFormSchema = z.object({
   phone: z
     .string()
     .trim()
-    .min(7, 'Enter a valid phone number')
-    .max(20, 'Phone number must be 20 characters or fewer'),
+    .min(1, 'Phone number is required')
+    .regex(/^234[789][01]\d{8}$/, 'Enter a valid Nigerian mobile number')
+    .transform((value) => `+${value}`),
   role: z.enum(['cashier', 'manager', 'admin'], {
     error: 'Select a role',
   }),
 });
 
+export const staffUpdateSchema = staffFormSchema.partial();
+
 export type StaffFormInput = z.input<typeof staffFormSchema>;
 export type StaffFormValues = z.output<typeof staffFormSchema>;
+export type StaffUpdateValues = z.output<typeof staffUpdateSchema>;

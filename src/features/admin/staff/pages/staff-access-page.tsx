@@ -8,18 +8,21 @@ import { PageHeader } from '@/components/shared/page-header';
 import { StaffDetailsDrawer } from '../components/staff-details-drawer';
 import { StaffFormDrawer } from '../components/staff-form-drawer';
 import { StaffTable } from '../components/staff-table';
-import { MOCK_STORE_ID, mockStaff } from '../mock-data';
-import type { StaffFormValues } from '../schemas/staff-form.schema';
+import { useListStaff } from '../../hooks/adminQueries';
+import { CreatedStaffDialog, type CreatedStaffInfo } from '../components/created-staff-dialog';
 import type { Staff } from '../types';
 
 type FormMode = 'add' | 'edit';
 
 export function StaffAccessPage() {
-  const [staff, setStaff] = useState<Staff[]>(mockStaff);
   const [formOpen, setFormOpen] = useState(false);
+  const [detailsOpen, setDetailsOpen] = useState(false);
+
   const [formMode, setFormMode] = useState<FormMode>('add');
   const [selectedStaff, setSelectedStaff] = useState<Staff | null>(null);
-  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [createdStaff, setCreatedStaff] = useState<CreatedStaffInfo | null>(null);
+
+  const { data, isLoading } = useListStaff();
 
   const openAddStaff = () => {
     setFormMode('add');
@@ -36,46 +39,6 @@ export function StaffAccessPage() {
   const openStaffDetails = (member: Staff) => {
     setSelectedStaff(member);
     setDetailsOpen(true);
-  };
-
-  const saveStaff = (values: StaffFormValues) => {
-    const now = new Date().toISOString();
-    const name = `${values.first_name} ${values.last_name}`.trim();
-
-    if (formMode === 'edit' && selectedStaff) {
-      setStaff((current) =>
-        current.map((member) =>
-          member.id === selectedStaff.id
-            ? {
-                ...member,
-                ...values,
-                name,
-                updated_at: now,
-              }
-            : member,
-        ),
-      );
-      setSelectedStaff((current) =>
-        current ? { ...current, ...values, name, updated_at: now } : current,
-      );
-      toast.success('Staff member updated');
-      return;
-    }
-
-    const newStaff: Staff = {
-      id: `staff-${Date.now()}`,
-      store_id: MOCK_STORE_ID,
-      ...values,
-      name,
-      active: true,
-      must_change_pin: true,
-      is_locked: false,
-      created_at: now,
-      updated_at: now,
-    };
-
-    setStaff((current) => [newStaff, ...current]);
-    toast.success('Staff member added');
   };
 
   const resetPin = (member: Staff) => {
@@ -104,11 +67,12 @@ export function StaffAccessPage() {
       />
 
       <StaffTable
-        staff={staff}
+        staff={data ?? []}
         onView={openStaffDetails}
         onEdit={openEditStaff}
         onResetPin={resetPin}
         onDelete={deleteStaff}
+        isLoading={isLoading}
       />
 
       <StaffFormDrawer
@@ -116,7 +80,13 @@ export function StaffAccessPage() {
         onOpenChange={setFormOpen}
         mode={formMode}
         staff={selectedStaff}
-        onSubmit={saveStaff}
+        onCreated={setCreatedStaff}
+      />
+
+      <CreatedStaffDialog
+        open={!!createdStaff}
+        onClose={() => setCreatedStaff(null)}
+        staff={createdStaff}
       />
 
       <StaffDetailsDrawer open={detailsOpen} onOpenChange={setDetailsOpen} staff={selectedStaff} />

@@ -1,8 +1,8 @@
 import { Link } from 'react-router';
-import { PlusIcon, Sparkles, UserGroup } from 'lucide-react';
+import { PlusIcon, Sparkles } from 'lucide-react';
 
 import { PageHeader } from '@/components/shared/page-header';
-import { buttonVariants } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { MetricCards } from '@/features/dashboard/components/metric-cards';
 import { RecentSales } from '@/features/dashboard/components/recent-sales';
 import { SalesOverviewChart } from '@/features/dashboard/components/sales-overview-chart';
@@ -15,17 +15,13 @@ export function DashboardPage() {
         description="Sales, stock, and shift overview for today."
         actions={
           <div className="flex items-center gap-x-2">
-            <Link to="/admin/staff" className={buttonVariants({ variant: 'secondary' })}>
+            <Button variant={'secondary'}>
               <Sparkles />
               Start Shift
-            </Link>
+            </Button>
             <Link to="/sales/new" className={buttonVariants()}>
               <PlusIcon />
               Add New Sale
-            </Link>
-            <Link to="/sales/new" className={buttonVariants()}>
-              <UserGroup />
-              Add New Staff
             </Link>
           </div>
         }
