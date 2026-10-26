@@ -63,7 +63,7 @@ describe('SignInForm success flow', () => {
     renderForm();
 
     await user.type(screen.getByPlaceholderText('Enter staff code'), 'STAFF01');
-    await user.type(screen.getByPlaceholderText('••••••'), '123456');
+    await user.type(screen.getByPlaceholderText('*******'), '123456');
     await user.click(screen.getByRole('button', { name: 'Sign In' }));
 
     expect(

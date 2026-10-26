@@ -1,11 +1,10 @@
-import * as React from 'react';
-
+import type { ReactNode } from 'react';
 import { cn } from 'cn';
 
 interface PageHeaderProps extends React.HTMLAttributes<HTMLDivElement> {
   title: string;
-  description?: React.ReactNode;
-  actions?: React.ReactNode;
+  description?: ReactNode;
+  actions?: ReactNode;
 }
 
 export function PageHeader({ title, description, actions, className, ...props }: PageHeaderProps) {
@@ -18,7 +17,7 @@ export function PageHeader({ title, description, actions, className, ...props }:
       {...props}
     >
       <div className="flex flex-col gap-1">
-        <h1 className="text-lg font-medium tracking-tight">{title}</h1>
+        <h1 className="text-3xl font-extrabold tracking-tight">{title}</h1>
         {description ? <p className="text-muted-foreground text-xs">{description}</p> : null}
       </div>
       {actions ? <div className="flex items-center gap-2">{actions}</div> : null}

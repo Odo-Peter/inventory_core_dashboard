@@ -65,8 +65,7 @@ describe('StaffLoginPage', () => {
     const { container } = renderPage();
 
     expect(screen.getByRole('heading', { name: 'Staff Login' })).toBeInTheDocument();
-    expect(screen.getByText('Enter your PIN to start your shift.')).toBeInTheDocument();
-    expect(screen.getByText('Store: Main')).toBeInTheDocument();
+    expect(screen.getByText('Enter your staff code and PIN.')).toBeInTheDocument();
     expect(container.querySelector('img[src="/logo.svg"]')).toBeInTheDocument();
   });
 
