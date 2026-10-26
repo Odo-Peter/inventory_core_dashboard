@@ -1,5 +1,7 @@
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useState } from 'react';
+
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { getStaffInitials } from '@/features/admin/staff/utils';
 
 interface EntityLogoProps {
   firstName: string;
@@ -27,8 +29,7 @@ const EntityLogo = ({
       <Avatar className={className}>
         {(!src || !loaded) && (
           <AvatarFallback className={fallBackStyle}>
-            {firstName.charAt(0).toUpperCase()}
-            {lastName.charAt(0).toUpperCase()}
+            {getStaffInitials(firstName, lastName)}
           </AvatarFallback>
         )}
         {src && (

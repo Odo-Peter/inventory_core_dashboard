@@ -1,6 +1,6 @@
+import { useState } from 'react';
 import { LogOut, Settings } from 'lucide-react';
 
-import { buttonVariants } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,37 +10,61 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { cn } from '@/lib/utils';
 
 import EntityLogo from './entity-logo';
+import { clearSessionAvatarColor, getSessionAvatarColor } from '@/components/lib/avatar-color';
 
 interface AccountMenuProps {
   onSettings: () => void;
   onSignOut: () => void;
+  profile: {
+    firstName: string;
+    lastName: string;
+    role: string;
+  };
 }
 
-const account = {
-  name: 'Ada Mensah',
-  role: 'Cashier',
-  initials: 'AM',
-};
+const AccountMenu = ({ onSettings, onSignOut, profile }: AccountMenuProps) => {
+  const [color] = useState(getSessionAvatarColor);
 
-const AccountMenu = ({ onSettings, onSignOut }: AccountMenuProps) => {
+  const avatarSrc =
+    `https://ui-avatars.com/api/?name=${encodeURIComponent(`${profile.firstName} ${profile.lastName}`)}` +
+    `&background=${color.bg}&color=${color.fg}&bold=true`;
+
+  const handleSignOut = () => {
+    clearSessionAvatarColor();
+    onSignOut();
+  };
+
   return (
     <DropdownMenu modal={false}>
       <DropdownMenuTrigger
-        className={cn(buttonVariants({ variant: 'ghost' }), 'size-9 rounded-full px-0')}
+        className="size-9 rounded-full bg-transparent px-0"
         aria-label="Open account menu"
       >
-        <EntityLogo firstName="Ada" lastName="Mensah" isActive />
+        <EntityLogo
+          firstName={profile.firstName}
+          lastName={profile.lastName}
+          isActive
+          src={avatarSrc}
+        />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="center" className="w-44">
         <DropdownMenuGroup>
           <DropdownMenuLabel className="flex items-center gap-x-2 px-2 py-1.5">
-            <EntityLogo firstName="Ada" lastName="Mensah" isActive />
+            <EntityLogo
+              firstName={profile.firstName}
+              lastName={profile.lastName}
+              isActive
+              src={avatarSrc}
+            />
             <div className="flex flex-col">
-              <span className="text-foreground text-sm font-medium">{account.name}</span>
-              <span className="text-muted-foreground text-xs font-normal">{account.role}</span>
+              <span className="text-foreground text-sm font-medium">
+                {profile.firstName} {profile.lastName}
+              </span>
+              <span className="text-muted-foreground text-xs font-semibold uppercase">
+                {profile.role}
+              </span>
             </div>
           </DropdownMenuLabel>
         </DropdownMenuGroup>
@@ -49,7 +73,7 @@ const AccountMenu = ({ onSettings, onSignOut }: AccountMenuProps) => {
           <Settings />
           Settings
         </DropdownMenuItem>
-        <DropdownMenuItem variant="destructive" onClick={onSignOut}>
+        <DropdownMenuItem variant="destructive" onClick={handleSignOut}>
           <LogOut />
           Sign out
         </DropdownMenuItem>

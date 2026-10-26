@@ -2,11 +2,17 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { createMemoryRouter, RouterProvider } from 'react-router';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { routes } from '@/app/router';
 import { TOKEN_STORAGE_KEY } from '@/lib/token';
 import { createToken } from '../helpers/token';
 import { AuthProvider } from '@/features/auth/provider/AuthProvider';
+
+vi.mock('@/features/admin/services/admin.service', () => ({
+  listStaff: vi.fn().mockResolvedValue([]),
+  createStaff: vi.fn(),
+  updateStaff: vi.fn(),
+}));
 
 function renderAt(path: string) {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });

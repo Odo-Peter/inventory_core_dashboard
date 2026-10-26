@@ -30,5 +30,5 @@ export const staffRoleOptions = [
 
 export interface StaffResponse {
   staff: Staff;
-  temporary_pin: 'string';
+  temporary_pin: string;
 }

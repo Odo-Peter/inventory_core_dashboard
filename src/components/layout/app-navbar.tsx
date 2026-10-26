@@ -4,19 +4,24 @@ import { MenuIcon } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/features/auth/hooks/useAuth';
+import { useMyProfile } from '@/features/auth/hooks/useAuthQueries';
 
 import NotificationsMenu from './common/notification-menu';
 import AccountMenu from './common/account-menu';
 import GlobalSearch from './common/global-search';
+import { Skeleton } from '../ui/skeleton';
 
 interface AppNavbarProps {
   onOpenMobileNav: () => void;
 }
 
 export function AppNavbar({ onOpenMobileNav }: AppNavbarProps) {
+  const [searchOpen, setSearchOpen] = useState<boolean>(false);
+
   const navigate = useNavigate();
+
+  const { data, isLoading } = useMyProfile();
   const { logout } = useAuth();
-  const [searchOpen, setSearchOpen] = useState(false);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -81,10 +86,19 @@ export function AppNavbar({ onOpenMobileNav }: AppNavbarProps) {
         {/* right */}
         <div className="flex flex-1 items-center justify-end gap-x-1">
           <NotificationsMenu />
-          <AccountMenu
-            onSettings={() => navigate('/settings')}
-            onSignOut={() => logout(navigate)}
-          />
+          {isLoading ? (
+            <Skeleton className="size-9 shrink-0 rounded-full" />
+          ) : (
+            <AccountMenu
+              onSettings={() => navigate('/settings')}
+              onSignOut={() => logout(navigate)}
+              profile={{
+                firstName: data?.first_name ?? 'Store',
+                lastName: data?.last_name ?? 'Keeper',
+                role: data?.role ?? 'Cashier',
+              }}
+            />
+          )}
         </div>
       </div>
     </header>

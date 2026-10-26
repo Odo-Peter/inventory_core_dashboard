@@ -24,3 +24,14 @@ export interface AuthContextInterface {
   isLoading: boolean;
   logout: (navigate?: (path: string) => void) => Promise<void>;
 }
+
+export interface MyProfile {
+  id: string;
+  name: string;
+  first_name: string;
+  last_name: string;
+  role: string;
+  store_id: string;
+  must_change_pin: boolean;
+  active_shift_id: {};
+}

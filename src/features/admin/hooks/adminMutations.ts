@@ -18,8 +18,8 @@ export const useUpdateStaff = () => {
   return useMutation({
     mutationFn: ({ id, payload }: { id: string; payload: StaffUpdateValues }) =>
       updateStaff(id, payload),
-    onSuccess: async (_data, variables) => {
-      await queryClient.invalidateQueries({ queryKey: ['staff', variables.id] });
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['staff'] });
     },
   });
 };
