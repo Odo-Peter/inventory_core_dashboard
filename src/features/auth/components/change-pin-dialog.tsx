@@ -52,20 +52,24 @@ export function ChangePinDialog({ open, onSuccess }: ChangePinDialogProps) {
 
     try {
       const response = await mutateAsync(payload);
-      if (response.access_token) {
+      if (response?.access_token) {
         sessionStorage.setItem(TOKEN_STORAGE_KEY, response.access_token);
-        toast.success('PIN updated successfully');
-
-        form.reset();
-        onSuccess();
       }
+      toast.success('PIN updated successfully');
+      form.reset();
+      onSuccess();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Sign in failed');
+      toast.error(error instanceof Error ? error.message : 'Failed to update PIN');
     }
   }
   return (
-    <Dialog open={open} onOpenChange={() => {}} modal={false}>
-      <DialogContent showCloseButton={false}>
+    <Dialog open={open} onOpenChange={() => {}}>
+      <DialogContent
+        showCloseButton={false}
+        onEscapeKeyDown={(e) => e.preventDefault()}
+        onPointerDownOutside={(e) => e.preventDefault()}
+        onInteractOutside={(e) => e.preventDefault()}
+      >
         <DialogHeader>
           <DialogTitle>Change your PIN</DialogTitle>
           <DialogDescription>

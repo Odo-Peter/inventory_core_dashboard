@@ -8,6 +8,7 @@ import SignInForm from '@/features/auth/form/sign-in-form';
 import { login } from '@/features/auth/services/auth.service';
 import type { AuthTokenResponse } from '@/features/auth/interface';
 import { TOKEN_STORAGE_KEY } from '@/lib/token';
+import { AuthProvider } from '@/features/auth/provider/AuthProvider';
 
 vi.mock('sonner', () => ({
   toast: {
@@ -42,10 +43,12 @@ function renderForm() {
   return render(
     <QueryClientProvider client={queryClient}>
       <MemoryRouter initialEntries={['/']}>
-        <Routes>
-          <Route path="/" element={<SignInForm />} />
-          <Route path="/dashboard" element={<div>Dashboard destination</div>} />
-        </Routes>
+        <AuthProvider>
+          <Routes>
+            <Route path="/" element={<SignInForm />} />
+            <Route path="/dashboard" element={<div>Dashboard destination</div>} />
+          </Routes>
+        </AuthProvider>
       </MemoryRouter>
     </QueryClientProvider>,
   );

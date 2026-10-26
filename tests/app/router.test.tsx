@@ -133,7 +133,8 @@ describe('app router', () => {
     authenticate();
     renderAt('/dashboard');
 
-    await user.click(screen.getByRole('button', { name: 'Open account menu' }));
+    const accountButton = await screen.findByRole('button', { name: 'Open account menu' });
+    await user.click(accountButton);
     await user.click(await screen.findByRole('menuitem', { name: 'Sign out' }));
 
     expect(await screen.findByRole('heading', { name: 'Staff Login' })).toBeInTheDocument();
