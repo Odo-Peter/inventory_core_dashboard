@@ -6,6 +6,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { StaffLoginPage } from '@/features/auth/pages/staff-login-page';
 import { login } from '@/features/auth/services/auth.service';
 import type { AuthTokenResponse } from '@/features/auth/interface';
+import { AuthProvider } from '@/features/auth/provider/AuthProvider';
 
 vi.mock('sonner', () => ({
   toast: {
@@ -17,6 +18,14 @@ vi.mock('sonner', () => ({
 
 vi.mock('@/features/auth/services/auth.service', () => ({
   login: vi.fn(),
+  changePin: vi.fn(),
+}));
+
+vi.mock('@/lib/axiosInstance', () => ({
+  default: {
+    post: vi.fn().mockResolvedValue({}),
+    get: vi.fn().mockResolvedValue({ data: {} }),
+  },
 }));
 
 const tokenResponse: AuthTokenResponse = {
@@ -41,12 +50,14 @@ function renderPage() {
 
   return render(
     <QueryClientProvider client={queryClient}>
-      <MemoryRouter initialEntries={['/']}>
-        <Routes>
-          <Route path="/" element={<StaffLoginPage />} />
-          <Route path="/dashboard" element={<div>Dashboard destination</div>} />
-        </Routes>
-      </MemoryRouter>
+      <AuthProvider>
+        <MemoryRouter initialEntries={['/']}>
+          <Routes>
+            <Route path="/" element={<StaffLoginPage />} />
+            <Route path="/dashboard" element={<div>Dashboard destination</div>} />
+          </Routes>
+        </MemoryRouter>
+      </AuthProvider>
     </QueryClientProvider>,
   );
 }
@@ -57,7 +68,7 @@ async function fillStaffCode(user: ReturnType<typeof userEvent.setup>, code = 'S
 
 describe('StaffLoginPage', () => {
   beforeEach(() => {
-    localStorage.clear();
+    sessionStorage.clear();
     vi.clearAllMocks();
   });
 
@@ -65,8 +76,7 @@ describe('StaffLoginPage', () => {
     const { container } = renderPage();
 
     expect(screen.getByRole('heading', { name: 'Staff Login' })).toBeInTheDocument();
-    expect(screen.getByText('Enter your PIN to start your shift.')).toBeInTheDocument();
-    expect(screen.getByText('Store: Main')).toBeInTheDocument();
+    expect(screen.getByText('Enter your staff code and PIN.')).toBeInTheDocument();
     expect(container.querySelector('img[src="/logo.svg"]')).toBeInTheDocument();
   });
 

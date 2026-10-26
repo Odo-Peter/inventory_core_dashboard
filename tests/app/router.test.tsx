@@ -2,10 +2,17 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { createMemoryRouter, RouterProvider } from 'react-router';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { routes } from '@/app/router';
 import { TOKEN_STORAGE_KEY } from '@/lib/token';
 import { createToken } from '../helpers/token';
+import { AuthProvider } from '@/features/auth/provider/AuthProvider';
+
+vi.mock('@/features/admin/services/admin.service', () => ({
+  listStaff: vi.fn().mockResolvedValue([]),
+  createStaff: vi.fn(),
+  updateStaff: vi.fn(),
+}));
 
 function renderAt(path: string) {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
@@ -13,17 +20,19 @@ function renderAt(path: string) {
 
   return render(
     <QueryClientProvider client={queryClient}>
-      <RouterProvider router={router} />
+      <AuthProvider>
+        <RouterProvider router={router} />
+      </AuthProvider>
     </QueryClientProvider>,
   );
 }
 
 function authenticate(expiresInSeconds = 3600) {
-  localStorage.setItem(TOKEN_STORAGE_KEY, createToken(expiresInSeconds));
+  sessionStorage.setItem(TOKEN_STORAGE_KEY, createToken(expiresInSeconds));
 }
 
 afterEach(() => {
-  localStorage.removeItem(TOKEN_STORAGE_KEY);
+  sessionStorage.removeItem(TOKEN_STORAGE_KEY);
 });
 
 describe('app router', () => {
@@ -32,7 +41,7 @@ describe('app router', () => {
 
     expect(screen.getByRole('heading', { name: 'Staff Login' })).toBeInTheDocument();
     expect(screen.queryByRole('navigation')).not.toBeInTheDocument();
-    expect(screen.queryByText('Inventory Dashboard')).not.toBeInTheDocument();
+    expect(screen.queryByText('Stocktake Dashboard')).not.toBeInTheDocument();
   });
 
   it('redirects an authenticated visitor away from the sign-in screen', () => {
@@ -64,14 +73,41 @@ describe('app router', () => {
 
     expect(screen.getByRole('heading', { name: 'Dashboard', level: 1 })).toBeInTheDocument();
     expect(screen.getByRole('navigation')).toBeInTheDocument();
-    expect(screen.getByText('Inventory Dashboard')).toBeInTheDocument();
+    expect(screen.getByText('Stocktake Dashboard')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Dashboard' })).toHaveAttribute('aria-current', 'page');
+    expect(screen.getByText("Today's sales")).toBeInTheDocument();
+    expect(screen.getByText('$1,284.50')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /theme/i })).not.toBeInTheDocument();
+  });
+
+  it('shows the grouped sidebar navigation', () => {
+    authenticate();
+    renderAt('/dashboard');
+
+    expect(screen.getByText('General')).toBeInTheDocument();
+    expect(screen.getByText('Operations')).toBeInTheDocument();
+    expect(screen.getByText('Administration')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'New Sale' })).toBeInTheDocument();
+  });
+
+  it('reflects the active route in the sidebar', () => {
+    authenticate();
+    renderAt('/sales/new');
+
+    expect(screen.getByRole('link', { name: 'New Sale' })).toHaveAttribute('aria-current', 'page');
+    expect(screen.getByRole('link', { name: 'Dashboard' })).not.toHaveAttribute('aria-current');
   });
 
   it.each([
+    ['/sales/new', 'New Sale'],
     ['/inventory', 'Inventory'],
-    ['/pos', 'POS'],
+    ['/sales', 'Sales History'],
+    ['/stock-movements', 'Stock Movements'],
+    ['/shifts/summary', 'Shift Summary'],
+    ['/admin/staff', 'Staff & Access'],
+    ['/admin/payment-accounts', 'Payment Accounts'],
     ['/settings', 'Settings'],
+    ['/pos', 'New Sale'],
   ])('renders the %s route', (path, heading) => {
     authenticate();
     renderAt(path);
@@ -92,15 +128,16 @@ describe('app router', () => {
     expect(screen.getByRole('heading', { name: 'Staff Login' })).toBeInTheDocument();
   });
 
-  it('navigates from the dashboard back to login', async () => {
+  it('signs out from the account menu', async () => {
     const user = userEvent.setup();
     authenticate();
     renderAt('/dashboard');
 
-    localStorage.removeItem(TOKEN_STORAGE_KEY);
-    await user.click(screen.getByRole('link', { name: 'Back to login' }));
+    const accountButton = await screen.findByRole('button', { name: 'Open account menu' });
+    await user.click(accountButton);
+    await user.click(await screen.findByRole('menuitem', { name: 'Sign out' }));
 
-    expect(screen.getByRole('heading', { name: 'Staff Login' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Staff Login' })).toBeInTheDocument();
     expect(screen.queryByRole('navigation')).not.toBeInTheDocument();
   });
 });

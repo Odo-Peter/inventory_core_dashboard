@@ -8,6 +8,7 @@ import SignInForm from '@/features/auth/form/sign-in-form';
 import { login } from '@/features/auth/services/auth.service';
 import type { AuthTokenResponse } from '@/features/auth/interface';
 import { TOKEN_STORAGE_KEY } from '@/lib/token';
+import { AuthProvider } from '@/features/auth/provider/AuthProvider';
 
 vi.mock('sonner', () => ({
   toast: {
@@ -42,10 +43,12 @@ function renderForm() {
   return render(
     <QueryClientProvider client={queryClient}>
       <MemoryRouter initialEntries={['/']}>
-        <Routes>
-          <Route path="/" element={<SignInForm />} />
-          <Route path="/dashboard" element={<div>Dashboard destination</div>} />
-        </Routes>
+        <AuthProvider>
+          <Routes>
+            <Route path="/" element={<SignInForm />} />
+            <Route path="/dashboard" element={<div>Dashboard destination</div>} />
+          </Routes>
+        </AuthProvider>
       </MemoryRouter>
     </QueryClientProvider>,
   );
@@ -53,7 +56,7 @@ function renderForm() {
 
 describe('SignInForm success flow', () => {
   beforeEach(() => {
-    localStorage.clear();
+    sessionStorage.clear();
     vi.clearAllMocks();
   });
 
@@ -63,13 +66,13 @@ describe('SignInForm success flow', () => {
     renderForm();
 
     await user.type(screen.getByPlaceholderText('Enter staff code'), 'STAFF01');
-    await user.type(screen.getByPlaceholderText('••••••'), '123456');
+    await user.type(screen.getByPlaceholderText('*******'), '123456');
     await user.click(screen.getByRole('button', { name: 'Sign In' }));
 
     expect(
       await screen.findByText('Dashboard destination', undefined, { timeout: 2000 }),
     ).toBeInTheDocument();
-    expect(localStorage.getItem(TOKEN_STORAGE_KEY)).toBe('issued.jwt.token');
+    expect(sessionStorage.getItem(TOKEN_STORAGE_KEY)).toBe('issued.jwt.token');
     expect(vi.mocked(toast.success)).toHaveBeenCalledWith('Signed in successfully');
   });
 });

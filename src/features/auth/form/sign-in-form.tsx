@@ -11,10 +11,12 @@ import { Input } from '@/components/ui/form/input';
 import { TOKEN_STORAGE_KEY } from '@/lib/token';
 
 import { useLogin } from '../hooks/useAuthMutation';
+import { useAuth } from '../hooks/useAuth';
 
 const SignInForm = () => {
   const navigate = useNavigate();
   const { mutateAsync, isPending } = useLogin();
+  const { requirePinChange } = useAuth();
 
   const form = useForm<SignInFormInput, unknown, SignInValues>({
     resolver: zodResolver(signInFormSchema),
@@ -36,13 +38,19 @@ const SignInForm = () => {
 
     try {
       const response = await mutateAsync(payload);
+
       if (response.access_token) {
-        localStorage.setItem(TOKEN_STORAGE_KEY, response.access_token);
+        sessionStorage.setItem(TOKEN_STORAGE_KEY, response.access_token);
+        if (response.staff?.must_change_pin) {
+          requirePinChange(response.staff);
+          toast.success('Signed in successfully');
+          return;
+        }
         toast.success('Signed in successfully');
         navigate('/dashboard');
       }
     } catch (error) {
-      console.log(error);
+      toast.error(error instanceof Error ? error.message : 'Sign in failed');
     }
   }
 
@@ -81,7 +89,7 @@ const SignInForm = () => {
                   <Input
                     htmlFor="pin"
                     label="PIN"
-                    placeholder="••••••"
+                    placeholder="*******"
                     isPassword
                     inputMode="numeric"
                     pattern="[0-9]*"

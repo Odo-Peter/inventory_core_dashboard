@@ -81,6 +81,17 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.91 0 0);
   --sidebar-ring: oklch(0.65 0 0);
+
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  body[data-scroll-locked][data-scroll-locked] {
+    overflow: auto !important;
+  }
+
+  body[data-scroll-locked] {
+    margin-right: 0 !important;
+  }
 }
 
 .dark {
@@ -115,6 +126,31 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
+}
+
+.react-tel-input .country-list .search {
+  background: var(--popover);
+}
+.react-tel-input .country-list .search-box {
+  background: transparent;
+  color: var(--foreground);
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius) - 2px);
+}
+.react-tel-input .country-list .country {
+  color: var(--popover-foreground);
+}
+.react-tel-input .country-list .country:hover,
+.react-tel-input .country-list .country.highlight {
+  background: var(--accent);
+}
+.react-tel-input .country-list .country .dial-code {
+  color: var(--muted-foreground);
+}
+.react-tel-input .selected-flag:hover,
+.react-tel-input .selected-flag:focus,
+.react-tel-input .flag-dropdown.open .selected-flag {
+  background: transparent;
 }
 
 @layer base {
