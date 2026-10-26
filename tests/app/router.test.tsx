@@ -6,6 +6,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { routes } from '@/app/router';
 import { TOKEN_STORAGE_KEY } from '@/lib/token';
 import { createToken } from '../helpers/token';
+import { AuthProvider } from '@/features/auth/provider/AuthProvider';
 
 function renderAt(path: string) {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
@@ -13,7 +14,9 @@ function renderAt(path: string) {
 
   return render(
     <QueryClientProvider client={queryClient}>
-      <RouterProvider router={router} />
+      <AuthProvider>
+        <RouterProvider router={router} />
+      </AuthProvider>
     </QueryClientProvider>,
   );
 }
@@ -98,7 +101,7 @@ describe('app router', () => {
     renderAt('/dashboard');
 
     localStorage.removeItem(TOKEN_STORAGE_KEY);
-    await user.click(screen.getByRole('link', { name: 'Back to login' }));
+    await user.click(screen.getByRole('button', { name: 'Back to login' }));
 
     expect(screen.getByRole('heading', { name: 'Staff Login' })).toBeInTheDocument();
     expect(screen.queryByRole('navigation')).not.toBeInTheDocument();

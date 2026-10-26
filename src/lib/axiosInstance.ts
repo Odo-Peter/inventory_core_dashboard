@@ -1,8 +1,10 @@
-import { getApiBaseUrl } from '@/config/config';
-import { getStoredToken } from '@/lib/token';
 import axios from 'axios';
 
-const PUBLIC_API_ROUTES = ['/', '/auth/login'];
+import { getApiBaseUrl } from '@/config/config';
+import { getStoredToken } from '@/lib/token';
+import { toApiError } from './api-error';
+
+const PUBLIC_API_ROUTES = ['/auth/login'];
 
 const normalizeUrl = (url: string | undefined) => {
   if (!url) return '';
@@ -41,23 +43,7 @@ axiosInstance.interceptors.request.use(
 
 axiosInstance.interceptors.response.use(
   (response) => response,
-  (error) => {
-    if (error.code === 'ECONNABORTED') {
-      return Promise.reject(
-        new Error(
-          'An error occurred while processing your request. Please try again or refresh the page.',
-        ),
-      );
-    }
-
-    if (error.code === 'ERR_NETWORK') {
-      return Promise.reject(
-        new Error('You appear to be offline. Please check your internet connection and try again.'),
-      );
-    }
-
-    return Promise.reject(error);
-  },
+  (error) => Promise.reject(toApiError(error)),
 );
 
 export default axiosInstance;

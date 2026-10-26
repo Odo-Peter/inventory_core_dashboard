@@ -42,7 +42,7 @@ const SignInForm = () => {
         navigate('/dashboard');
       }
     } catch (error) {
-      console.log(error);
+      toast.error(error instanceof Error ? error.message : 'Sign in failed');
     }
   }
 
@@ -81,7 +81,7 @@ const SignInForm = () => {
                   <Input
                     htmlFor="pin"
                     label="PIN"
-                    placeholder="••••••"
+                    placeholder="*******"
                     isPassword
                     inputMode="numeric"
                     pattern="[0-9]*"

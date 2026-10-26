@@ -11,13 +11,12 @@ export function StaffLoginPage() {
             <CardTitle>
               <h1>Staff Login</h1>
             </CardTitle>
-            <CardDescription>Enter your PIN to start your shift.</CardDescription>
+            <CardDescription>Enter your staff code and PIN.</CardDescription>
           </CardHeader>
           <CardContent>
             <SignInForm />
           </CardContent>
         </Card>
-        <p className="text-muted-foreground mt-3 text-center text-xs">Store: Main</p>
       </div>
     </div>
   );
