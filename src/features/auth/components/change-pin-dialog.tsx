@@ -66,7 +66,7 @@ export function ChangePinDialog({ open, onSuccess }: ChangePinDialogProps) {
     <Dialog open={open} onOpenChange={() => {}}>
       <DialogContent showCloseButton={false}>
         <DialogHeader>
-          <DialogTitle>Change your PIN</DialogTitle>
+          <DialogTitle className="text-lg font-semibold">Change your PIN</DialogTitle>
           <DialogDescription>
             You must replace the temporary PIN before continuing to use the dashboard.
           </DialogDescription>

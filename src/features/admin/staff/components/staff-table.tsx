@@ -1,4 +1,11 @@
-import { EyeIcon, KeyRoundIcon, MoreHorizontalIcon, PencilIcon, Trash2Icon } from 'lucide-react';
+import {
+  EyeIcon,
+  KeyRoundIcon,
+  MoreHorizontalIcon,
+  PencilIcon,
+  Trash2Icon,
+  UserCheck,
+} from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -17,12 +24,13 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { Skeleton } from '@/components/ui/skeleton';
 
 import { StaffAvatar } from './staff-avatar';
 import { StaffRoleBadge, StaffStatusBadges } from './staff-badges';
-import type { Staff } from '../types';
 import { formatStaffDate, formatStaffDateTime } from '../utils';
-import { Skeleton } from '@/components/ui/skeleton';
+
+import type { Staff } from '../types';
 
 interface StaffTableProps {
   staff: Staff[];
@@ -31,14 +39,16 @@ interface StaffTableProps {
   onView: (staff: Staff) => void;
   onEdit: (staff: Staff) => void;
   onResetPin: (staff: Staff) => void;
-  onDelete: (staff: Staff) => void;
+  onDeactivate: (staff: Staff) => void;
+  onReactivate: (staff: Staff) => void;
 }
 
 interface StaffRowActionsProps extends Pick<
   StaffTableProps,
-  'onView' | 'onEdit' | 'onResetPin' | 'onDelete'
+  'onView' | 'onEdit' | 'onResetPin' | 'onDeactivate' | 'onReactivate'
 > {
   staff: Staff;
+  isActive: boolean;
 }
 
 function StaffTableSkeletonRows({ rows }: { rows: number }) {
@@ -78,7 +88,15 @@ function StaffTableSkeletonRows({ rows }: { rows: number }) {
   ));
 }
 
-function StaffRowActions({ staff, onView, onEdit, onResetPin, onDelete }: StaffRowActionsProps) {
+function StaffRowActions({
+  staff,
+  onView,
+  onEdit,
+  onResetPin,
+  onDeactivate,
+  onReactivate,
+  isActive,
+}: StaffRowActionsProps) {
   return (
     <DropdownMenu modal={false}>
       <DropdownMenuTrigger
@@ -107,10 +125,17 @@ function StaffRowActions({ staff, onView, onEdit, onResetPin, onDelete }: StaffR
           Reset PIN
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem variant="destructive" onClick={() => onDelete(staff)}>
-          <Trash2Icon />
-          Delete
-        </DropdownMenuItem>
+        {isActive ? (
+          <DropdownMenuItem variant="destructive" onClick={() => onDeactivate(staff)}>
+            <Trash2Icon />
+            Deactivate
+          </DropdownMenuItem>
+        ) : (
+          <DropdownMenuItem variant="success" onClick={() => onReactivate(staff)}>
+            <UserCheck />
+            Activate
+          </DropdownMenuItem>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );
@@ -121,7 +146,8 @@ export function StaffTable({
   onView,
   onEdit,
   onResetPin,
-  onDelete,
+  onDeactivate,
+  onReactivate,
   isLoading,
   skeletonRows = 5,
 }: StaffTableProps) {
@@ -216,7 +242,9 @@ export function StaffTable({
                     onView={onView}
                     onEdit={onEdit}
                     onResetPin={onResetPin}
-                    onDelete={onDelete}
+                    onDeactivate={onDeactivate}
+                    onReactivate={onReactivate}
+                    isActive={member.active}
                   />
                 </TableCell>
               </TableRow>

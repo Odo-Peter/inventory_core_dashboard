@@ -22,7 +22,21 @@ interface CreatedStaffDialogProps {
   open: boolean;
   onClose: () => void;
   staff: CreatedStaffInfo | null;
+  variant?: 'created' | 'reset';
 }
+
+const COPY = {
+  created: {
+    title: 'Staff account created',
+    description:
+      'Share these login details with the new staff member. The temporary PIN is shown only once, and they will be asked to change it at first sign in.',
+  },
+  reset: {
+    title: 'PIN reset',
+    description:
+      'Share this temporary PIN with the staff member. It is shown only once, and they will be asked to change it the next time they sign in.',
+  },
+} as const;
 
 function CopyRow({ label, value, mono = false }: { label: string; value: string; mono?: boolean }) {
   const [copied, setCopied] = useState(false);
@@ -66,16 +80,19 @@ function CopyRow({ label, value, mono = false }: { label: string; value: string;
   );
 }
 
-export function CreatedStaffDialog({ open, staff, onClose }: CreatedStaffDialogProps) {
+export function CreatedStaffDialog({
+  open,
+  staff,
+  onClose,
+  variant = 'created',
+}: CreatedStaffDialogProps) {
+  const copy = COPY[variant];
   return (
     <Dialog open={open} onOpenChange={() => {}}>
       <DialogContent className="sm:max-w-md" showCloseButton={false}>
         <DialogHeader>
-          <DialogTitle className="text-lg font-semibold">Staff account created</DialogTitle>
-          <DialogDescription>
-            Share these login details with the new staff member. The temporary PIN is shown only
-            once, and they will be asked to change it at first sign in.
-          </DialogDescription>
+          <DialogTitle className="text-lg font-semibold">{copy.title}</DialogTitle>
+          <DialogDescription>{copy.description}</DialogDescription>
         </DialogHeader>
 
         {staff && (
