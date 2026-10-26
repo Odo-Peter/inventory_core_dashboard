@@ -8,13 +8,13 @@ import { PageHeader } from '@/components/shared/page-header';
 import { StaffDetailsDrawer } from '../components/staff-details-drawer';
 import { StaffFormDrawer } from '../components/staff-form-drawer';
 import { StaffTable } from '../components/staff-table';
-import { ConfirmDeleteDialog } from '@/components/shared/confirm-delete-dialog';
+import { ConfirmActionDialog, type ConfirmAction } from '@/components/shared/confirm-action-dialog';
 import { CreatedStaffDialog, type CreatedStaffInfo } from '../components/created-staff-dialog';
 
 import type { Staff } from '../types';
 
 import { useListStaff } from '../../hooks/useAdminQueries';
-import { useDeactivateStaff } from '../../hooks/useAdminMutations';
+import { useDeactivateStaff, useReactivateStaff } from '../../hooks/useAdminMutations';
 
 type FormMode = 'add' | 'edit';
 
@@ -25,14 +25,19 @@ export function StaffAccessPage() {
 
   const [selectedStaff, setSelectedStaff] = useState<Staff | null>(null);
   const [createdStaff, setCreatedStaff] = useState<CreatedStaffInfo | null>(null);
-  const [deactivatedStaff, setDeactivatedStaff] = useState<Staff | null>(null);
-  const [reactivatedStaff, setReactivatedStaff] = useState<Staff | null>(null);
+  const [confirmTarget, setConfirmTarget] = useState<{
+    staff: Staff;
+    action: ConfirmAction;
+  } | null>(null);
 
   const { data, isLoading } = useListStaff();
-  const { mutateAsync } = useDeactivateStaff();
+  const deactivateStaff = useDeactivateStaff();
+  const reactivateStaff = useReactivateStaff();
 
-  const deactivateStaff = (member: Staff) => setDeactivatedStaff(member);
-  const reactivateStaff = (member: Staff) => setReactivatedStaff(member);
+  const requestDeactivate = (member: Staff) =>
+    setConfirmTarget({ staff: member, action: 'deactivate' });
+  const requestReactivate = (member: Staff) =>
+    setConfirmTarget({ staff: member, action: 'reactivate' });
 
   const openAddStaff = () => {
     setFormMode('add');
@@ -70,33 +75,33 @@ export function StaffAccessPage() {
         }
       />
 
-      <ConfirmDeleteDialog
-        open={!!deactivatedStaff}
-        onOpenChange={(open) => !open && setDeactivatedStaff(null)}
-        entityId={deactivatedStaff?.id ?? null}
-        entityName={deactivatedStaff?.name}
-        entityLabel="Staff Member"
-        onConfirm={(id) => mutateAsync(id)}
-        onSuccess={() => toast.success('Staff member removed')}
+      <ConfirmActionDialog
+        open={!!confirmTarget}
+        onOpenChange={(open) => !open && setConfirmTarget(null)}
+        action={confirmTarget?.action}
+        entityId={confirmTarget?.staff.id ?? null}
+        entityName={confirmTarget?.staff.name}
+        entityLabel="staff member"
+        onConfirm={(id) =>
+          confirmTarget?.action === 'reactivate'
+            ? reactivateStaff.mutateAsync(id)
+            : deactivateStaff.mutateAsync(id)
+        }
+        onSuccess={() =>
+          toast.success(
+            confirmTarget?.action === 'reactivate'
+              ? 'Staff member reactivated'
+              : 'Staff member removed',
+          )
+        }
       />
-
-      <ConfirmDeleteDialog
-        open={!!reactivatedStaff}
-        onOpenChange={(open) => !open && setReactivatedStaff(null)}
-        entityId={reactivatedStaff?.id ?? null}
-        entityName={reactivatedStaff?.name}
-        entityLabel="Staff Member"
-        onConfirm={(id) => mutateAsync(id)}
-        onSuccess={() => toast.success('Staff member removed')}
-      />
-
       <StaffTable
         staff={data ?? []}
         onView={openStaffDetails}
         onEdit={openEditStaff}
         onResetPin={resetPin}
-        onDeactivate={deactivateStaff}
-        onReactivate={reactivateStaff}
+        onDeactivate={requestDeactivate}
+        onReactivate={requestReactivate}
         isLoading={isLoading}
       />
 

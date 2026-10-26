@@ -1,7 +1,12 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import type { StaffFormInput, StaffUpdateValues } from '../schemas/staff-form.schema';
-import { createStaff, deactivateStaff, updateStaff } from '../services/admin.service';
+import {
+  createStaff,
+  deactivateStaff,
+  reactivateStaff,
+  updateStaff,
+} from '../services/admin.service';
 
 export const useCreateStaff = () => {
   const queryClient = useQueryClient();
@@ -28,6 +33,16 @@ export const useDeactivateStaff = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => deactivateStaff(id),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['staff'] });
+    },
+  });
+};
+
+export const useReactivateStaff = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => reactivateStaff(id),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['staff'] });
     },

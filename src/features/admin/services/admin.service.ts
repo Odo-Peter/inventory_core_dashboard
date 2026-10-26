@@ -18,6 +18,11 @@ export const deactivateStaff = async (id: string): Promise<Staff> => {
   return data;
 };
 
+export const reactivateStaff = async (id: string): Promise<Staff> => {
+  const { data } = await axiosInstance.post<Staff>(`/staff/${id}/reactivate`);
+  return data;
+};
+
 export const listStaff = async (): Promise<Staff[]> => {
   const { data } = await axiosInstance.get<Staff[]>('/staff');
   return data;
