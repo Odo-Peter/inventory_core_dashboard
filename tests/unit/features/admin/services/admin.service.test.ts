@@ -1,6 +1,10 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import axiosInstance from '@/lib/axiosInstance';
-import { deactivateStaff, reactivateStaff } from '@/features/admin/services/admin.service';
+import {
+  deactivateStaff,
+  reactivateStaff,
+  resetStaffPin,
+} from '@/features/admin/services/admin.service';
 import { makeStaff } from '../../../../helpers/staff';
 
 vi.mock('@/lib/axiosInstance', () => ({
@@ -39,6 +43,22 @@ describe('admin.service', () => {
 
       expect(mockedAxios.post).toHaveBeenCalledWith('/staff/staff-1/reactivate');
       expect(result).toEqual(staff);
+    });
+  });
+
+  describe('resetStaffPin', () => {
+    it('posts to reset-pin endpoint with payload and returns staff response', async () => {
+      const response = {
+        staff: makeStaff({ must_change_pin: true }),
+        temporary_pin: '123456',
+      };
+      mockedAxios.post.mockResolvedValue({ data: response });
+
+      const payload = { acting_pin: '0000' };
+      const result = await resetStaffPin('staff-1', payload);
+
+      expect(mockedAxios.post).toHaveBeenCalledWith('/staff/staff-1/reset-pin', payload);
+      expect(result).toEqual(response);
     });
   });
 });
