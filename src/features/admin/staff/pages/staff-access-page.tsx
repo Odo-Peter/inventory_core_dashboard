@@ -15,6 +15,7 @@ import type { Staff } from '../types';
 
 import { useListStaff } from '../../hooks/useAdminQueries';
 import { useDeactivateStaff, useReactivateStaff } from '../../hooks/useAdminMutations';
+import { ResetPinDialog } from '../components/reset-pin-dialog';
 
 type FormMode = 'add' | 'edit';
 
@@ -25,10 +26,13 @@ export function StaffAccessPage() {
 
   const [selectedStaff, setSelectedStaff] = useState<Staff | null>(null);
   const [createdStaff, setCreatedStaff] = useState<CreatedStaffInfo | null>(null);
+  const [resetTarget, setResetTarget] = useState<Staff | null>(null);
   const [confirmTarget, setConfirmTarget] = useState<{
     staff: Staff;
     action: ConfirmAction;
   } | null>(null);
+
+  const [createdVariant, setCreatedVariant] = useState<'created' | 'reset'>('created');
 
   const { data, isLoading } = useListStaff();
   const deactivateStaff = useDeactivateStaff();
@@ -38,6 +42,7 @@ export function StaffAccessPage() {
     setConfirmTarget({ staff: member, action: 'deactivate' });
   const requestReactivate = (member: Staff) =>
     setConfirmTarget({ staff: member, action: 'reactivate' });
+  const resetPin = (member: Staff) => setResetTarget(member);
 
   const openAddStaff = () => {
     setFormMode('add');
@@ -54,12 +59,6 @@ export function StaffAccessPage() {
   const openStaffDetails = (member: Staff) => {
     setSelectedStaff(member);
     setDetailsOpen(true);
-  };
-
-  const resetPin = (member: Staff) => {
-    toast.info('PIN reset is a placeholder', {
-      description: `No changes were made to ${member.name}.`,
-    });
   };
 
   return (
@@ -110,13 +109,27 @@ export function StaffAccessPage() {
         onOpenChange={setFormOpen}
         mode={formMode}
         staff={selectedStaff}
-        onCreated={setCreatedStaff}
+        onCreated={(info) => {
+          setCreatedVariant('created');
+          setCreatedStaff(info);
+        }}
+      />
+
+      <ResetPinDialog
+        open={!!resetTarget}
+        onOpenChange={(open) => !open && setResetTarget(null)}
+        staff={resetTarget}
+        onReset={(info) => {
+          setCreatedVariant('reset');
+          setCreatedStaff(info);
+        }}
       />
 
       <CreatedStaffDialog
         open={!!createdStaff}
         onClose={() => setCreatedStaff(null)}
         staff={createdStaff}
+        variant={createdVariant}
       />
 
       <StaffDetailsDrawer open={detailsOpen} onOpenChange={setDetailsOpen} staff={selectedStaff} />

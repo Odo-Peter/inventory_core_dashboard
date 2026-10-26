@@ -5,8 +5,10 @@ import {
   createStaff,
   deactivateStaff,
   reactivateStaff,
+  resetStaffPin,
   updateStaff,
 } from '../services/admin.service';
+import type { AdminPinValues } from '../schemas/admin-pin.schema';
 
 export const useCreateStaff = () => {
   const queryClient = useQueryClient();
@@ -45,6 +47,17 @@ export const useReactivateStaff = () => {
     mutationFn: (id: string) => reactivateStaff(id),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['staff'] });
+    },
+  });
+};
+
+export const useResetStaffPin = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: AdminPinValues }) =>
+      resetStaffPin(id, payload),
+    onSuccess: async (_data, variable) => {
+      await queryClient.invalidateQueries({ queryKey: ['staff', variable.id] });
     },
   });
 };
