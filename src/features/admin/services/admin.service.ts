@@ -13,6 +13,11 @@ export const updateStaff = async (id: string, payload: StaffUpdateValues): Promi
   return data;
 };
 
+export const deactivateStaff = async (id: string): Promise<Staff> => {
+  const { data } = await axiosInstance.post<Staff>(`/staff/${id}/deactivate`);
+  return data;
+};
+
 export const listStaff = async (): Promise<Staff[]> => {
   const { data } = await axiosInstance.get<Staff[]>('/staff');
   return data;
