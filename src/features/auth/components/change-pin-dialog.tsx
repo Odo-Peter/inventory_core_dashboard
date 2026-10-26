@@ -64,12 +64,7 @@ export function ChangePinDialog({ open, onSuccess }: ChangePinDialogProps) {
   }
   return (
     <Dialog open={open} onOpenChange={() => {}}>
-      <DialogContent
-        showCloseButton={false}
-        onEscapeKeyDown={(e) => e.preventDefault()}
-        onPointerDownOutside={(e) => e.preventDefault()}
-        onInteractOutside={(e) => e.preventDefault()}
-      >
+      <DialogContent showCloseButton={false}>
         <DialogHeader>
           <DialogTitle>Change your PIN</DialogTitle>
           <DialogDescription>
