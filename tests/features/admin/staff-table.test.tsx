@@ -10,7 +10,8 @@ function renderTable(staff = staffFixtures) {
     onView: vi.fn(),
     onEdit: vi.fn(),
     onResetPin: vi.fn(),
-    onDelete: vi.fn(),
+    onDeactivate: vi.fn(),
+    onReactivate: vi.fn(),
   };
 
   render(<StaffTable staff={staff} {...callbacks} />);
@@ -55,7 +56,7 @@ describe('StaffTable', () => {
     ['View details', 'onView'],
     ['Edit', 'onEdit'],
     ['Reset PIN', 'onResetPin'],
-    ['Delete', 'onDelete'],
+    ['Deactivate', 'onDeactivate'],
   ] as const)(
     'invokes the %s row action for the selected staff member',
     async (action, callback) => {
@@ -74,6 +75,23 @@ describe('StaffTable', () => {
       );
     },
   );
+
+  it('invokes the Activate row action for an inactive staff member', async () => {
+    const user = userEvent.setup();
+    const callbacks = renderTable();
+
+    const menu = await openStaffRowActions(user, 'Esi Adjei');
+    await user.click(within(menu).getByRole('menuitem', { name: 'Activate' }));
+
+    expect(callbacks.onReactivate).toHaveBeenCalledTimes(1);
+    expect(callbacks.onReactivate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        staff_code: 'CASHIER002',
+        name: 'Esi Adjei',
+        active: false,
+      }),
+    );
+  });
 
   it('scopes each row action menu to the staff member that opened it', async () => {
     const user = userEvent.setup();
