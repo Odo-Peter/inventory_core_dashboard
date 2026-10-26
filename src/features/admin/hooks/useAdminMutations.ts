@@ -26,6 +26,7 @@ export const useUpdateStaff = () => {
     mutationFn: ({ id, payload }: { id: string; payload: StaffUpdateValues }) =>
       updateStaff(id, payload),
     onSuccess: async (_data, variable) => {
+      await queryClient.invalidateQueries({ queryKey: ['staff'] });
       await queryClient.invalidateQueries({ queryKey: ['staff', variable.id] });
     },
   });

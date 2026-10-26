@@ -27,6 +27,9 @@ vi.mock('@/features/admin/services/admin.service', () => ({
   listStaff: vi.fn(),
   createStaff: vi.fn(),
   updateStaff: vi.fn(),
+  deactivateStaff: vi.fn(),
+  reactivateStaff: vi.fn(),
+  resetStaffPin: vi.fn(),
 }));
 
 function renderPage() {
@@ -169,7 +172,7 @@ describe('StaffAccessPage', () => {
     expect(within(detailsDialog).getByText('Up to date')).toBeInTheDocument();
   });
 
-  it('keeps reset PIN and delete as non-mutating placeholders', async () => {
+  it('opens reset PIN dialog and deactivate/reactivate actions', async () => {
     vi.mocked(listStaff).mockResolvedValue(staffFixtures);
     const user = userEvent.setup();
     renderPage();
@@ -179,17 +182,25 @@ describe('StaffAccessPage', () => {
     const resetMenu = await openStaffRowActions(user, 'Ada Okafor');
     await user.click(within(resetMenu).getByRole('menuitem', { name: 'Reset PIN' }));
 
-    expect(toast.info).toHaveBeenCalledWith('PIN reset is a placeholder', {
-      description: 'No changes were made to Ada Okafor.',
-    });
+    expect(await screen.findByRole('heading', { name: 'Reset PIN' })).toBeInTheDocument();
+    expect(screen.getByText(/This replaces the PIN for/)).toBeInTheDocument();
 
-    const deleteMenu = await openStaffRowActions(user, 'Ada Okafor');
-    await user.click(within(deleteMenu).getByRole('menuitem', { name: 'Delete' }));
+    await user.click(screen.getByRole('button', { name: 'Cancel' }));
 
-    expect(toast.warning).toHaveBeenCalledWith('Delete is not wired up yet', {
-      description: 'Ada Okafor was not removed.',
-    });
-    expect(screen.getByText('Ada Okafor')).toBeInTheDocument();
-    expect(listStaff).toHaveBeenCalledTimes(1);
+    expect(await screen.findByText('Ada Okafor')).toBeInTheDocument();
+
+    const deactivateMenu = await openStaffRowActions(user, 'Ada Okafor');
+    await user.click(within(deactivateMenu).getByRole('menuitem', { name: 'Deactivate' }));
+
+    expect(await screen.findByRole('heading', { name: 'Delete staff member' })).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Cancel' }));
+
+    const reactivateMenu = await openStaffRowActions(user, 'Esi Adjei');
+    await user.click(within(reactivateMenu).getByRole('menuitem', { name: 'Activate' }));
+
+    expect(
+      await screen.findByRole('heading', { name: 'Reactivate staff member' }),
+    ).toBeInTheDocument();
   });
 });
