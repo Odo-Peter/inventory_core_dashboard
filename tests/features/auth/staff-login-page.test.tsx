@@ -57,7 +57,7 @@ async function fillStaffCode(user: ReturnType<typeof userEvent.setup>, code = 'S
 
 describe('StaffLoginPage', () => {
   beforeEach(() => {
-    localStorage.clear();
+    sessionStorage.clear();
     vi.clearAllMocks();
   });
 

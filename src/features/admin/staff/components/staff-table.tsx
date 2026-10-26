@@ -80,7 +80,7 @@ function StaffTableSkeletonRows({ rows }: { rows: number }) {
 
 function StaffRowActions({ staff, onView, onEdit, onResetPin, onDelete }: StaffRowActionsProps) {
   return (
-    <DropdownMenu>
+    <DropdownMenu modal={false}>
       <DropdownMenuTrigger
         render={
           <Button

@@ -53,7 +53,7 @@ function renderForm() {
 
 describe('SignInForm success flow', () => {
   beforeEach(() => {
-    localStorage.clear();
+    sessionStorage.clear();
     vi.clearAllMocks();
   });
 
@@ -69,7 +69,7 @@ describe('SignInForm success flow', () => {
     expect(
       await screen.findByText('Dashboard destination', undefined, { timeout: 2000 }),
     ).toBeInTheDocument();
-    expect(localStorage.getItem(TOKEN_STORAGE_KEY)).toBe('issued.jwt.token');
+    expect(sessionStorage.getItem(TOKEN_STORAGE_KEY)).toBe('issued.jwt.token');
     expect(vi.mocked(toast.success)).toHaveBeenCalledWith('Signed in successfully');
   });
 });

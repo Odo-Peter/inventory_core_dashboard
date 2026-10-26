@@ -28,11 +28,11 @@ function renderAt(path: string) {
 }
 
 function authenticate(expiresInSeconds = 3600) {
-  localStorage.setItem(TOKEN_STORAGE_KEY, createToken(expiresInSeconds));
+  sessionStorage.setItem(TOKEN_STORAGE_KEY, createToken(expiresInSeconds));
 }
 
 afterEach(() => {
-  localStorage.removeItem(TOKEN_STORAGE_KEY);
+  sessionStorage.removeItem(TOKEN_STORAGE_KEY);
 });
 
 describe('app router', () => {

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Outlet } from 'react-router';
+import { Outlet, useNavigate } from 'react-router';
 
 import { AppNavbar } from '@/components/layout/app-navbar';
 import { AppSidebar, SidebarNav } from '@/components/layout/app-sidebar';
@@ -10,13 +10,24 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet';
+import { ChangePinDialog } from '@/features/auth/components/change-pin-dialog';
+import { useAuth } from '@/features/auth/hooks/useAuth';
 
 export function AppShell() {
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(false);
+  const [mobileNavOpen, setMobileNavOpen] = useState<boolean>(false);
+
+  const { mustChangePin, completePinChange } = useAuth();
+  const navigate = useNavigate();
+
+  const handlePinChanged = () => {
+    completePinChange();
+    navigate('/dashboard');
+  };
 
   return (
     <div className="bg-background text-foreground flex min-h-svh w-full">
+      <ChangePinDialog open={mustChangePin} onSuccess={handlePinChanged} />
       <AppSidebar
         collapsed={sidebarCollapsed}
         onToggle={() => setSidebarCollapsed((collapsed) => !collapsed)}

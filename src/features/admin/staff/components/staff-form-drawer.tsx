@@ -32,7 +32,7 @@ import {
   type StaffFormValues,
 } from '../../schemas/staff-form.schema';
 import { staffRoleOptions, type Staff } from '../types';
-import { useCreateStaff, useUpdateStaff } from '../../hooks/adminMutations';
+import { useCreateStaff, useUpdateStaff } from '../../hooks/useAdminMutations';
 import type { CreatedStaffInfo } from './created-staff-dialog';
 
 type FormMode = 'add' | 'edit';

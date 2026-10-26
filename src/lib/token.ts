@@ -3,7 +3,7 @@ import { jwtDecode } from 'jwt-decode';
 export const TOKEN_STORAGE_KEY = 'stocktake_access_token';
 
 export function getStoredToken(): string | null {
-  return localStorage.getItem(TOKEN_STORAGE_KEY);
+  return sessionStorage.getItem(TOKEN_STORAGE_KEY);
 }
 
 export function isTokenValid(token: string | null): boolean {

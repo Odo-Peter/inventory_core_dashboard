@@ -8,7 +8,7 @@ import { PageHeader } from '@/components/shared/page-header';
 import { StaffDetailsDrawer } from '../components/staff-details-drawer';
 import { StaffFormDrawer } from '../components/staff-form-drawer';
 import { StaffTable } from '../components/staff-table';
-import { useListStaff } from '../../hooks/adminQueries';
+import { useListStaff } from '../../hooks/useAdminQueries';
 import { CreatedStaffDialog, type CreatedStaffInfo } from '../components/created-staff-dialog';
 import type { Staff } from '../types';
 

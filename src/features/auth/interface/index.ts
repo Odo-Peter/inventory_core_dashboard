@@ -3,6 +3,11 @@ export interface LoginFormInterface {
   pin: string;
 }
 
+export interface ChangePinInterface {
+  current_pin: string;
+  new_pin: string;
+}
+
 interface Staff {
   id: string;
   name: string;
@@ -23,6 +28,10 @@ export interface AuthTokenResponse {
 export interface AuthContextInterface {
   isLoading: boolean;
   logout: (navigate?: (path: string) => void) => Promise<void>;
+  mustChangePin: boolean;
+  setMustChangePin: (value: boolean) => void;
+  requirePinChange: (staff?: Staff) => void;
+  completePinChange: () => void;
 }
 
 export interface MyProfile {
