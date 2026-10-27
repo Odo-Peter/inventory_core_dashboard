@@ -110,10 +110,10 @@ const SignInForm = () => {
           {isPending ? (
             <span className="inline-flex items-center gap-2">
               <Spinner className="h-3.5 w-3.5" />
-              Signing in...
+              Clocking in...
             </span>
           ) : (
-            'Sign In'
+            'Clock In'
           )}
         </Button>
       </form>

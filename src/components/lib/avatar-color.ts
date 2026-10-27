@@ -1,12 +1,8 @@
 const PALETTE = [
-  { bg: 'fde68a', fg: '78350f' }, // amber
-  { bg: 'fecaca', fg: '7f1d1d' }, // red
-  { bg: 'fbcfe8', fg: '831843' }, // pink
-  { bg: 'e9d5ff', fg: '581c87' }, // purple
-  { bg: 'c7d2fe', fg: '312e81' }, // indigo
-  { bg: 'bae6fd', fg: '0c4a6e' }, // sky
-  { bg: 'a7f3d0', fg: '064e3b' }, // emerald
-  { bg: 'd9f99d', fg: '365314' }, // lime
+  { bg: '6F49F8', fg: 'fff' },
+  { bg: 'F87E49', fg: 'fff' },
+  { bg: '1965F3', fg: 'fff' },
+  { bg: 'C330F4', fg: 'fff' },
 ] as const;
 
 const STORAGE_KEY = 'avatar-color-index';

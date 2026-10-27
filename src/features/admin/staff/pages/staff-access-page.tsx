@@ -90,7 +90,7 @@ export function StaffAccessPage() {
           toast.success(
             confirmTarget?.action === 'reactivate'
               ? 'Staff member reactivated'
-              : 'Staff member removed',
+              : 'Staff member deactivated',
           )
         }
       />
