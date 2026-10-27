@@ -9,11 +9,12 @@ export const useListStaff = () => {
   });
 };
 
-export const useGetStaff = (id: string) => {
+export const useGetStaff = (id: string, options?: { enabled?: boolean }) => {
   return useQuery({
-    queryKey: [...queryKeys.staff.all, id],
+    queryKey: queryKeys.staff.detail(id),
     queryFn: () => getStaff(id),
-    enabled: Boolean(id),
+    enabled: Boolean(id) && (options?.enabled ?? true),
+    retry: false,
   });
 };
 

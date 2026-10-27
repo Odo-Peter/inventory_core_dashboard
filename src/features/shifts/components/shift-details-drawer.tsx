@@ -14,6 +14,7 @@ import {
 import type { Shift } from '../types';
 import { formatNaira, formatStaffDate, formatTime } from '@/features/admin/staff/utils';
 import { useGetStaff } from '@/features/admin/hooks/useAdminQueries';
+import { useMyProfile } from '@/features/auth/hooks/useAuthQueries';
 
 interface ShiftDetailsDrawerProps {
   open: boolean;
@@ -67,7 +68,25 @@ export function ShiftDetailsDrawer({
   principal,
   onAdminEndShift,
 }: ShiftDetailsDrawerProps) {
-  const { data: staff } = useGetStaff(shift?.staff_id ?? '');
+  const canLookupStaff = isManagerOrAdmin(principal?.role);
+
+  const { data: staff, isError: staffLookupFailed } = useGetStaff(shift?.staff_id ?? '', {
+    enabled: open && !!shift?.staff_id && canLookupStaff,
+  });
+
+  const { data: profile } = useMyProfile(
+    open && !!shift && !!principal && shift.staff_id === principal.id,
+  );
+
+  const staffName = (() => {
+    if (staff?.name) return staff.name;
+    // Own shift: use profile (cashier-safe)
+    if (shift && principal && shift.staff_id === principal.id) {
+      return profile?.name ?? 'You';
+    }
+    if (staffLookupFailed || !canLookupStaff) return 'Staff member';
+    return '…';
+  })();
 
   const showEndShift =
     !!shift &&
@@ -177,8 +196,8 @@ export function ShiftDetailsDrawer({
             <section className="rounded-lg border">
               <h3 className="border-b px-3 py-2 text-xs font-medium">Identifiers</h3>
               <dl className="grid grid-cols-1 gap-3 p-3">
-                <DetailItem label="Staff Name">
-                  <span className="text-xs break-all">{staff?.name ?? 'Staff'}</span>
+                <DetailItem label="Staff name">
+                  <span className="text-sm break-all">{staffName}</span>
                 </DetailItem>
                 <DetailItem label="Staff ID">
                   <span className="font-mono text-xs break-all">{shift.staff_id}</span>
