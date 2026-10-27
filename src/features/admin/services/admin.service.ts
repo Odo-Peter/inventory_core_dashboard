@@ -1,7 +1,8 @@
 import axiosInstance from '@/lib/axiosInstance';
 
+import type { Staff, StaffResponse, StoreResponse } from '../staff/types';
+
 import type { StaffFormInput, StaffUpdateValues } from '../schemas/staff-form.schema';
-import type { Staff, StaffResponse } from '../staff/types';
 import type { AdminPinValues } from '../schemas/admin-pin.schema';
 
 export const createStaff = async (payload: StaffFormInput): Promise<StaffResponse> => {
@@ -34,5 +35,10 @@ export const resetStaffPin = async (
 
 export const listStaff = async (): Promise<Staff[]> => {
   const { data } = await axiosInstance.get<Staff[]>('/staff');
+  return data;
+};
+
+export const getCurrentStore = async (): Promise<StoreResponse> => {
+  const { data } = await axiosInstance.get<StoreResponse>('/stores/current');
   return data;
 };

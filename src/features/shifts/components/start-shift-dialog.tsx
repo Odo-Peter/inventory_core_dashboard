@@ -1,4 +1,3 @@
-import { useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
@@ -21,39 +20,41 @@ import { FieldError } from '@/components/states/validation';
 import { cn } from '@/lib/utils';
 import type { MyProfile } from '@/features/auth/interface';
 
-import { useActiveShift } from '../hooks/use-active-shift';
 import {
   startShiftSchema,
   type StartShiftFormInput,
   type StartShiftValues,
 } from '../schemas/start-shift.schema';
+import { useStartShift } from '../hooks/useShiftMutations';
+import { dateTimeFormatter } from '@/features/admin/staff/utils';
 
-const dateTimeFormatter = new Intl.DateTimeFormat('en-NG', {
-  dateStyle: 'medium',
-  timeStyle: 'short',
-});
-
-const NOTE_LIMIT = 500;
-
-type StartShiftMutation = ReturnType<typeof useActiveShift>['startShift'];
+const NOTE_LIMIT = 1_000;
 
 interface StartShiftDialogProps {
   open: boolean;
+  isLoading: boolean;
+  profile: MyProfile;
+  store: string;
   onOpenChange: (open: boolean) => void;
 }
 
-export function StartShiftDialog({ open, onOpenChange }: StartShiftDialogProps) {
-  const { profile, startShift, isStarting } = useActiveShift();
-
+export function StartShiftDialog({
+  open,
+  onOpenChange,
+  isLoading,
+  profile,
+  store,
+}: StartShiftDialogProps) {
   return (
     <Dialog
       open={open}
       onOpenChange={(nextOpen) => {
-        if (isStarting) return;
+        if (isLoading) return;
         onOpenChange(nextOpen);
       }}
+      modal={false}
     >
-      <DialogContent className="sm:max-w-md" showCloseButton={!isStarting}>
+      <DialogContent className="sm:max-w-2xl" showCloseButton={!isLoading}>
         <DialogHeader>
           <DialogTitle className="text-lg font-semibold">Start your shift</DialogTitle>
           <DialogDescription>
@@ -61,11 +62,11 @@ export function StartShiftDialog({ open, onOpenChange }: StartShiftDialogProps) 
           </DialogDescription>
         </DialogHeader>
 
-        {open && profile ? (
+        {open ? (
           <StartShiftForm
             profile={profile}
-            startShift={startShift}
-            isPending={isStarting}
+            isLoading={isLoading}
+            store={store}
             onClose={() => onOpenChange(false)}
           />
         ) : null}
@@ -76,13 +77,13 @@ export function StartShiftDialog({ open, onOpenChange }: StartShiftDialogProps) 
 
 interface StartShiftFormProps {
   profile: MyProfile;
-  startShift: StartShiftMutation;
-  isPending: boolean;
+  store: string;
+  isLoading: boolean;
   onClose: () => void;
 }
 
-function StartShiftForm({ profile, startShift, isPending, onClose }: StartShiftFormProps) {
-  const submitting = useRef(false);
+function StartShiftForm({ profile, onClose, isLoading, store }: StartShiftFormProps) {
+  const { isPending, mutateAsync } = useStartShift();
 
   const form = useForm<StartShiftFormInput, unknown, StartShiftValues>({
     resolver: zodResolver(startShiftSchema),
@@ -93,28 +94,25 @@ function StartShiftForm({ profile, startShift, isPending, onClose }: StartShiftF
   });
 
   const {
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = form;
 
-  const isBusy = isPending || isSubmitting;
   const notesLength = form.watch('opening_notes')?.length ?? 0;
-  const storeName = profile.store_name || 'Main Store';
-  const staffCode = profile.staff_code || '—';
+  const staffCode = profile.staff_code;
   const role = profile.role.charAt(0).toUpperCase() + profile.role.slice(1);
-  const clockIn = new Date();
 
   async function onSubmit(values: StartShiftValues) {
-    if (submitting.current) return;
-    submitting.current = true;
+    const payload = {
+      opening_float: values.opening_float,
+      opening_notes: values.opening_notes,
+    };
 
     try {
-      await startShift(values);
+      await mutateAsync(payload);
       toast.success('Shift started');
       onClose();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Could not start shift');
-    } finally {
-      submitting.current = false;
+      toast.error(error instanceof Error ? error.message : 'Shift clock in failed!');
     }
   }
 
@@ -125,16 +123,16 @@ function StartShiftForm({ profile, startShift, isPending, onClose }: StartShiftF
           <IdentityItem label="Name" value={profile.name} />
           <IdentityItem label="Staff code" value={staffCode} mono />
           <IdentityItem label="Role" value={role} />
-          <IdentityItem label="Store" value={storeName} />
+          <IdentityItem label="Store" value={store} />
         </dl>
 
         <div className="rounded-lg border p-3">
           <p className="text-muted-foreground text-[11px] font-medium tracking-wide uppercase">
             Date and time
           </p>
-          <p className="mt-1 text-sm font-medium">{dateTimeFormatter.format(clockIn)}</p>
+          <p className="mt-1 text-sm font-medium">{dateTimeFormatter.format(new Date())}</p>
           <p className="text-muted-foreground mt-1 text-xs">
-            Clock-in time will be recorded when you confirm.
+            This is the current time, clock-in time will be recorded when you confirm.
           </p>
         </div>
 
@@ -148,13 +146,14 @@ function StartShiftForm({ profile, startShift, isPending, onClose }: StartShiftF
                   {...field}
                   id="opening-float"
                   htmlFor="opening-float"
-                  label="Opening float"
+                  label="Starting cash"
                   placeholder="0.00"
                   inputMode="decimal"
                   autoComplete="off"
                   autoFocus
-                  disabled={isBusy}
-                  helpText="Cash already in the drawer"
+                  required
+                  disabled={isPending}
+                  helpText="Cash already in the drawer before the shift starts"
                   error={!!errors.opening_float}
                   errorText={errors.opening_float?.message}
                 />
@@ -175,7 +174,7 @@ function StartShiftForm({ profile, startShift, isPending, onClose }: StartShiftF
                   value={field.value ?? ''}
                   placeholder="Anything worth noting about the drawer?"
                   rows={3}
-                  disabled={isBusy}
+                  disabled={isPending || isLoading || isLoading}
                   aria-invalid={!!fieldState.error}
                   aria-describedby={
                     fieldState.error ? 'opening-notes-error' : 'opening-notes-count'
@@ -200,11 +199,16 @@ function StartShiftForm({ profile, startShift, isPending, onClose }: StartShiftF
         />
 
         <DialogFooter className="mx-0 mb-0 border-t-0 bg-transparent p-0">
-          <Button type="button" variant="outline" onClick={onClose} disabled={isBusy}>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onClose}
+            disabled={isPending || isLoading}
+          >
             Cancel
           </Button>
-          <Button type="submit" disabled={isBusy}>
-            {isBusy ? (
+          <Button type="submit" disabled={isPending || isLoading}>
+            {isPending || isLoading ? (
               <span className="inline-flex items-center gap-2">
                 <Spinner className="h-3.5 w-3.5" />
                 Starting...

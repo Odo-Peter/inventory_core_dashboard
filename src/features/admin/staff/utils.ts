@@ -4,7 +4,7 @@ const dateFormatter = new Intl.DateTimeFormat('en-NG', {
   year: 'numeric',
 });
 
-const dateTimeFormatter = new Intl.DateTimeFormat('en-NG', {
+export const dateTimeFormatter = new Intl.DateTimeFormat('en-NG', {
   dateStyle: 'medium',
   timeStyle: 'short',
 });
@@ -19,4 +19,24 @@ export function formatStaffDateTime(value: string) {
 
 export function getStaffInitials(firstName: string, lastName: string) {
   return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+}
+
+const timeFormatter = new Intl.DateTimeFormat('en-US', {
+  hour: '2-digit',
+  minute: '2-digit',
+  hour12: true,
+});
+
+const nairaFormatter = new Intl.NumberFormat('en-NG', {
+  style: 'currency',
+  currency: 'NGN',
+  minimumFractionDigits: 2,
+});
+
+export function formatTime(value: string) {
+  return timeFormatter.format(new Date(value));
+}
+
+export function formatNaira(kobo: number) {
+  return nairaFormatter.format(kobo / 100);
 }

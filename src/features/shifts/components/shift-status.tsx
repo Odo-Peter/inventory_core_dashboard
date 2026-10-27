@@ -1,58 +1,41 @@
+import { useState } from 'react';
+import { BookCheck } from 'lucide-react';
+
 import { Badge } from '@/components/ui/badge';
-import type { Shift } from '../mock/shift-api';
+import { Button } from '@/components/ui/button';
+import { formatTime } from '@/features/admin/staff/utils';
 
-const timeFormatter = new Intl.DateTimeFormat('en-NG', {
-  hour: '2-digit',
-  minute: '2-digit',
-  hour12: false,
-});
-
-const nairaFormatter = new Intl.NumberFormat('en-NG', {
-  style: 'currency',
-  currency: 'NGN',
-  minimumFractionDigits: 2,
-});
-
-function formatTime(value: string) {
-  return timeFormatter.format(new Date(value));
-}
-
-function formatNaira(kobo: number) {
-  return nairaFormatter.format(kobo / 100);
-}
+import type { ShiftStartResponse } from '../types';
+import { ShiftDetailsDrawer } from './shift-details-drawer';
 
 interface ShiftStatusProps {
-  shift: Shift;
-  staffCode?: string;
+  shift: ShiftStartResponse;
+  onEndShift?: () => void;
 }
 
-export function ShiftStatus({ shift, staffCode }: ShiftStatusProps) {
+export function ShiftStatus({ shift, onEndShift }: ShiftStatusProps) {
+  const [detailsOpen, setDetailsOpen] = useState(false);
+
   return (
-    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
-      <Badge variant="success">Open</Badge>
-      <span>
-        Shift open since{' '}
-        <span className="font-medium tabular-nums">{formatTime(shift.clock_in_at)}</span>
-      </span>
-      <span aria-hidden="true" className="text-muted-foreground">
-        ·
-      </span>
-      <span className="text-muted-foreground">
-        Opening float{' '}
-        <span className="text-foreground font-medium tabular-nums">
-          {formatNaira(shift.opening_float)}
+    <>
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
+        <Badge variant="success">Open</Badge>
+        <span>
+          Shift open since{' '}
+          <span className="font-medium tabular-nums">{formatTime(shift.clock_in_at)}</span>
         </span>
-      </span>
-      {staffCode ? (
-        <>
-          <span aria-hidden="true" className="text-muted-foreground">
-            ·
-          </span>
-          <span className="text-muted-foreground">
-            Staff <span className="text-foreground font-mono text-xs">{staffCode}</span>
-          </span>
-        </>
-      ) : null}
-    </div>
+        <Button type="button" variant="secondary" onClick={() => setDetailsOpen(true)}>
+          <BookCheck />
+          Shift Details
+        </Button>
+      </div>
+
+      <ShiftDetailsDrawer
+        open={detailsOpen}
+        onOpenChange={setDetailsOpen}
+        shift={shift}
+        onEndShift={onEndShift}
+      />
+    </>
   );
 }

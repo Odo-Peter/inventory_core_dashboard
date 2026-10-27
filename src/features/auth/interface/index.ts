@@ -45,6 +45,6 @@ export interface MyProfile {
   store_id: string;
   must_change_pin: boolean;
   active_shift_id: string | null;
-  staff_code?: string;
-  store_name?: string;
+  staff_code: string;
+  store_name: string;
 }

@@ -10,23 +10,31 @@ import { RecentSales } from '@/features/dashboard/components/recent-sales';
 import { SalesOverviewChart } from '@/features/dashboard/components/sales-overview-chart';
 import { StartShiftDialog } from '@/features/shifts/components/start-shift-dialog';
 import { ShiftStatus } from '@/features/shifts/components/shift-status';
-import { useActiveShift } from '@/features/shifts/hooks/use-active-shift';
+
+import { useGetCurrentShift } from '@/features/shifts/hooks/useShiftQueries';
+import { useMyProfile } from '@/features/auth/hooks/useAuthQueries';
+import { useGetCurrentStore } from '@/features/admin/hooks/useAdminQueries';
+import { EndShiftDialog } from '@/features/shifts/components/end-shift-dialog';
 
 export function DashboardPage() {
   const [startShiftOpen, setStartShiftOpen] = useState(false);
-  const { profile, activeShift, isLoading } = useActiveShift();
+  const [endShiftOpen, setEndShiftOpen] = useState(false);
+
+  const { data: store, isLoading: storeLoading } = useGetCurrentStore();
+  const { data: profile, isLoading: profileLoading } = useMyProfile();
+  const { data, isLoading } = useGetCurrentShift(profile?.id ?? '');
 
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
-        title="Dashboard"
+        title={`${store?.name ?? ''} Dashboard`}
         description="Sales, stock, and shift overview for today."
         actions={
           <div className="flex flex-wrap items-center gap-x-2 gap-y-3 sm:justify-end">
-            {isLoading ? (
+            {isLoading || profileLoading || storeLoading ? (
               <Skeleton className="h-10 w-28" />
-            ) : activeShift ? (
-              <ShiftStatus shift={activeShift} staffCode={profile?.staff_code} />
+            ) : profile?.active_shift_id && data?.clock_in_at ? (
+              <ShiftStatus shift={data} onEndShift={() => setEndShiftOpen(true)} />
             ) : profile ? (
               <Button variant="secondary" onClick={() => setStartShiftOpen(true)}>
                 <Sparkles />
@@ -48,7 +56,22 @@ export function DashboardPage() {
         <RecentSales />
       </div>
 
-      <StartShiftDialog open={startShiftOpen} onOpenChange={setStartShiftOpen} />
+      {profile && (
+        <StartShiftDialog
+          open={startShiftOpen}
+          onOpenChange={setStartShiftOpen}
+          profile={profile}
+          isLoading={isLoading}
+          store={store?.name ?? 'Main Store'}
+        />
+      )}
+
+      <EndShiftDialog
+        open={endShiftOpen}
+        onOpenChange={setEndShiftOpen}
+        shift={data ?? null}
+        isLoading={isLoading}
+      />
     </div>
   );
 }
