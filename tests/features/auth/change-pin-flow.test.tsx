@@ -75,7 +75,7 @@ describe('Forced PIN change on login', () => {
 
     await user.type(screen.getByPlaceholderText('Enter staff code'), 'STAFF02');
     await user.type(screen.getByLabelText(/^PIN$/), '123456');
-    await user.click(screen.getByRole('button', { name: 'Sign In' }));
+    await user.click(screen.getByRole('button', { name: 'Clock In' }));
 
     expect(await screen.findByRole('dialog')).toBeInTheDocument();
     expect(screen.getByText('Change your PIN')).toBeInTheDocument();
@@ -108,7 +108,7 @@ describe('Forced PIN change on login', () => {
 
     await user.type(screen.getByPlaceholderText('Enter staff code'), 'STAFF02');
     await user.type(screen.getByLabelText(/^PIN$/), '123456');
-    await user.click(screen.getByRole('button', { name: 'Sign In' }));
+    await user.click(screen.getByRole('button', { name: 'Clock In' }));
 
     await screen.findByRole('dialog');
 
@@ -148,7 +148,7 @@ describe('Forced PIN change on login', () => {
 
     await user.type(screen.getByPlaceholderText('Enter staff code'), 'STAFF02');
     await user.type(screen.getByLabelText(/^PIN$/), '123456');
-    await user.click(screen.getByRole('button', { name: 'Sign In' }));
+    await user.click(screen.getByRole('button', { name: 'Clock In' }));
 
     await screen.findByRole('dialog');
 
