@@ -13,3 +13,16 @@ export interface ShiftStartResponse {
   created_at: string;
   updated_at: string;
 }
+
+export type ListShiftsParams = {
+  staff_id?: string;
+  from?: string;
+  to?: string;
+  limit?: number;
+  cursor?: string;
+};
+
+export type ListShiftsResponse = {
+  data: ShiftStartResponse[];
+  next_cursor?: string | null;
+};

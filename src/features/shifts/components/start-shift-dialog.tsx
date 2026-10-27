@@ -83,7 +83,7 @@ interface StartShiftFormProps {
 }
 
 function StartShiftForm({ profile, onClose, isLoading, store }: StartShiftFormProps) {
-  const { isPending, mutateAsync } = useStartShift();
+  const { isPending, mutateAsync } = useStartShift(profile.id);
 
   const form = useForm<StartShiftFormInput, unknown, StartShiftValues>({
     resolver: zodResolver(startShiftSchema),

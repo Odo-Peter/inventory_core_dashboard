@@ -75,7 +75,7 @@ interface EndShiftFormProps {
 }
 
 function EndShiftForm({ shift, isLoading, onClose }: EndShiftFormProps) {
-  const { isPending, mutateAsync } = useEndShift();
+  const { isPending, mutateAsync } = useEndShift(shift.staff_id);
 
   const form = useForm<EndShiftFormInput, unknown, EndShiftValues>({
     resolver: zodResolver(endShiftSchema),
