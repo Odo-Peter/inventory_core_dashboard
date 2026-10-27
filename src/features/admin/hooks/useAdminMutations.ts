@@ -4,12 +4,15 @@ import type { StaffFormInput, StaffUpdateValues } from '../schemas/staff-form.sc
 import {
   createStaff,
   deactivateStaff,
+  forceCloseShift,
   reactivateStaff,
   resetStaffPin,
   updateStaff,
 } from '../services/admin.service';
 import type { AdminPinValues } from '../schemas/admin-pin.schema';
 import { queryKeys } from '@/lib/query-keys';
+import type { AdminEndShiftValues } from '@/features/shifts/schemas/admin-end-shift.schema';
+import { invalidateShiftRelated } from '@/features/shifts/hooks/useShiftMutations';
 
 export const useCreateStaff = () => {
   const queryClient = useQueryClient();
@@ -71,6 +74,17 @@ export const useResetStaffPin = () => {
         queryClient.invalidateQueries({ queryKey: queryKeys.staff.all }),
         queryClient.invalidateQueries({ queryKey: queryKeys.staff.detail(id) }),
       ]);
+    },
+  });
+};
+
+export const useForceCloseShift = (staffId: string) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: AdminEndShiftValues }) =>
+      forceCloseShift(id, payload),
+    onSuccess: async () => {
+      await invalidateShiftRelated(queryClient, staffId);
     },
   });
 };

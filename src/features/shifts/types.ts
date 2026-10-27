@@ -1,4 +1,4 @@
-export interface ShiftStartResponse {
+export interface Shift {
   id: string;
   store_id: string;
   staff_id: string;
@@ -23,6 +23,6 @@ export type ListShiftsParams = {
 };
 
 export type ListShiftsResponse = {
-  data: ShiftStartResponse[];
+  data: Shift[];
   next_cursor?: string | null;
 };

@@ -4,7 +4,7 @@ import { endShift, startShift } from '../services/shift.service';
 import { queryKeys } from '@/lib/query-keys';
 import type { EndShiftValues, StartShiftValues } from '../schemas/start-shift.schema';
 
-async function invalidateShiftRelated(
+export async function invalidateShiftRelated(
   queryClient: ReturnType<typeof useQueryClient>,
   staffId?: string,
 ) {

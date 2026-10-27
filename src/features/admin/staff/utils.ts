@@ -4,13 +4,19 @@ const dateFormatter = new Intl.DateTimeFormat('en-NG', {
   year: 'numeric',
 });
 
+const longDateFormatter = new Intl.DateTimeFormat('en-NG', {
+  day: '2-digit',
+  month: 'long',
+  year: 'numeric',
+});
+
 export const dateTimeFormatter = new Intl.DateTimeFormat('en-NG', {
   dateStyle: 'medium',
   timeStyle: 'short',
 });
 
-export function formatStaffDate(value: string) {
-  return dateFormatter.format(new Date(value));
+export function formatStaffDate(value: string, isLong?: boolean) {
+  return isLong ? longDateFormatter.format(new Date(value)) : dateFormatter.format(new Date(value));
 }
 
 export function formatStaffDateTime(value: string) {

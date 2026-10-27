@@ -34,7 +34,11 @@ export function DashboardPage() {
             {isLoading || profileLoading || storeLoading ? (
               <Skeleton className="h-10 w-28" />
             ) : profile?.active_shift_id && data?.clock_in_at ? (
-              <ShiftStatus shift={data} onEndShift={() => setEndShiftOpen(true)} />
+              <ShiftStatus
+                shift={data}
+                onEndShift={() => setEndShiftOpen(true)}
+                principal={profile}
+              />
             ) : profile ? (
               <Button variant="secondary" onClick={() => setStartShiftOpen(true)}>
                 <Sparkles />

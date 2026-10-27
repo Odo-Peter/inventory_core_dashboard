@@ -1,6 +1,6 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { toast } from 'sonner'; // or your toast lib
+import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -18,7 +18,7 @@ import { Spinner } from '@/components/ui/spinner';
 import { Field } from '@/components/ui/field';
 import { cn } from '@/lib/utils';
 
-import type { ShiftStartResponse } from '../types';
+import type { Shift } from '../types';
 import { formatTime } from '@/features/admin/staff/utils';
 import { useEndShift } from '../hooks/useShiftMutations';
 import {
@@ -33,7 +33,7 @@ const NOTE_LIMIT = 1000;
 interface EndShiftDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  shift: ShiftStartResponse | null;
+  shift: Shift | null;
   isLoading?: boolean;
 }
 
@@ -69,7 +69,7 @@ export function EndShiftDialog({
 }
 
 interface EndShiftFormProps {
-  shift: ShiftStartResponse;
+  shift: Shift;
   isLoading: boolean;
   onClose: () => void;
 }

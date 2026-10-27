@@ -11,14 +11,17 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet';
 
-import type { ShiftStartResponse } from '../types';
-import { formatNaira, formatTime } from '@/features/admin/staff/utils';
+import type { Shift } from '../types';
+import { formatNaira, formatStaffDate, formatTime } from '@/features/admin/staff/utils';
+import { useGetStaff } from '@/features/admin/hooks/useAdminQueries';
 
 interface ShiftDetailsDrawerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  shift?: ShiftStartResponse | null;
-  onEndShift?: () => void;
+  shift?: Shift | null;
+  principal?: { id: string; role?: string } | null;
+  onEndShift?: (shift: Shift) => void;
+  onAdminEndShift?: (shift: Shift) => void;
 }
 
 function DetailItem({ label, children }: { label: string; children: ReactNode }) {
@@ -32,13 +35,61 @@ function DetailItem({ label, children }: { label: string; children: ReactNode })
   );
 }
 
+function isShiftOpen(shift: Shift) {
+  return shift.clock_out_at == null;
+}
+
+function canEndShift(shift: Shift, principal?: { id: string; role?: string }): boolean {
+  if (!isShiftOpen(shift) || !principal) return false;
+
+  const isOwner = principal.id === shift.id;
+  const isManagerOrAdmin = principal.role === 'admin' || principal.role === 'manager';
+
+  return isOwner || isManagerOrAdmin;
+}
+
+function isManagerOrAdmin(role?: string) {
+  return role === 'admin' || role === 'manager';
+}
+
+function formatShiftDuration(clockIn: string, clockOut: string): string {
+  const durationMs = new Date(clockOut).getTime() - new Date(clockIn).getTime();
+  const totalMinutes = Math.floor(durationMs / 60_000);
+
+  return `${Math.floor(totalMinutes / 60)}h ${totalMinutes % 60}m`;
+}
+
 export function ShiftDetailsDrawer({
   open,
   onOpenChange,
   shift,
   onEndShift,
+  principal,
+  onAdminEndShift,
 }: ShiftDetailsDrawerProps) {
-  const isOpen = shift && !shift.clock_out_at;
+  const { data: staff } = useGetStaff(shift?.staff_id ?? '');
+
+  const showEndShift =
+    !!shift &&
+    !!principal &&
+    canEndShift(shift, principal) &&
+    (typeof onEndShift === 'function' || typeof onAdminEndShift === 'function');
+
+  const isForeignShift = !!shift && !!principal && shift.staff_id !== principal.id;
+
+  const handleEndShift = () => {
+    if (!shift) return;
+    onOpenChange(false);
+
+    // Admin/manager closing someone else's open shift → reason dialog
+    if (isForeignShift && isManagerOrAdmin(principal?.role) && onAdminEndShift) {
+      onAdminEndShift(shift);
+      return;
+    }
+
+    // Own shift
+    onEndShift?.(shift);
+  };
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -53,13 +104,23 @@ export function ShiftDetailsDrawer({
 
           <div className="flex-1 space-y-4 overflow-y-auto p-4">
             <div className="flex items-center gap-2">
-              <Badge variant={isOpen ? 'success' : 'secondary'}>{isOpen ? 'Open' : 'Closed'}</Badge>
+              <Badge variant={isShiftOpen(shift) ? 'success' : 'secondary'}>
+                {isShiftOpen(shift) ? 'Open' : 'Closed'}
+              </Badge>
               <span className="text-muted-foreground text-sm">
-                Since{' '}
+                Start{' '}
                 <span className="text-foreground font-medium tabular-nums">
                   {formatTime(shift.clock_in_at)}
                 </span>
               </span>
+              {shift.clock_out_at ? (
+                <span className="text-muted-foreground text-sm">
+                  End{' '}
+                  <span className="text-foreground font-medium tabular-nums">
+                    {formatTime(shift.clock_out_at)}
+                  </span>
+                </span>
+              ) : null}
             </div>
 
             <section className="rounded-lg border">
@@ -73,11 +134,15 @@ export function ShiftDetailsDrawer({
                     {shift.clock_out_at ? formatTime(shift.clock_out_at) : '—'}
                   </span>
                 </DetailItem>
-                <DetailItem label="Created">
-                  <span className="tabular-nums">{formatTime(shift.created_at)}</span>
+                <DetailItem label="Date">
+                  <span className="tabular-nums">{formatStaffDate(shift.created_at, true)}</span>
                 </DetailItem>
-                <DetailItem label="Updated">
-                  <span className="tabular-nums">{formatTime(shift.updated_at)}</span>
+                <DetailItem label="Duration">
+                  <span className="tabular-nums">
+                    {shift.clock_out_at
+                      ? formatShiftDuration(shift.clock_in_at, shift.clock_out_at)
+                      : '—'}
+                  </span>
                 </DetailItem>
               </dl>
             </section>
@@ -102,7 +167,9 @@ export function ShiftDetailsDrawer({
                   {shift.closing_notes?.trim() ? shift.closing_notes : '—'}
                 </DetailItem>
                 <DetailItem label="Close reason">
-                  {shift.close_reason?.trim() ? shift.close_reason : '—'}
+                  <span className="capitalize">
+                    {shift.close_reason?.trim() ? shift.close_reason : '—'}
+                  </span>
                 </DetailItem>
               </dl>
             </section>
@@ -110,11 +177,14 @@ export function ShiftDetailsDrawer({
             <section className="rounded-lg border">
               <h3 className="border-b px-3 py-2 text-xs font-medium">Identifiers</h3>
               <dl className="grid grid-cols-1 gap-3 p-3">
-                <DetailItem label="Shift ID">
-                  <span className="font-mono text-xs break-all">{shift.id}</span>
+                <DetailItem label="Staff Name">
+                  <span className="text-xs break-all">{staff?.name ?? 'Staff'}</span>
                 </DetailItem>
                 <DetailItem label="Staff ID">
                   <span className="font-mono text-xs break-all">{shift.staff_id}</span>
+                </DetailItem>
+                <DetailItem label="Shift ID">
+                  <span className="font-mono text-xs break-all">{shift.id}</span>
                 </DetailItem>
                 <DetailItem label="Store ID">
                   <span className="font-mono text-xs break-all">{shift.store_id}</span>
@@ -130,18 +200,13 @@ export function ShiftDetailsDrawer({
 
           <SheetFooter className="flex-row justify-end border-t">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
+              Close
             </Button>
-            <Button
-              type="button"
-              variant="destructive"
-              onClick={() => {
-                onOpenChange(false);
-                onEndShift?.();
-              }}
-            >
-              End shift
-            </Button>
+            {showEndShift ? (
+              <Button type="button" variant="destructive" onClick={handleEndShift}>
+                End shift
+              </Button>
+            ) : null}
           </SheetFooter>
         </SheetContent>
       ) : null}

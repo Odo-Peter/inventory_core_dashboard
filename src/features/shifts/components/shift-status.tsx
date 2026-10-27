@@ -5,15 +5,17 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { formatTime } from '@/features/admin/staff/utils';
 
-import type { ShiftStartResponse } from '../types';
+import type { Shift } from '../types';
 import { ShiftDetailsDrawer } from './shift-details-drawer';
+import type { MyProfile } from '@/features/auth/interface';
 
 interface ShiftStatusProps {
-  shift: ShiftStartResponse;
+  shift: Shift;
+  principal: MyProfile;
   onEndShift?: () => void;
 }
 
-export function ShiftStatus({ shift, onEndShift }: ShiftStatusProps) {
+export function ShiftStatus({ shift, onEndShift, principal }: ShiftStatusProps) {
   const [detailsOpen, setDetailsOpen] = useState(false);
 
   return (
@@ -35,6 +37,7 @@ export function ShiftStatus({ shift, onEndShift }: ShiftStatusProps) {
         onOpenChange={setDetailsOpen}
         shift={shift}
         onEndShift={onEndShift}
+        principal={principal}
       />
     </>
   );
