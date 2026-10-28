@@ -1,9 +1,13 @@
 import { createBrowserRouter } from 'react-router';
+
 import { Root } from '@/routes/root';
+import { GuestRoute } from '@/features/auth/guards/guest-route';
+import { ProtectedRoute } from '@/features/auth/guards/protected-route';
+import { AppShell } from '@/components/layout/app-shell';
+
 import { IndexRoute } from '@/routes/index';
 import { DashboardRoute } from '@/routes/dashboard';
 import { InventoryRoute } from '@/routes/inventory';
-import { PosRoute } from '@/routes/pos';
 import { SettingsRoute } from '@/routes/settings';
 import { SalesNewRoute } from '@/routes/sales-new';
 import { SalesRoute } from '@/routes/sales';
@@ -12,9 +16,7 @@ import { ShiftSummaryRoute } from '@/routes/shift-summary';
 import { StaffRoute } from '@/routes/staff';
 import { PaymentAccountsRoute } from '@/routes/payment-accounts';
 import { NotFoundRoute } from '@/routes/not-found';
-import { AppShell } from '@/components/layout/app-shell';
-import { GuestRoute } from '@/features/auth/guards/guest-route';
-import { ProtectedRoute } from '@/features/auth/guards/protected-route';
+import { AuditsRoute } from '@/routes/audits';
 
 export const routes = [
   {
@@ -52,8 +54,8 @@ export const routes = [
           { path: 'shifts/summary', element: <ShiftSummaryRoute /> },
           { path: 'admin/staff', element: <StaffRoute /> },
           { path: 'admin/payment-accounts', element: <PaymentAccountsRoute /> },
+          { path: 'admin/audits', element: <AuditsRoute /> },
           { path: 'settings', element: <SettingsRoute /> },
-          { path: 'pos', element: <PosRoute /> },
         ],
       },
       { path: '*', element: <NotFoundRoute /> },
