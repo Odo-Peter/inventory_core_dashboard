@@ -28,7 +28,7 @@ import {
 } from '../schemas/admin-end-shift.schema';
 import { useForceCloseShift } from '@/features/admin/hooks/useAdminMutations';
 
-const NOTE_LIMIT = 1000;
+const NOTE_LIMIT = 500;
 
 interface AdminEndShiftDialogProps {
   open: boolean;

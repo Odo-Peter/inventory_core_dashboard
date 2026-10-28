@@ -19,7 +19,7 @@ import { Field } from '@/components/ui/field';
 import { cn } from '@/lib/utils';
 
 import type { Shift } from '../types';
-import { formatTime } from '@/features/admin/staff/utils';
+import { formatTimestamp } from '@/features/admin/staff/utils';
 import { useEndShift } from '../hooks/useShiftMutations';
 import {
   endShiftSchema,
@@ -28,7 +28,7 @@ import {
 } from '../schemas/start-shift.schema';
 import { FieldError } from '@/components/states';
 
-const NOTE_LIMIT = 1000;
+const NOTE_LIMIT = 500;
 
 interface EndShiftDialogProps {
   open: boolean;
@@ -111,7 +111,9 @@ function EndShiftForm({ shift, isLoading, onClose }: EndShiftFormProps) {
           <p className="text-muted-foreground text-[11px] font-medium tracking-wide uppercase">
             Shift started
           </p>
-          <p className="mt-1 text-sm font-medium tabular-nums">{formatTime(shift.clock_in_at)}</p>
+          <p className="mt-1 text-sm font-medium tabular-nums">
+            {formatTimestamp(shift.clock_in_at)}
+          </p>
           <p className="text-muted-foreground mt-1 text-xs">
             Clock-out time will be recorded when you confirm.
           </p>

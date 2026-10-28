@@ -3,7 +3,7 @@ import { BookCheck } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { formatTime } from '@/features/admin/staff/utils';
+import { formatTimestamp } from '@/features/admin/staff/utils';
 
 import type { Shift } from '../types';
 import { ShiftDetailsDrawer } from './shift-details-drawer';
@@ -24,7 +24,7 @@ export function ShiftStatus({ shift, onEndShift, principal }: ShiftStatusProps) 
         <Badge variant="success">Open</Badge>
         <span>
           Shift open since{' '}
-          <span className="font-medium tabular-nums">{formatTime(shift.clock_in_at)}</span>
+          <span className="font-medium tabular-nums">{formatTimestamp(shift.clock_in_at)}</span>
         </span>
         <Button type="button" variant="secondary" onClick={() => setDetailsOpen(true)}>
           <BookCheck />
