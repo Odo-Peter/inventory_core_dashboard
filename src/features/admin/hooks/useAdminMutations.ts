@@ -7,6 +7,7 @@ import {
   forceCloseShift,
   reactivateStaff,
   resetStaffPin,
+  unlockStaffAccount,
   updateStaff,
 } from '../services/admin.service';
 import type { AdminPinValues } from '../schemas/admin-pin.schema';
@@ -69,6 +70,20 @@ export const useResetStaffPin = () => {
   return useMutation({
     mutationFn: ({ id, payload }: { id: string; payload: AdminPinValues }) =>
       resetStaffPin(id, payload),
+    onSuccess: async (_data, { id }) => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: queryKeys.staff.all }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.staff.detail(id) }),
+      ]);
+    },
+  });
+};
+
+export const useUnlockStaff = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: AdminPinValues }) =>
+      unlockStaffAccount(id, payload),
     onSuccess: async (_data, { id }) => {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: queryKeys.staff.all }),

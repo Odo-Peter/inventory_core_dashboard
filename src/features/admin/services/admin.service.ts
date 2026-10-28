@@ -35,6 +35,11 @@ export const resetStaffPin = async (
   return data;
 };
 
+export const unlockStaffAccount = async (id: string, payload: AdminPinValues): Promise<Staff> => {
+  const { data } = await axiosInstance.post<Staff>(`/staff/${id}/unlock`, payload);
+  return data;
+};
+
 export const listStaff = async (): Promise<Staff[]> => {
   const { data } = await axiosInstance.get<Staff[]>('/staff');
   return data;

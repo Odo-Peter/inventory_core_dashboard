@@ -4,6 +4,7 @@ import {
   MoreHorizontalIcon,
   PencilIcon,
   Trash2Icon,
+  UnlockIcon,
   UserCheck,
 } from 'lucide-react';
 
@@ -41,11 +42,12 @@ interface StaffTableProps {
   onResetPin: (staff: Staff) => void;
   onDeactivate: (staff: Staff) => void;
   onReactivate: (staff: Staff) => void;
+  onUnlock: (staff: Staff) => void;
 }
 
 interface StaffRowActionsProps extends Pick<
   StaffTableProps,
-  'onView' | 'onEdit' | 'onResetPin' | 'onDeactivate' | 'onReactivate'
+  'onView' | 'onEdit' | 'onResetPin' | 'onDeactivate' | 'onReactivate' | 'onUnlock'
 > {
   staff: Staff;
   isActive: boolean;
@@ -95,6 +97,7 @@ function StaffRowActions({
   onResetPin,
   onDeactivate,
   onReactivate,
+  onUnlock,
   isActive,
 }: StaffRowActionsProps) {
   return (
@@ -124,6 +127,12 @@ function StaffRowActions({
           <KeyRoundIcon />
           Reset PIN
         </DropdownMenuItem>
+        {staff.is_locked && (
+          <DropdownMenuItem onClick={() => onUnlock(staff)}>
+            <UnlockIcon />
+            Unlock Account
+          </DropdownMenuItem>
+        )}
         <DropdownMenuSeparator />
         {isActive ? (
           <DropdownMenuItem variant="destructive" onClick={() => onDeactivate(staff)}>
@@ -148,6 +157,7 @@ export function StaffTable({
   onResetPin,
   onDeactivate,
   onReactivate,
+  onUnlock,
   isLoading,
   skeletonRows = 5,
 }: StaffTableProps) {
@@ -244,6 +254,7 @@ export function StaffTable({
                     onResetPin={onResetPin}
                     onDeactivate={onDeactivate}
                     onReactivate={onReactivate}
+                    onUnlock={onUnlock}
                     isActive={member.active}
                   />
                 </TableCell>

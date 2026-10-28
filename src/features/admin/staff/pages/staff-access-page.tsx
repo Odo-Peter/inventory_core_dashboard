@@ -16,6 +16,7 @@ import type { Staff } from '../types';
 import { useListStaff } from '../../hooks/useAdminQueries';
 import { useDeactivateStaff, useReactivateStaff } from '../../hooks/useAdminMutations';
 import { ResetPinDialog } from '../components/reset-pin-dialog';
+import { UnlockStaffDialog } from '../components/unlock-staff-dialog';
 
 type FormMode = 'add' | 'edit';
 
@@ -27,6 +28,7 @@ export function StaffAccessPage() {
   const [selectedStaff, setSelectedStaff] = useState<Staff | null>(null);
   const [createdStaff, setCreatedStaff] = useState<CreatedStaffInfo | null>(null);
   const [resetTarget, setResetTarget] = useState<Staff | null>(null);
+  const [unlockTarget, setUnlockTarget] = useState<Staff | null>(null);
   const [confirmTarget, setConfirmTarget] = useState<{
     staff: Staff;
     action: ConfirmAction;
@@ -43,6 +45,7 @@ export function StaffAccessPage() {
   const requestReactivate = (member: Staff) =>
     setConfirmTarget({ staff: member, action: 'reactivate' });
   const resetPin = (member: Staff) => setResetTarget(member);
+  const unlockAccount = (member: Staff) => setUnlockTarget(member);
 
   const openAddStaff = () => {
     setFormMode('add');
@@ -101,6 +104,7 @@ export function StaffAccessPage() {
         onResetPin={resetPin}
         onDeactivate={requestDeactivate}
         onReactivate={requestReactivate}
+        onUnlock={unlockAccount}
         isLoading={isLoading}
       />
 
@@ -123,6 +127,13 @@ export function StaffAccessPage() {
           setCreatedVariant('reset');
           setCreatedStaff(info);
         }}
+      />
+
+      <UnlockStaffDialog
+        open={!!unlockTarget}
+        onOpenChange={(open) => !open && setUnlockTarget(null)}
+        staff={unlockTarget}
+        onUnlock={() => setUnlockTarget(null)}
       />
 
       <CreatedStaffDialog
