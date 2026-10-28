@@ -12,8 +12,11 @@ export const startShiftSchema = z
     opening_float: z
       .string()
       .trim()
-      .min(1, 'Enter the starting cash amount')
       .superRefine((value, context) => {
+        if (value === '') {
+          return;
+        }
+
         if (value.startsWith('-')) {
           context.addIssue({
             code: 'custom',
@@ -29,11 +32,11 @@ export const startShiftSchema = z
           });
         }
       })
-      .transform((value) => nairaToKobo(value)),
+      .transform((value) => (value === '' ? 0 : nairaToKobo(value))),
     opening_notes: z
       .string()
       .trim()
-      .max(1000, 'Opening notes must be 1000 characters or fewer')
+      .max(500, 'Opening notes must be 500 characters or fewer')
       .optional()
       .transform((value) => value || undefined),
   })

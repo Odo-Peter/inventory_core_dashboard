@@ -33,13 +33,13 @@ export function DashboardPage() {
           <div className="flex flex-wrap items-center gap-x-2 gap-y-3 sm:justify-end">
             {isLoading || profileLoading || storeLoading ? (
               <Skeleton className="h-10 w-28" />
-            ) : profile?.active_shift_id && data?.clock_in_at ? (
+            ) : profile?.role !== 'admin' && profile?.active_shift_id && data ? (
               <ShiftStatus
                 shift={data}
                 onEndShift={() => setEndShiftOpen(true)}
                 principal={profile}
               />
-            ) : profile ? (
+            ) : profile && profile.role !== 'admin' && !profile?.active_shift_id ? (
               <Button variant="secondary" onClick={() => setStartShiftOpen(true)}>
                 <Sparkles />
                 Start Shift

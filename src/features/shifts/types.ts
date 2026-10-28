@@ -3,7 +3,7 @@ export interface Shift {
   store_id: string;
   staff_id: string;
   clock_in_at: string;
-  clock_out_at: string;
+  clock_out_at: string | null;
   opening_float: number;
   closing_cash_counted: number | null;
   opening_notes: string | null;

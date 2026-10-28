@@ -11,7 +11,7 @@ export const adminEndShiftSchema = z.object({
   reason: z
     .string()
     .trim()
-    .max(1000, 'Reason must be 1000 characters or fewer')
+    .max(500, 'Reason must be 500 characters or fewer')
     .optional()
     .transform((value) => value || undefined),
   closing_cash_counted: z
