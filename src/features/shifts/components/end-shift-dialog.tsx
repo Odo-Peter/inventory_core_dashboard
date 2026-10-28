@@ -142,12 +142,12 @@ function EndShiftForm({ shift, isLoading, onClose }: EndShiftFormProps) {
                     closingCashKobo == null ? (
                       'Total cash counted in the drawer at the end of the shift'
                     ) : (
-                      <p>
+                      <span>
                         Total cash counted in the drawer at the end of the shift:{' '}
                         <span className="font-semibold text-emerald-700">
                           ${formatNaira(closingCashKobo)}
                         </span>
-                      </p>
+                      </span>
                     )
                   }
                   error={!!errors.closing_cash_counted}

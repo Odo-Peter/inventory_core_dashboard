@@ -160,12 +160,12 @@ function StartShiftForm({ profile, onClose, isLoading, store }: StartShiftFormPr
                     openingCash == null ? (
                       'Cash already in the drawer before the shift starts'
                     ) : (
-                      <p>
+                      <span>
                         Cash already in the drawer before the shift starts:{' '}
                         <span className="font-semibold text-emerald-700">
                           ${formatNaira(openingCash)}
                         </span>
-                      </p>
+                      </span>
                     )
                   }
 
