@@ -13,6 +13,11 @@ vi.mock('@/features/admin/services/admin.service', () => ({
   createStaff: vi.fn(),
   updateStaff: vi.fn(),
   getCurrentStore: vi.fn().mockResolvedValue({ name: 'Main Store', id: 'store-1' }),
+  getAuditActions: vi.fn().mockResolvedValue({ actions: [] }),
+  getAudits: vi.fn().mockResolvedValue({
+    data: [],
+    meta: { page: 1, page_size: 25, total: 0, total_pages: 0 },
+  }),
 }));
 
 function renderAt(path: string) {
