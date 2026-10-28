@@ -19,16 +19,17 @@ import { Field } from '@/components/ui/field';
 import { cn } from '@/lib/utils';
 
 import type { Shift } from '../types';
-import { formatTime } from '@/features/admin/staff/utils';
+import { formatNaira, formatTime } from '@/features/admin/staff/utils';
 import { FieldError } from '@/components/states';
 import {
   adminEndShiftSchema,
+  parseNairaPreview,
   type AdminEndShiftFormInput,
   type AdminEndShiftValues,
 } from '../schemas/admin-end-shift.schema';
 import { useForceCloseShift } from '@/features/admin/hooks/useAdminMutations';
 
-const NOTE_LIMIT = 1000;
+const NOTE_LIMIT = 500;
 
 interface AdminEndShiftDialogProps {
   open: boolean;
@@ -95,6 +96,7 @@ function AdminEndShiftForm({ shift, isLoading, onClose }: AdminEndShiftFormProps
   } = form;
 
   const notesLength = form.watch('reason')?.length ?? 0;
+  const closingCashKobo = parseNairaPreview(form.watch('closing_cash_counted'));
 
   async function onSubmit(values: AdminEndShiftValues) {
     try {
@@ -142,7 +144,18 @@ function AdminEndShiftForm({ shift, isLoading, onClose }: AdminEndShiftFormProps
                   autoFocus
                   required
                   disabled={isPending || isLoading}
-                  helpText="Total cash counted in the drawer at the end of the shift"
+                  helpText={
+                    closingCashKobo == null ? (
+                      'Total cash counted in the drawer at the end of the shift'
+                    ) : (
+                      <span>
+                        Total cash counted in the drawer at the end of the shift:{' '}
+                        <span className="font-semibold text-emerald-700">
+                          ${formatNaira(closingCashKobo)}
+                        </span>
+                      </span>
+                    )
+                  }
                   error={!!errors.closing_cash_counted}
                   errorText={errors.closing_cash_counted?.message}
                 />

@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { endShift, startShift } from '../services/shift.service';
 import { queryKeys } from '@/lib/query-keys';
 import type { EndShiftValues, StartShiftValues } from '../schemas/start-shift.schema';
+import { useInvalidateAudits } from '@/features/admin/hooks/useAdminMutations';
 
 export async function invalidateShiftRelated(
   queryClient: ReturnType<typeof useQueryClient>,
@@ -21,20 +22,26 @@ export async function invalidateShiftRelated(
 
 export const useStartShift = (staffId?: string) => {
   const queryClient = useQueryClient();
+  const invalidateAudits = useInvalidateAudits();
+
   return useMutation({
     mutationFn: (payload: StartShiftValues) => startShift(payload),
     onSuccess: async () => {
       await invalidateShiftRelated(queryClient, staffId);
+      invalidateAudits();
     },
   });
 };
 
 export const useEndShift = (staffId?: string) => {
   const queryClient = useQueryClient();
+  const invalidateAudits = useInvalidateAudits();
+
   return useMutation({
     mutationFn: (payload: EndShiftValues) => endShift(payload),
     onSuccess: async () => {
       await invalidateShiftRelated(queryClient, staffId);
+      invalidateAudits();
     },
   });
 };

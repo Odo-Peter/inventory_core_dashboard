@@ -2,8 +2,20 @@ import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 
+import { getStaffColumns } from '@/features/admin/staff/components/staff-columns';
 import { StaffTable } from '@/features/admin/staff/components/staff-table';
+import type { Staff } from '@/features/admin/staff/types';
 import { openStaffRowActions, staffFixtures } from '../../helpers/staff';
+
+function describeStaff(staff: Staff[]) {
+  const activeCount = staff.filter((member) => member.active).length;
+  const lockedCount = staff.filter((member) => member.is_locked).length;
+
+  return (
+    `${staff.length} ${staff.length === 1 ? 'member' : 'members'} · ${activeCount} active` +
+    (lockedCount > 0 ? ` · ${lockedCount} locked` : '')
+  );
+}
 
 function renderTable(staff = staffFixtures) {
   const callbacks = {
@@ -12,9 +24,16 @@ function renderTable(staff = staffFixtures) {
     onResetPin: vi.fn(),
     onDeactivate: vi.fn(),
     onReactivate: vi.fn(),
+    onUnlock: vi.fn(),
   };
 
-  render(<StaffTable staff={staff} {...callbacks} />);
+  render(
+    <StaffTable
+      columns={getStaffColumns(callbacks)}
+      staff={staff}
+      description={describeStaff(staff)}
+    />,
+  );
 
   return callbacks;
 }
@@ -49,6 +68,7 @@ describe('StaffTable', () => {
 
     expect(screen.getByText('0 members · 0 active')).toBeInTheDocument();
     expect(screen.getByText('No staff members found.')).toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: 'Staff' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /^Actions for/ })).not.toBeInTheDocument();
   });
 

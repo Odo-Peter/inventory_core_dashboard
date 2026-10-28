@@ -24,8 +24,8 @@ export const getShifts = async (params: ListShiftsParams = {}): Promise<ListShif
       staff_id: params.staff_id,
       from: params.from,
       to: params.to,
-      limit: params.limit,
-      cursor: params.cursor,
+      page: params.page,
+      page_size: params.page_size,
     },
   });
   return data;

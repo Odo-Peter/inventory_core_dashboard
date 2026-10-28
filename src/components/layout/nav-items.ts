@@ -2,6 +2,7 @@ import {
   ArrowLeftRightIcon,
   ClockIcon,
   CreditCardIcon,
+  FileScan,
   LayoutDashboardIcon,
   PackageIcon,
   PlusIcon,
@@ -51,6 +52,7 @@ export const navGroups: NavGroup[] = [
     items: [
       { label: 'Staff & Access', to: '/admin/staff', icon: UsersIcon },
       { label: 'Payment Accounts', to: '/admin/payment-accounts', icon: CreditCardIcon },
+      { label: 'Audits', to: '/admin/audits', icon: FileScan },
       { label: 'Settings', to: '/settings', icon: SettingsIcon },
     ],
   },

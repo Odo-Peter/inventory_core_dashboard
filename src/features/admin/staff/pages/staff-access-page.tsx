@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { PlusIcon } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -16,6 +16,8 @@ import type { Staff } from '../types';
 import { useListStaff } from '../../hooks/useAdminQueries';
 import { useDeactivateStaff, useReactivateStaff } from '../../hooks/useAdminMutations';
 import { ResetPinDialog } from '../components/reset-pin-dialog';
+import { UnlockStaffDialog } from '../components/unlock-staff-dialog';
+import { getStaffColumns } from '../components/staff-columns';
 
 type FormMode = 'add' | 'edit';
 
@@ -27,6 +29,7 @@ export function StaffAccessPage() {
   const [selectedStaff, setSelectedStaff] = useState<Staff | null>(null);
   const [createdStaff, setCreatedStaff] = useState<CreatedStaffInfo | null>(null);
   const [resetTarget, setResetTarget] = useState<Staff | null>(null);
+  const [unlockTarget, setUnlockTarget] = useState<Staff | null>(null);
   const [confirmTarget, setConfirmTarget] = useState<{
     staff: Staff;
     action: ConfirmAction;
@@ -38,11 +41,28 @@ export function StaffAccessPage() {
   const deactivateStaff = useDeactivateStaff();
   const reactivateStaff = useReactivateStaff();
 
-  const requestDeactivate = (member: Staff) =>
-    setConfirmTarget({ staff: member, action: 'deactivate' });
-  const requestReactivate = (member: Staff) =>
-    setConfirmTarget({ staff: member, action: 'reactivate' });
-  const resetPin = (member: Staff) => setResetTarget(member);
+  // Stable handlers, so the columns are only built once
+  const requestDeactivate = useCallback(
+    (member: Staff) => setConfirmTarget({ staff: member, action: 'deactivate' }),
+    [],
+  );
+  const requestReactivate = useCallback(
+    (member: Staff) => setConfirmTarget({ staff: member, action: 'reactivate' }),
+    [],
+  );
+  const resetPin = useCallback((member: Staff) => setResetTarget(member), []);
+  const unlockAccount = useCallback((member: Staff) => setUnlockTarget(member), []);
+
+  const openEditStaff = useCallback((member: Staff) => {
+    setFormMode('edit');
+    setSelectedStaff(member);
+    setFormOpen(true);
+  }, []);
+
+  const openStaffDetails = useCallback((member: Staff) => {
+    setSelectedStaff(member);
+    setDetailsOpen(true);
+  }, []);
 
   const openAddStaff = () => {
     setFormMode('add');
@@ -50,16 +70,33 @@ export function StaffAccessPage() {
     setFormOpen(true);
   };
 
-  const openEditStaff = (member: Staff) => {
-    setFormMode('edit');
-    setSelectedStaff(member);
-    setFormOpen(true);
-  };
+  const columns = useMemo(
+    () =>
+      getStaffColumns({
+        onView: openStaffDetails,
+        onEdit: openEditStaff,
+        onResetPin: resetPin,
+        onDeactivate: requestDeactivate,
+        onReactivate: requestReactivate,
+        onUnlock: unlockAccount,
+      }),
+    [
+      openStaffDetails,
+      openEditStaff,
+      resetPin,
+      requestDeactivate,
+      requestReactivate,
+      unlockAccount,
+    ],
+  );
 
-  const openStaffDetails = (member: Staff) => {
-    setSelectedStaff(member);
-    setDetailsOpen(true);
-  };
+  const staff = useMemo(() => data ?? [], [data]);
+  const activeCount = staff.filter((member) => member.active).length;
+  const lockedCount = staff.filter((member) => member.is_locked).length;
+
+  const description =
+    `${staff.length} ${staff.length === 1 ? 'member' : 'members'} · ${activeCount} active` +
+    (lockedCount > 0 ? ` · ${lockedCount} locked` : '');
 
   return (
     <div className="flex flex-col gap-5">
@@ -94,15 +131,8 @@ export function StaffAccessPage() {
           )
         }
       />
-      <StaffTable
-        staff={data ?? []}
-        onView={openStaffDetails}
-        onEdit={openEditStaff}
-        onResetPin={resetPin}
-        onDeactivate={requestDeactivate}
-        onReactivate={requestReactivate}
-        isLoading={isLoading}
-      />
+
+      <StaffTable columns={columns} staff={staff} description={description} isLoading={isLoading} />
 
       <StaffFormDrawer
         open={formOpen}
@@ -123,6 +153,13 @@ export function StaffAccessPage() {
           setCreatedVariant('reset');
           setCreatedStaff(info);
         }}
+      />
+
+      <UnlockStaffDialog
+        open={!!unlockTarget}
+        onOpenChange={(open) => !open && setUnlockTarget(null)}
+        staff={unlockTarget}
+        onUnlock={() => setUnlockTarget(null)}
       />
 
       <CreatedStaffDialog

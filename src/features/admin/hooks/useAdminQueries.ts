@@ -1,6 +1,13 @@
-import { useQuery } from '@tanstack/react-query';
-import { getCurrentStore, getStaff, listStaff } from '../services/admin.service';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
+import {
+  getAuditActions,
+  getAudits,
+  getCurrentStore,
+  getStaff,
+  listStaff,
+} from '../services/admin.service';
 import { queryKeys } from '@/lib/query-keys';
+import type { ListAuditsParams } from '@/features/audit/types';
 
 export const useListStaff = () => {
   return useQuery({
@@ -22,5 +29,22 @@ export const useGetCurrentStore = () => {
   return useQuery({
     queryKey: queryKeys.store.current,
     queryFn: getCurrentStore,
+  });
+};
+
+export const useAudits = (params: ListAuditsParams = {}) => {
+  return useQuery({
+    queryKey: queryKeys.audits.list(params),
+    queryFn: () => getAudits(params),
+    placeholderData: keepPreviousData,
+  });
+};
+
+export const useAuditActions = () => {
+  return useQuery({
+    queryKey: queryKeys.auditActions,
+    queryFn: getAuditActions,
+    staleTime: 1000 * 60 * 60,
+    select: (data) => data.actions,
   });
 };

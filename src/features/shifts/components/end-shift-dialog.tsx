@@ -19,7 +19,7 @@ import { Field } from '@/components/ui/field';
 import { cn } from '@/lib/utils';
 
 import type { Shift } from '../types';
-import { formatTime } from '@/features/admin/staff/utils';
+import { formatNaira, formatTimestamp } from '@/features/admin/staff/utils';
 import { useEndShift } from '../hooks/useShiftMutations';
 import {
   endShiftSchema,
@@ -27,8 +27,9 @@ import {
   type EndShiftValues,
 } from '../schemas/start-shift.schema';
 import { FieldError } from '@/components/states';
+import { parseNairaPreview } from '../schemas/admin-end-shift.schema';
 
-const NOTE_LIMIT = 1000;
+const NOTE_LIMIT = 500;
 
 interface EndShiftDialogProps {
   open: boolean;
@@ -90,6 +91,7 @@ function EndShiftForm({ shift, isLoading, onClose }: EndShiftFormProps) {
   } = form;
 
   const notesLength = form.watch('closing_notes')?.length ?? 0;
+  const closingCashKobo = parseNairaPreview(form.watch('closing_cash_counted'));
 
   async function onSubmit(values: EndShiftValues) {
     try {
@@ -111,7 +113,9 @@ function EndShiftForm({ shift, isLoading, onClose }: EndShiftFormProps) {
           <p className="text-muted-foreground text-[11px] font-medium tracking-wide uppercase">
             Shift started
           </p>
-          <p className="mt-1 text-sm font-medium tabular-nums">{formatTime(shift.clock_in_at)}</p>
+          <p className="mt-1 text-sm font-medium tabular-nums">
+            {formatTimestamp(shift.clock_in_at)}
+          </p>
           <p className="text-muted-foreground mt-1 text-xs">
             Clock-out time will be recorded when you confirm.
           </p>
@@ -134,7 +138,18 @@ function EndShiftForm({ shift, isLoading, onClose }: EndShiftFormProps) {
                   autoFocus
                   required
                   disabled={isPending || isLoading}
-                  helpText="Total cash counted in the drawer at the end of the shift"
+                  helpText={
+                    closingCashKobo == null ? (
+                      'Total cash counted in the drawer at the end of the shift'
+                    ) : (
+                      <span>
+                        Total cash counted in the drawer at the end of the shift:{' '}
+                        <span className="font-semibold text-emerald-700">
+                          ${formatNaira(closingCashKobo)}
+                        </span>
+                      </span>
+                    )
+                  }
                   error={!!errors.closing_cash_counted}
                   errorText={errors.closing_cash_counted?.message}
                 />

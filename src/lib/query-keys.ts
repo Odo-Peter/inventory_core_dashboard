@@ -1,3 +1,5 @@
+import type { ListAuditsParams } from '@/features/audit/types';
+
 export const queryKeys = {
   staff: {
     all: ['staff'] as const,
@@ -13,4 +15,10 @@ export const queryKeys = {
   profile: {
     me: ['my-profile'] as const,
   },
+  audits: {
+    all: ['audits'] as const,
+    lists: ['audits', 'list'] as const,
+    list: (params: ListAuditsParams) => ['audits', 'list', params] as const,
+  },
+  auditActions: ['audit-actions'] as const,
 } as const;

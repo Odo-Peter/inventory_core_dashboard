@@ -7,6 +7,12 @@ function nairaToKobo(value: string): number {
   return Number(whole) * 100 + Number(fraction.padEnd(2, '0'));
 }
 
+export function parseNairaPreview(value: string | undefined): number | null {
+  const trimmed = (value ?? '').trim().replace(/\.$/, ''); // allow "12." mid-typing
+  if (!trimmed || !NAIRA_PATTERN.test(trimmed)) return null;
+  return nairaToKobo(trimmed);
+}
+
 export const adminEndShiftSchema = z.object({
   reason: z
     .string()

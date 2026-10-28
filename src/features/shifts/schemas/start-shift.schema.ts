@@ -70,7 +70,7 @@ export const endShiftSchema = z
     closing_notes: z
       .string()
       .trim()
-      .max(1000, 'Closing notes must be 1000 characters or fewer')
+      .max(500, 'Closing notes must be 500 characters or fewer')
       .optional()
       .transform((value) => value || undefined),
   })

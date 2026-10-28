@@ -43,7 +43,7 @@ function isShiftOpen(shift: Shift) {
 function canEndShift(shift: Shift, principal?: { id: string; role?: string }): boolean {
   if (!isShiftOpen(shift) || !principal) return false;
 
-  const isOwner = principal.id === shift.id;
+  const isOwner = principal.id === shift.staff_id;
   const isManagerOrAdmin = principal.role === 'admin' || principal.role === 'manager';
 
   return isOwner || isManagerOrAdmin;
