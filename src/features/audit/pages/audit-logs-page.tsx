@@ -1,64 +1,122 @@
-import { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router';
 
 import { PageHeader } from '@/components/shared/page-header';
-import { Button } from '@/components/ui/button';
-import { Spinner } from '@/components/ui/spinner';
 import { PermissionDeniedState } from '@/components/states';
-
+import { Button } from '@/components/ui/button';
+import { useAuditActions, useAudits } from '@/features/admin/hooks/useAdminQueries';
+import { useListStaff } from '@/features/admin/hooks/useAdminQueries';
 import { useMyProfile } from '@/features/auth/hooks/useAuthQueries';
 
-import { AuditTable } from '../components/audit-table';
 import { AuditDetailsDrawer } from '../components/audit-details-drawer';
+import { getAuditColumns } from '../components/audit-columns';
 import { AuditFiltersBar } from '../components/audit-filters';
-import { useAuditLogs } from '../hooks/useAuditLogs';
-import type { AuditEvent, AuditFilters } from '../types';
+import { AuditTable } from '../components/audit-table';
+import type { AuditFilters, AuditLog } from '../types';
+import { formatAuditAction } from '../utils';
+import { FILTER_PARAM, readAuditFilters, toAuditParams } from '../components/filters';
 
-const defaultFilters: AuditFilters = {
-  action: 'all',
-  entityType: 'all',
-  actorId: 'all',
-  entityId: '',
-  from: '',
-  to: '',
-};
+const PAGE_SIZE = 25;
+const PAGE_DESCRIPTION =
+  'A read-only record of important actions in your store, such as staff changes, PIN resets, and shift activity. Entries cannot be edited or deleted.';
+
+// entity_type is a free string on the backend, extend as new entity types appear
+const ENTITY_TYPE_OPTIONS = ['Staff', 'Shift'].map((value) => ({ value, label: value }));
 
 export function AuditLogsPage() {
   const navigate = useNavigate();
-  const { data: profile, isLoading: profileLoading } = useMyProfile();
-  const [filters, setFilters] = useState<AuditFilters>(defaultFilters);
-  const [selectedEvent, setSelectedEvent] = useState<AuditEvent | null>(null);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [selectedEvent, setSelectedEvent] = useState<AuditLog | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
 
-  const { data, isLoading, isFetchingMore, error, hasMore, fetchMore, refetch } =
-    useAuditLogs(filters);
+  const { data: profile, isLoading: profileLoading } = useMyProfile();
+  const isAdmin = profile?.role === 'admin';
 
+  // Filters and page live in the URL, so a filtered view is shareable and survives refresh
+  const filters = useMemo(() => readAuditFilters(searchParams), [searchParams]);
+  const page = Math.max(1, parseInt(searchParams.get('page') ?? '', 10) || 1);
+  const hasActiveFilters = Object.values(filters).some(Boolean);
+
+  const params = useMemo(() => toAuditParams(filters, page, PAGE_SIZE), [filters, page]);
+
+  const { data, isLoading, isFetching, isError, refetch } = useAudits(params);
+
+  const { data: auditActions } = useAuditActions();
+  const { data: staff } = useListStaff();
+
+  const events = useMemo(() => data?.data ?? [], [data]);
+  const meta = data?.meta;
+
+  const actionOptions = useMemo(
+    () => (auditActions ?? []).map((a) => ({ value: a, label: formatAuditAction(a) })),
+    [auditActions],
+  );
   const actorOptions = useMemo(
-    () => [
-      { value: 'actor-1', label: 'Amara Nwosu (STF-001)' },
-      { value: 'actor-2', label: 'Tunde Bakare (STF-002)' },
-      { value: 'actor-3', label: 'Ifeoma Okoye (STF-003)' },
-    ],
-    [],
+    () => (staff ?? []).map((s) => ({ value: s.id, label: `${s.name} (${s.staff_code})` })),
+    [staff],
   );
 
-  const handleView = (event: AuditEvent) => {
+  const handleView = useCallback((event: AuditLog) => {
     setSelectedEvent(event);
     setDetailsOpen(true);
-  };
+  }, []);
 
-  const handleFiltersChange = (next: AuditFilters) => {
-    setFilters(next);
-  };
+  const columns = useMemo(() => getAuditColumns(handleView), [handleView]);
 
-  // Admin only gating - reuse existing role gating mechanism
-  if (!profileLoading && profile && profile.role !== 'admin') {
+  const handleFiltersChange = useCallback(
+    (patch: Partial<AuditFilters>) => {
+      setSearchParams(
+        (prev) => {
+          const next = new URLSearchParams(prev);
+          for (const [key, value] of Object.entries(patch)) {
+            const param = FILTER_PARAM[key as keyof AuditFilters];
+            if (value) next.set(param, value);
+            else next.delete(param);
+          }
+          next.delete('page'); // any filter change goes back to page 1
+          return next;
+        },
+        { replace: true },
+      );
+    },
+    [setSearchParams],
+  );
+
+  const handleClearFilters = useCallback(() => {
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        Object.values(FILTER_PARAM).forEach((param) => next.delete(param));
+        next.delete('page');
+        return next;
+      },
+      { replace: true },
+    );
+  }, [setSearchParams]);
+
+  const handlePageChange = useCallback(
+    (nextPage: number) => {
+      setSearchParams((prev) => {
+        const next = new URLSearchParams(prev);
+        if (nextPage <= 1) next.delete('page');
+        else next.set('page', String(nextPage));
+        return next;
+      });
+    },
+    [setSearchParams],
+  );
+
+  // A stale URL like ?page=99 would strand the user on an empty page
+  useEffect(() => {
+    if (meta && meta.total_pages > 0 && page > meta.total_pages) {
+      handlePageChange(meta.total_pages);
+    }
+  }, [meta, page, handlePageChange]);
+
+  if (!profileLoading && profile && !isAdmin) {
     return (
       <div className="flex flex-col gap-6">
-        <PageHeader
-          title="Audit logs"
-          description="A read-only record of important actions in your store, such as staff changes, PIN resets, and shift activity. Entries cannot be edited or deleted."
-        />
+        <PageHeader title="Audit logs" description={PAGE_DESCRIPTION} />
         <PermissionDeniedState
           title="Access denied"
           description="You don't have permission to view this page."
@@ -72,72 +130,53 @@ export function AuditLogsPage() {
     );
   }
 
+  const total = meta?.total ?? events.length;
+  const description = isLoading
+    ? undefined
+    : `${total} ${total === 1 ? 'event' : 'events'}${hasActiveFilters ? ' matching filters' : ''}`;
+
   return (
     <div className="flex flex-col gap-5">
-      <PageHeader
-        title="Audit logs"
-        description="A read-only record of important actions in your store, such as staff changes, PIN resets, and shift activity. Entries cannot be edited or deleted."
-      />
+      <PageHeader title="Audit logs" description={PAGE_DESCRIPTION} />
 
       <AuditFiltersBar
         filters={filters}
-        onChange={handleFiltersChange}
+        actionOptions={actionOptions}
+        entityTypeOptions={ENTITY_TYPE_OPTIONS}
         actorOptions={actorOptions}
+        hasActiveFilters={hasActiveFilters}
+        onChange={handleFiltersChange}
+        onClear={handleClearFilters}
       />
 
-      {error ? (
+      {isError ? (
         <div className="border-border bg-card flex flex-col items-center justify-center gap-2 rounded-lg border px-4 py-8 text-center">
           <p className="text-sm font-medium">Failed to load audit logs</p>
-          <Button variant="outline" size="sm" onClick={refetch}>
+          <Button variant="outline" size="sm" onClick={() => refetch()}>
             Retry
           </Button>
         </div>
       ) : (
-        <>
-          <AuditTable events={data} isLoading={isLoading} skeletonRows={10} onView={handleView} />
-
-          {isLoading ? null : data.length === 0 ? (
-            <div className="border-border bg-card flex flex-col items-center justify-center gap-2 rounded-lg border px-4 py-8 text-center">
-              <p className="text-sm font-medium">
-                {filters.action !== 'all' ||
-                filters.entityType !== 'all' ||
-                filters.actorId !== 'all' ||
-                filters.entityId ||
-                filters.from ||
-                filters.to
-                  ? 'No events match these filters'
-                  : 'No audit events yet'}
-              </p>
-              {(filters.action !== 'all' ||
-                filters.entityType !== 'all' ||
-                filters.actorId !== 'all' ||
-                filters.entityId ||
-                filters.from ||
-                filters.to) && (
-                <Button variant="outline" size="sm" onClick={() => setFilters(defaultFilters)}>
+        <AuditTable
+          columns={columns}
+          events={events}
+          meta={meta}
+          description={description}
+          onRowClick={handleView}
+          onPageChange={handlePageChange}
+          isLoading={profileLoading || isLoading}
+          isFetching={isFetching}
+          emptyState={
+            hasActiveFilters ? (
+              <div className="flex flex-col items-center gap-2">
+                <span className="text-muted-foreground text-sm">No events match these filters</span>
+                <Button variant="outline" size="sm" onClick={handleClearFilters}>
                   Clear filters
                 </Button>
-              )}
-            </div>
-          ) : (
-            <div className="flex flex-col items-center gap-2">
-              {hasMore ? (
-                <Button variant="outline" onClick={fetchMore} disabled={isFetchingMore}>
-                  {isFetchingMore ? (
-                    <span className="inline-flex items-center gap-2">
-                      <Spinner className="size-4" />
-                      Loading...
-                    </span>
-                  ) : (
-                    'Load more'
-                  )}
-                </Button>
-              ) : (
-                <p className="text-muted-foreground text-xs">End of log</p>
-              )}
-            </div>
-          )}
-        </>
+              </div>
+            ) : undefined
+          }
+        />
       )}
 
       <AuditDetailsDrawer open={detailsOpen} onOpenChange={setDetailsOpen} event={selectedEvent} />

@@ -16,13 +16,13 @@ import { StaffAvatar } from '@/features/admin/staff/components/staff-avatar';
 import { StaffRoleBadge } from '@/features/admin/staff/components/staff-badges';
 import { dateTimeFormatter } from '@/features/admin/staff/utils';
 
-import type { AuditEvent } from '../types';
+import type { AuditLog } from '../types';
 import { formatAuditAction, humanizeKey } from '../utils';
 
 interface AuditDetailsDrawerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  event?: AuditEvent | null;
+  event?: AuditLog | null;
 }
 
 function DetailItem({ label, children }: { label: string; children: React.ReactNode }) {
@@ -66,7 +66,21 @@ function CopyButton({ value, label }: { value: string; label: string }) {
   );
 }
 
-function renderDetails(details: Record<string, unknown> | null) {
+/** Coerce entity_id (string | number | object) to a displayable string */
+function formatEntityId(entityId: AuditLog['entity_id']): string | null {
+  if (entityId == null) return null;
+  if (typeof entityId === 'string' || typeof entityId === 'number') {
+    return String(entityId);
+  }
+  // object / unexpected shape
+  try {
+    return JSON.stringify(entityId);
+  } catch {
+    return String(entityId);
+  }
+}
+
+function renderDetails(details: Record<string, unknown> | null | undefined) {
   if (!details || Object.keys(details).length === 0) {
     return <p className="text-muted-foreground text-sm">No additional details recorded</p>;
   }
@@ -80,7 +94,7 @@ function renderDetails(details: Record<string, unknown> | null) {
           return (
             <div key={key} className="flex items-start justify-between gap-2">
               <p className="text-muted-foreground text-xs">{humanizeKey(key)}</p>
-              <p className="text-sm">null</p>
+              <p className="text-sm">—</p>
             </div>
           );
         }
@@ -111,7 +125,7 @@ export function AuditDetailsDrawer({ open, onOpenChange, event }: AuditDetailsDr
   const actionLabel = formatAuditAction(event.action);
   const createdDate = new Date(event.created_at);
   const localTime = dateTimeFormatter.format(createdDate);
-  const utcTime = event.created_at;
+  const entityIdDisplay = formatEntityId(event.entity_id);
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -122,6 +136,7 @@ export function AuditDetailsDrawer({ open, onOpenChange, event }: AuditDetailsDr
         </SheetHeader>
 
         <div className="flex-1 space-y-4 overflow-y-auto p-4">
+          {/* Summary — id, action, created_at */}
           <section className="rounded-lg border">
             <h3 className="border-b px-3 py-2 text-xs font-medium">Summary</h3>
             <dl className="grid grid-cols-1 gap-3 p-3">
@@ -134,7 +149,7 @@ export function AuditDetailsDrawer({ open, onOpenChange, event }: AuditDetailsDr
               <DetailItem label="Time">
                 <div className="flex flex-col">
                   <time dateTime={event.created_at}>{localTime}</time>
-                  <span className="text-muted-foreground text-xs">{utcTime}</span>
+                  <span className="text-muted-foreground text-xs">{event.created_at}</span>
                 </div>
               </DetailItem>
               <DetailItem label="Event ID">
@@ -146,6 +161,7 @@ export function AuditDetailsDrawer({ open, onOpenChange, event }: AuditDetailsDr
             </dl>
           </section>
 
+          {/* Actor — id, name, staff_code, role */}
           <section className="rounded-lg border">
             <h3 className="border-b px-3 py-2 text-xs font-medium">Actor</h3>
             <div className="p-3">
@@ -153,15 +169,20 @@ export function AuditDetailsDrawer({ open, onOpenChange, event }: AuditDetailsDr
                 <div className="flex items-center gap-3">
                   <StaffAvatar
                     firstName={event.actor.name.split(' ')[0] || event.actor.name}
-                    lastName={event.actor.name.split(' ')[1] || ''}
+                    lastName={event.actor.name.split(' ').slice(1).join(' ') || ''}
                   />
                   <div className="flex min-w-0 flex-col gap-0.5">
                     <p className="truncate text-sm font-medium">{event.actor.name}</p>
                     <p className="text-muted-foreground font-mono text-xs">
                       {event.actor.staff_code}
                     </p>
-                    <div className="mt-1">
+                    <div className="mt-1 flex flex-wrap items-center gap-2">
                       <StaffRoleBadge role={event.actor.role} />
+                      {event.actor.id && (
+                        <span className="text-muted-foreground font-mono text-[11px]">
+                          {event.actor.id}
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -177,17 +198,16 @@ export function AuditDetailsDrawer({ open, onOpenChange, event }: AuditDetailsDr
             </div>
           </section>
 
+          {/* Entity — entity_type, entity_id */}
           <section className="rounded-lg border">
             <h3 className="border-b px-3 py-2 text-xs font-medium">Entity</h3>
             <dl className="grid grid-cols-1 gap-3 p-3">
-              <DetailItem label="Entity type">
-                {event.entity_type ? event.entity_type : 'None'}
-              </DetailItem>
+              <DetailItem label="Entity type">{event.entity_type || 'None'}</DetailItem>
               <DetailItem label="Entity ID">
-                {event.entity_id ? (
+                {entityIdDisplay ? (
                   <div className="flex items-center justify-between gap-2">
-                    <span className="font-mono text-xs break-all">{event.entity_id}</span>
-                    <CopyButton value={event.entity_id} label="Entity ID" />
+                    <span className="font-mono text-xs break-all">{entityIdDisplay}</span>
+                    <CopyButton value={entityIdDisplay} label="Entity ID" />
                   </div>
                 ) : (
                   'None'
@@ -196,6 +216,7 @@ export function AuditDetailsDrawer({ open, onOpenChange, event }: AuditDetailsDr
             </dl>
           </section>
 
+          {/* Details — free-form object */}
           <section className="rounded-lg border">
             <h3 className="border-b px-3 py-2 text-xs font-medium">Details</h3>
             <div className="p-3">{renderDetails(event.details)}</div>

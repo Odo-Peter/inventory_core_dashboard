@@ -11,14 +11,23 @@ export type AuditActor = {
   role: AuditActorRole;
 };
 
+export type AuditFilters = {
+  action: string;
+  entityType: string;
+  actorId: string;
+  entityId: string;
+  from: string; // YYYY-MM-DD, local day
+  to: string; // YYYY-MM-DD, local day
+};
+
 export type AuditLog = {
   id: string;
   created_at: string;
   action: string;
-  entity_type: string;
+  entity_type: string | null;
   entity_id: string | null;
-  actor: AuditActor;
-  details: Record<string, unknown>;
+  actor: AuditActor | null;
+  details: Record<string, unknown> | null;
 };
 
 export type ListAuditsParams = {
