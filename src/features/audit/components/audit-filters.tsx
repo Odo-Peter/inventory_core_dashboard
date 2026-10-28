@@ -55,11 +55,12 @@ function FilterSelect({
         onValueChange={(next) => {
           if (next) onChange(next === 'all' ? '' : next);
         }}
+        modal={false}
       >
         <SelectTrigger id={id} className="w-full data-[size=default]:h-10">
           <SelectValue />
         </SelectTrigger>
-        <SelectContent>
+        <SelectContent alignItemWithTrigger={false}>
           {items.map((item) => (
             <SelectItem key={item.value} value={item.value}>
               {item.label}

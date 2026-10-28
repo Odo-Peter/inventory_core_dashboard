@@ -73,7 +73,7 @@ export function AuditLogsPage() {
             if (value) next.set(param, value);
             else next.delete(param);
           }
-          next.delete('page'); // any filter change goes back to page 1
+          next.delete('page');
           return next;
         },
         { replace: true },
