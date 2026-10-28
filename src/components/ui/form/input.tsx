@@ -19,6 +19,7 @@ interface InputProps extends React.ComponentProps<'input'> {
   isPassword?: boolean;
   Icon?: LucideIcon;
   required?: boolean;
+  helpText?: React.ReactNode;
   containerClassName?: string;
 }
 
@@ -30,6 +31,7 @@ const Input = ({
   isPassword = false,
   Icon,
   required,
+  helpText,
   containerClassName,
   className,
   type = 'text',
@@ -41,7 +43,13 @@ const Input = ({
   const inputId = htmlFor ?? props.id;
 
   return (
-    <Field label={label} htmlFor={inputId} required={required} className={containerClassName}>
+    <Field
+      label={label}
+      htmlFor={inputId}
+      required={required}
+      helpText={error ? undefined : helpText}
+      className={containerClassName}
+    >
       <InputGroup className={cn('h-10', error && 'border-destructive')}>
         {Icon && (
           <InputGroupAddon align="inline-start">

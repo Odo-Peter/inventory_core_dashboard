@@ -16,6 +16,8 @@ interface Staff {
   role: string;
   store_id: string;
   must_change_pin: boolean;
+  staff_code?: string;
+  store_name?: string;
 }
 
 export interface AuthTokenResponse {
@@ -42,5 +44,7 @@ export interface MyProfile {
   role: string;
   store_id: string;
   must_change_pin: boolean;
-  active_shift_id: {};
+  active_shift_id: string | null;
+  staff_code: string;
+  store_name: string;
 }

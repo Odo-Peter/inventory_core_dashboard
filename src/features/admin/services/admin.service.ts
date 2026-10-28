@@ -1,8 +1,11 @@
 import axiosInstance from '@/lib/axiosInstance';
 
+import type { Staff, StaffResponse, StoreResponse } from '../staff/types';
+
 import type { StaffFormInput, StaffUpdateValues } from '../schemas/staff-form.schema';
-import type { Staff, StaffResponse } from '../staff/types';
 import type { AdminPinValues } from '../schemas/admin-pin.schema';
+import type { AdminEndShiftValues } from '@/features/shifts/schemas/admin-end-shift.schema';
+import type { Shift } from '@/features/shifts/types';
 
 export const createStaff = async (payload: StaffFormInput): Promise<StaffResponse> => {
   const { data } = await axiosInstance.post<StaffResponse>('/staff', payload);
@@ -34,5 +37,20 @@ export const resetStaffPin = async (
 
 export const listStaff = async (): Promise<Staff[]> => {
   const { data } = await axiosInstance.get<Staff[]>('/staff');
+  return data;
+};
+
+export const getStaff = async (id: string): Promise<Staff> => {
+  const { data } = await axiosInstance.get<Staff>(`/staff/${id}`);
+  return data;
+};
+
+export const getCurrentStore = async (): Promise<StoreResponse> => {
+  const { data } = await axiosInstance.get<StoreResponse>('/stores/current');
+  return data;
+};
+
+export const forceCloseShift = async (id: string, payload: AdminEndShiftValues): Promise<Shift> => {
+  const { data } = await axiosInstance.post<Shift>(`/shifts/${id}/force-close`, payload);
   return data;
 };

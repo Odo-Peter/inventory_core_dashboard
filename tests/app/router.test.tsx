@@ -12,6 +12,7 @@ vi.mock('@/features/admin/services/admin.service', () => ({
   listStaff: vi.fn().mockResolvedValue([]),
   createStaff: vi.fn(),
   updateStaff: vi.fn(),
+  getCurrentStore: vi.fn().mockResolvedValue({ name: 'Main Store', id: 'store-1' }),
 }));
 
 function renderAt(path: string) {

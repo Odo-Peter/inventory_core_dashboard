@@ -192,7 +192,9 @@ describe('StaffAccessPage', () => {
     const deactivateMenu = await openStaffRowActions(user, 'Ada Okafor');
     await user.click(within(deactivateMenu).getByRole('menuitem', { name: 'Deactivate' }));
 
-    expect(await screen.findByRole('heading', { name: 'Delete staff member' })).toBeInTheDocument();
+    expect(
+      await screen.findByRole('heading', { name: 'Deactivate staff member' }),
+    ).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Cancel' }));
 

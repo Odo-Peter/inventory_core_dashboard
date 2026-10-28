@@ -121,7 +121,7 @@ describe('StaffLoginPage', () => {
     expect(pinInput).toHaveAttribute('pattern', '[0-9]*');
     expect(pinInput).not.toBeValid();
 
-    await user.click(screen.getByRole('button', { name: 'Sign In' }));
+    await user.click(screen.getByRole('button', { name: 'Clock In' }));
 
     expect(login).not.toHaveBeenCalled();
   });
@@ -130,7 +130,7 @@ describe('StaffLoginPage', () => {
     const user = userEvent.setup();
     renderPage();
 
-    await user.click(screen.getByRole('button', { name: 'Sign In' }));
+    await user.click(screen.getByRole('button', { name: 'Clock In' }));
 
     expect(screen.getByText('Staff code is required')).toBeInTheDocument();
     expect(screen.getByText('Pin must be exactly 6 digits')).toBeInTheDocument();
@@ -149,7 +149,7 @@ describe('StaffLoginPage', () => {
 
     await fillStaffCode(user);
     await user.type(screen.getByLabelText(/^PIN$/), '12');
-    await user.click(screen.getByRole('button', { name: 'Sign In' }));
+    await user.click(screen.getByRole('button', { name: 'Clock In' }));
 
     expect(screen.getByText('Pin must be exactly 6 digits')).toBeInTheDocument();
   });
@@ -158,7 +158,7 @@ describe('StaffLoginPage', () => {
     const user = userEvent.setup();
     renderPage();
 
-    await user.click(screen.getByRole('button', { name: 'Sign In' }));
+    await user.click(screen.getByRole('button', { name: 'Clock In' }));
     expect(screen.getByText('Staff code is required')).toBeInTheDocument();
 
     await fillStaffCode(user);
@@ -181,12 +181,12 @@ describe('StaffLoginPage', () => {
     await fillStaffCode(user);
     await user.type(screen.getByLabelText(/^PIN$/), '123456');
 
-    const submitButton = screen.getByRole('button', { name: 'Sign In' });
+    const submitButton = screen.getByRole('button', { name: 'Clock In' });
     await user.click(submitButton);
 
     expect(submitButton).toBeDisabled();
     expect(within(submitButton).getByRole('status')).toBeInTheDocument();
-    expect(submitButton).toHaveTextContent('Signing in...');
+    expect(submitButton).toHaveTextContent('Clocking in...');
 
     await act(async () => {
       resolveLogin(tokenResponse);

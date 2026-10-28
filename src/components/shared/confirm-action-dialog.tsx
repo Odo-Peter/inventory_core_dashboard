@@ -31,15 +31,15 @@ interface ConfirmActionDialogProps {
 
 const ACTION_CONFIG = {
   deactivate: {
-    title: (label: string) => `Delete ${label}`,
+    title: (label: string) => `Deactivate ${label}`,
     description: (name: string) => (
       <>
         This will remove <b className="text-primary">{name}</b> and revoke any access tied to it.
-        This action cannot be undone from the app.
+        This action can be undone only by verified amins from the app.
       </>
     ),
-    button: 'Delete',
-    pending: 'Deleting...',
+    button: 'Deactivate',
+    pending: 'Deactivating...',
     requireText: true,
   },
   reactivate: {
@@ -65,7 +65,7 @@ export function ConfirmActionDialog({
   entityLabel = 'item',
   onConfirm,
   onSuccess,
-  confirmText = 'DELETE',
+  confirmText = 'DEACTIVATE',
   requireConfirmText,
 }: ConfirmActionDialogProps) {
   const [isPending, setIsPending] = useState(false);
@@ -157,7 +157,7 @@ function ConfirmForm({
         <Input
           htmlFor={`confirm-${action}-${entityId}`}
           label={`Type ${confirmText} to confirm`}
-          placeholder={`Type ${confirmText}`}
+          placeholder="Enter text..."
           value={value}
           onChange={(e) => setValue(e.target.value)}
           autoComplete="off"
