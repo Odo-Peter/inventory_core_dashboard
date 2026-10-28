@@ -108,7 +108,7 @@ describe('app router', () => {
     ['/admin/staff', 'Staff & Access'],
     ['/admin/payment-accounts', 'Payment Accounts'],
     ['/settings', 'Settings'],
-    ['/pos', 'New Sale'],
+    ['/admin/audits', 'Audit logs'],
   ])('renders the %s route', (path, heading) => {
     authenticate();
     renderAt(path);
