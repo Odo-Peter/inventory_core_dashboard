@@ -1,30 +1,45 @@
+export type ListAuditActionsResponse = {
+  actions: string[];
+};
+
+export type AuditActorRole = 'cashier' | 'manager' | 'admin';
+
 export type AuditActor = {
   id: string;
   name: string;
   staff_code: string;
-  role: 'cashier' | 'manager' | 'admin';
+  role: AuditActorRole;
 };
 
-export type AuditEvent = {
+export type AuditLog = {
   id: string;
   created_at: string;
   action: string;
-  entity_type: string | null;
+  entity_type: string;
   entity_id: string | null;
-  actor: AuditActor | null;
-  details: Record<string, unknown> | null;
+  actor: AuditActor;
+  details: Record<string, unknown>;
 };
 
-export type AuditFilters = {
+export type ListAuditsParams = {
+  page?: number;
+  page_size?: number;
   action?: string;
-  entityType?: string;
-  actorId?: string;
-  entityId?: string;
+  entity_type?: string;
+  entity_id?: string;
+  staff_id?: string;
   from?: string;
   to?: string;
 };
 
-export type AuditListResponse = {
-  data: AuditEvent[];
-  next_cursor: string | null;
+export type ListAuditsMeta = {
+  page: number;
+  page_size: number;
+  total: number;
+  total_pages: number;
+};
+
+export type ListAuditsResponse = {
+  data: AuditLog[];
+  meta: ListAuditsMeta;
 };

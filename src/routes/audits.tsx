@@ -1,5 +1,5 @@
-import { AuditLogsRoute } from './audit-logs';
+import { AuditLogsPage } from '@/features/audit/pages/audit-logs-page';
 
 export function AuditsRoute() {
-  return <AuditLogsRoute />;
+  return <AuditLogsPage />;
 }

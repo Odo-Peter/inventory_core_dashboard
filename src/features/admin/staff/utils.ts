@@ -33,18 +33,17 @@ const timeFormatter = new Intl.DateTimeFormat('en-US', {
   hour12: true,
 });
 
-const nairaFormatter = new Intl.NumberFormat('en-NG', {
-  style: 'currency',
-  currency: 'NGN',
-  minimumFractionDigits: 2,
-});
-
 export function formatTime(value: string) {
   return timeFormatter.format(new Date(value));
 }
 
-export function formatNaira(kobo: number) {
-  return nairaFormatter.format(kobo / 100);
+export function formatNaira(kobo: number | null | undefined) {
+  if (kobo == null) return '—';
+  return new Intl.NumberFormat('en-NG', {
+    style: 'currency',
+    currency: 'NGN',
+    minimumFractionDigits: 2,
+  }).format(kobo / 100);
 }
 
 export function formatTimestamp(timeStamp?: string) {

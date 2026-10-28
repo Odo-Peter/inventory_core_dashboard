@@ -6,6 +6,11 @@ import type { StaffFormInput, StaffUpdateValues } from '../schemas/staff-form.sc
 import type { AdminPinValues } from '../schemas/admin-pin.schema';
 import type { AdminEndShiftValues } from '@/features/shifts/schemas/admin-end-shift.schema';
 import type { Shift } from '@/features/shifts/types';
+import type {
+  ListAuditActionsResponse,
+  ListAuditsParams,
+  ListAuditsResponse,
+} from '@/features/audit/types';
 
 export const createStaff = async (payload: StaffFormInput): Promise<StaffResponse> => {
   const { data } = await axiosInstance.post<StaffResponse>('/staff', payload);
@@ -57,5 +62,26 @@ export const getCurrentStore = async (): Promise<StoreResponse> => {
 
 export const forceCloseShift = async (id: string, payload: AdminEndShiftValues): Promise<Shift> => {
   const { data } = await axiosInstance.post<Shift>(`/shifts/${id}/force-close`, payload);
+  return data;
+};
+
+export const getAuditActions = async (): Promise<ListAuditActionsResponse> => {
+  const { data } = await axiosInstance.get<ListAuditActionsResponse>('/audit-logs/actions');
+  return data;
+};
+
+export const getAudits = async (params: ListAuditsParams = {}): Promise<ListAuditsResponse> => {
+  const { data } = await axiosInstance.get<ListAuditsResponse>(`/audit-logs`, {
+    params: {
+      page: params.page,
+      page_size: params.page_size,
+      action: params.action,
+      entity_type: params.entity_type,
+      entity_id: params.entity_id,
+      staff_id: params.staff_id,
+      from: params.from,
+      to: params.to,
+    },
+  });
   return data;
 };
