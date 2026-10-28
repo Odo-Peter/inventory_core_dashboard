@@ -1,4 +1,4 @@
-import { EyeIcon, MoreHorizontalIcon } from 'lucide-react';
+import { ChevronLeft, ChevronRight, EyeIcon, MoreHorizontalIcon } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -18,8 +18,9 @@ import {
 } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
 
-import type { Shift } from '../types';
 import { formatStaffDate, formatTime } from '@/features/admin/staff/utils';
+import type { Shift } from '../types';
+import type { ListShiftsMeta } from '../types';
 
 function formatNaira(kobo: number | null | undefined) {
   if (kobo == null) return '—';
@@ -34,12 +35,15 @@ function isShiftOpen(shift: Shift) {
   return !shift.clock_out_at;
 }
 
-interface ShiftTableProps {
+type ShiftTableProps = {
   shifts: Shift[];
-  isLoading?: boolean;
-  skeletonRows?: number;
+  meta?: ListShiftsMeta;
   onView: (shift: Shift) => void;
-}
+  onPageChange: (page: number) => void;
+  isLoading?: boolean;
+  isFetching?: boolean;
+  skeletonRows?: number;
+};
 
 function ShiftTableSkeletonRows({ rows }: { rows: number }) {
   return Array.from({ length: rows }).map((_, index) => (
@@ -91,9 +95,18 @@ function ShiftRowActions({ shift, onView }: { shift: Shift; onView: (shift: Shif
   );
 }
 
-export function ShiftTable({ shifts, onView, isLoading, skeletonRows = 5 }: ShiftTableProps) {
+export function ShiftTable({
+  shifts,
+  meta,
+  onView,
+  onPageChange,
+  isLoading,
+  isFetching,
+  skeletonRows = 5,
+}: ShiftTableProps) {
   const openCount = shifts.filter(isShiftOpen).length;
   const closedCount = shifts.length - openCount;
+  const total = meta?.total ?? shifts.length;
 
   return (
     <div className="border-border bg-card overflow-hidden rounded-lg border">
@@ -101,85 +114,114 @@ export function ShiftTable({ shifts, onView, isLoading, skeletonRows = 5 }: Shif
         <div>
           <h2 className="text-sm font-medium">All shifts</h2>
           <p className="text-muted-foreground text-xs">
-            {shifts.length} {shifts.length === 1 ? 'shift' : 'shifts'}
-            {shifts.length > 0 ? ` · ${openCount} open · ${closedCount} closed` : ''}
+            {total} {total === 1 ? 'shift' : 'shifts'}
+            {shifts.length > 0 ? ` · ${openCount} open · ${closedCount} closed on this page` : ''}
           </p>
         </div>
       </div>
 
-      <Table className="[&_td]:px-4 [&_th]:px-4">
-        <TableHeader className="bg-muted/40">
-          <TableRow>
-            <TableHead className="text-muted-foreground text-[11px] tracking-wide uppercase">
-              Status
-            </TableHead>
-            <TableHead className="text-muted-foreground text-[11px] tracking-wide uppercase">
-              Date
-            </TableHead>
-            <TableHead className="text-muted-foreground text-[11px] tracking-wide uppercase">
-              Clock in
-            </TableHead>
-            <TableHead className="text-muted-foreground text-[11px] tracking-wide uppercase">
-              Clock out
-            </TableHead>
-            <TableHead className="text-muted-foreground text-[11px] tracking-wide uppercase">
-              Starting cash
-            </TableHead>
-            <TableHead className="text-muted-foreground text-[11px] tracking-wide uppercase">
-              Closing cash
-            </TableHead>
-            <TableHead className="w-14">
-              <span className="sr-only">Actions</span>
-            </TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {isLoading ? (
-            <ShiftTableSkeletonRows rows={skeletonRows} />
-          ) : shifts.length === 0 ? (
+      <div className={isFetching && !isLoading ? 'opacity-60 transition-opacity' : undefined}>
+        <Table className="[&_td]:px-4 [&_th]:px-4">
+          <TableHeader className="bg-muted/40">
             <TableRow>
-              <TableCell colSpan={6} className="text-muted-foreground py-10 text-center text-sm">
-                No shifts found.
-              </TableCell>
+              <TableHead className="text-muted-foreground text-[11px] tracking-wide uppercase">
+                Status
+              </TableHead>
+              <TableHead className="text-muted-foreground text-[11px] tracking-wide uppercase">
+                Date
+              </TableHead>
+              <TableHead className="text-muted-foreground text-[11px] tracking-wide uppercase">
+                Clock in
+              </TableHead>
+              <TableHead className="text-muted-foreground text-[11px] tracking-wide uppercase">
+                Clock out
+              </TableHead>
+              <TableHead className="text-muted-foreground text-[11px] tracking-wide uppercase">
+                Starting cash
+              </TableHead>
+              <TableHead className="text-muted-foreground text-[11px] tracking-wide uppercase">
+                Closing cash
+              </TableHead>
+              <TableHead className="w-14">
+                <span className="sr-only">Actions</span>
+              </TableHead>
             </TableRow>
-          ) : (
-            shifts.map((shift) => {
-              const open = isShiftOpen(shift);
-              return (
-                <TableRow key={shift.id}>
-                  <TableCell>
-                    <Badge variant={open ? 'success' : 'secondary'}>
-                      {open ? 'Open' : 'Closed'}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-muted-foreground text-xs tabular-nums">
-                    <time dateTime={shift.created_at}>{formatStaffDate(shift.created_at)}</time>
-                  </TableCell>
-                  <TableCell className="text-muted-foreground text-xs tabular-nums">
-                    <time dateTime={shift.clock_in_at}>{formatTime(shift.clock_in_at)}</time>
-                  </TableCell>
-                  <TableCell className="text-muted-foreground text-xs tabular-nums">
-                    {shift.clock_out_at ? (
-                      <time dateTime={shift.clock_out_at}>{formatTime(shift.clock_out_at)}</time>
-                    ) : (
-                      '—'
-                    )}
-                  </TableCell>
-                  <TableCell className="text-xs tabular-nums">
-                    {formatNaira(shift.opening_float)}
-                  </TableCell>
-                  <TableCell className="text-xs tabular-nums">
-                    {formatNaira(shift.closing_cash_counted)}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <ShiftRowActions shift={shift} onView={onView} />
-                  </TableCell>
-                </TableRow>
-              );
-            })
-          )}
-        </TableBody>
-      </Table>
+          </TableHeader>
+          <TableBody>
+            {isLoading ? (
+              <ShiftTableSkeletonRows rows={skeletonRows} />
+            ) : shifts.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={6} className="text-muted-foreground py-10 text-center text-sm">
+                  No shifts found.
+                </TableCell>
+              </TableRow>
+            ) : (
+              shifts.map((shift) => {
+                const open = isShiftOpen(shift);
+                return (
+                  <TableRow key={shift.id}>
+                    <TableCell>
+                      <Badge variant={open ? 'success' : 'secondary'}>
+                        {open ? 'Open' : 'Closed'}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-muted-foreground text-xs tabular-nums">
+                      <time dateTime={shift.created_at}>{formatStaffDate(shift.created_at)}</time>
+                    </TableCell>
+                    <TableCell className="text-muted-foreground text-xs tabular-nums">
+                      <time dateTime={shift.clock_in_at}>{formatTime(shift.clock_in_at)}</time>
+                    </TableCell>
+                    <TableCell className="text-muted-foreground text-xs tabular-nums">
+                      {shift.clock_out_at ? (
+                        <time dateTime={shift.clock_out_at}>{formatTime(shift.clock_out_at)}</time>
+                      ) : (
+                        '—'
+                      )}
+                    </TableCell>
+                    <TableCell className="text-xs tabular-nums">
+                      {formatNaira(shift.opening_float)}
+                    </TableCell>
+                    <TableCell className="text-xs tabular-nums">
+                      {formatNaira(shift.closing_cash_counted)}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <ShiftRowActions shift={shift} onView={onView} />
+                    </TableCell>
+                  </TableRow>
+                );
+              })
+            )}
+          </TableBody>
+        </Table>
+      </div>
+      {meta && meta.total_pages > 0 && (
+        <div className="flex items-center justify-between border-t px-4 py-3">
+          <p className="text-muted-foreground text-xs tabular-nums">
+            Page {meta.page} of {meta.total_pages}
+          </p>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onPageChange(meta.page - 1)}
+              disabled={meta.page <= 1 || isFetching}
+            >
+              <ChevronLeft className="size-4" />
+              Previous
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onPageChange(meta.page + 1)}
+              disabled={meta.page >= meta.total_pages || isFetching}
+            >
+              Next
+              <ChevronRight className="size-4" />
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

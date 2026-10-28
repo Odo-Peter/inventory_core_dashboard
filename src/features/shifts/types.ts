@@ -18,11 +18,18 @@ export type ListShiftsParams = {
   staff_id?: string;
   from?: string;
   to?: string;
-  limit?: number;
-  cursor?: string;
+  page?: number;
+  page_size?: number;
+};
+
+export type ListShiftsMeta = {
+  page: number;
+  page_size: number;
+  total: number;
+  total_pages: number;
 };
 
 export type ListShiftsResponse = {
   data: Shift[];
-  next_cursor?: string | null;
+  meta: ListShiftsMeta;
 };

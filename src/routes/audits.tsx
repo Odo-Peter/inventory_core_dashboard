@@ -1,12 +1,5 @@
-import { PlaceholderPage } from '@/features/placeholders/pages/placeholder-page';
+import { AuditLogsRoute } from './audit-logs';
 
 export function AuditsRoute() {
-  return (
-    <PlaceholderPage
-      title="Audits"
-      description="Manage payment Audits for this store."
-      emptyTitle="No payment accounts"
-      emptyDescription="Payment accounts will appear here."
-    />
-  );
+  return <AuditLogsRoute />;
 }

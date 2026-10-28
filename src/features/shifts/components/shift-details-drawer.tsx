@@ -94,8 +94,6 @@ export function ShiftDetailsDrawer({
     canEndShift(shift, principal) &&
     (typeof onEndShift === 'function' || typeof onAdminEndShift === 'function');
 
-  console.log(showEndShift);
-
   const isForeignShift = !!shift && !!principal && shift.staff_id !== principal.id;
 
   const handleEndShift = () => {
