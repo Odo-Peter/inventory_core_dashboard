@@ -14,10 +14,10 @@ export function SidebarNav({ collapsed = false, onNavigate }: SidebarNavProps) {
   return (
     <nav
       aria-label={collapsed ? 'Main navigation' : 'Main'}
-      className={cn('flex flex-col gap-4 p-2', collapsed && 'items-stretch')}
+      className={cn('flex flex-col gap-3 p-2', collapsed && 'items-stretch')}
     >
       {navGroups.map((group) => (
-        <div key={group.label} className="mt-2 flex flex-col gap-1">
+        <div key={group.label} className="flex flex-col gap-1">
           {collapsed ? (
             <span className="border-sidebar-border mx-2 mb-1 border-t" aria-hidden="true" />
           ) : (

@@ -8,8 +8,8 @@ export const queryKeys = {
   },
   categories: {
     all: ['categories'] as const,
-    lists: ['categories', 'list'] as const,
-    list: (params: ListCategoriesQuery) => ['categories', 'list', params] as const,
+    lists: () => [...queryKeys.categories.all, 'list'] as const,
+    list: (params: ListCategoriesQuery) => [...queryKeys.categories.lists(), params] as const,
   },
   store: {
     current: ['current-store'] as const,

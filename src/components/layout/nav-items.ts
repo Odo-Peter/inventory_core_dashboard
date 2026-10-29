@@ -7,8 +7,9 @@ import {
   PackageIcon,
   PlusIcon,
   ReceiptTextIcon,
+  ScaleIcon,
   SettingsIcon,
-  Truck,
+  TagsIcon,
   UsersIcon,
   type LucideIcon,
 } from 'lucide-react';
@@ -37,27 +38,31 @@ export const navGroups: NavGroup[] = [
     items: [
       { label: 'Dashboard', to: '/dashboard', icon: LayoutDashboardIcon, end: true },
       newSaleItem,
-      { label: 'Inventory', to: '/inventory', icon: PackageIcon },
-      { label: 'Product Category', to: '/product-category', icon: Truck },
       { label: 'Sales History', to: '/sales', icon: ReceiptTextIcon, end: true },
     ],
   },
   {
-    label: 'Operations',
+    label: 'Inventory',
     items: [
-      { label: 'Stock Movements', to: '/stock-movements', icon: ArrowLeftRightIcon },
-      { label: 'Shift Summary', to: '/shifts/summary', icon: ClockIcon },
+      { label: 'Products', to: '/inventory', icon: PackageIcon, end: true },
+      { label: 'Categories', to: '/inventory/categories', icon: TagsIcon },
+      // add once a store-wide movements endpoint exists, see below
+      { label: 'Stock Movements', to: '/inventory/movements', icon: ArrowLeftRightIcon },
     ],
+  },
+  {
+    label: 'Operations',
+    items: [{ label: 'Shift Summary', to: '/shifts/summary', icon: ClockIcon }],
   },
   {
     label: 'Administration',
     items: [
       { label: 'Staff & Access', to: '/admin/staff', icon: UsersIcon },
       { label: 'Payment Accounts', to: '/admin/payment-accounts', icon: CreditCardIcon },
+      { label: 'Stock Reconciliation', to: '/admin/stock-reconciliation', icon: ScaleIcon },
       { label: 'Audits', to: '/admin/audits', icon: FileScan },
       { label: 'Settings', to: '/settings', icon: SettingsIcon },
     ],
   },
 ];
-
 export const navItems = navGroups.flatMap((group) => group.items);

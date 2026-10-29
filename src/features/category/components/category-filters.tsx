@@ -10,7 +10,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Plus } from 'lucide-react';
 
 export interface CategoryFilters {
   q: string;
@@ -77,51 +76,47 @@ export function CategoryFiltersBar({
   ];
 
   return (
-    <div className="relative">
-      <div className="flex flex-wrap items-end gap-3">
-        <CategorySearchInput
-          value={filters.q}
-          onCommit={(q) => {
-            if (q !== filters.q) onChange({ q });
+    <div className="flex flex-wrap items-end gap-3">
+      <CategorySearchInput
+        value={filters.q}
+        onCommit={(q) => {
+          if (q !== filters.q) onChange({ q });
+        }}
+      />
+
+      <Field label="Status" htmlFor="category-status" className="w-full sm:w-48">
+        <Select
+          items={statusOptions}
+          value={filters.active || 'all'}
+          onValueChange={(next) => {
+            if (next) {
+              const active = next === 'all' ? '' : next;
+              if (active !== filters.active) onChange({ active });
+            }
           }}
-        />
-
-        <Field label="Status" htmlFor="category-status" className="w-full sm:w-48">
-          <Select
-            items={statusOptions}
-            value={filters.active || 'all'}
-            onValueChange={(next) => {
-              if (next) {
-                const active = next === 'all' ? '' : next;
-                if (active !== filters.active) onChange({ active });
-              }
-            }}
-            modal={false}
+          modal={false}
+        >
+          <SelectTrigger
+            id="category-status"
+            className="bg-card w-full rounded-md data-[size=default]:h-10"
           >
-            <SelectTrigger id="category-status" className="bg-card w-full data-[size=default]:h-10">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent alignItemWithTrigger={false}>
-              {statusOptions.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </Field>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent alignItemWithTrigger={false}>
+            {statusOptions.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </Field>
 
-        {hasActiveFilters && (
-          <Button type="button" variant="ghost" onClick={onClear} className="h-10">
-            Clear filters
-          </Button>
-        )}
-      </div>
-
-      <Button className="absolute top-0 right-0" onClick={() => {}}>
-        <Plus />
-        Add New Category
-      </Button>
+      {hasActiveFilters && (
+        <Button type="button" variant="ghost" onClick={onClear} className="h-10">
+          Clear filters
+        </Button>
+      )}
     </div>
   );
 }

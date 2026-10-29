@@ -1,3 +1,4 @@
+import { Plus } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router';
 
@@ -10,6 +11,7 @@ import { useListCategories } from '../hooks/useCategoryQueries';
 import type { CategoryResponse, ListCategoriesQuery } from '../types';
 import { getCategoryColumns } from '../column/category-column';
 import { CategoryDetailsDrawer } from '../components/category-details-drawer';
+import { CategoryFormDrawer } from '../components/category-form-drawer';
 
 const PAGE_SIZE = 25;
 
@@ -27,10 +29,16 @@ function readCategoryFilters(params: URLSearchParams): CategoryFilters {
   };
 }
 
+type FormMode = 'add' | 'edit';
+
 export function CategoryPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [selectedCategory, setSelectedCategory] = useState<CategoryResponse | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
+
+  // Form drawer state
+  const [formOpen, setFormOpen] = useState(false);
+  const [formMode, setFormMode] = useState<FormMode>('add');
 
   const filters = useMemo(() => readCategoryFilters(searchParams), [searchParams]);
   const page = Math.max(1, Number.parseInt(searchParams.get('page') ?? '', 10) || 1);
@@ -114,20 +122,28 @@ export function CategoryPage() {
     setDetailsOpen(true);
   }, []);
 
+  const openAddCategory = useCallback(() => {
+    setFormMode('add');
+    setSelectedCategory(null);
+    setFormOpen(true);
+  }, []);
+
   const handleEditCategory = useCallback((category: CategoryResponse) => {
-    // Open your category edit form or drawer.
-    //   setSelectedCategory(category);
-    //   setEditOpen(true);
+    setFormMode('edit');
+    setSelectedCategory(category);
+    setFormOpen(true);
   }, []);
 
   const handleDeactivateCategory = useCallback((category: CategoryResponse) => {
     // Trigger your deactivate mutation or confirmation dialog.
     //   setCategoryToDeactivate(category);
+    console.log(category);
   }, []);
 
   const handleReactivateCategory = useCallback((category: CategoryResponse) => {
     // Trigger your reactivate mutation or confirmation dialog.
     //   setCategoryToReactivate(category);
+    console.log(category);
   }, []);
 
   const columns = useMemo(
@@ -149,7 +165,16 @@ export function CategoryPage() {
 
   return (
     <div className="flex flex-col gap-5">
-      <PageHeader title="Categories" description="Manage your store's product categories." />
+      <PageHeader
+        title="Categories"
+        description="Manage your store's product categories."
+        actions={
+          <Button onClick={openAddCategory}>
+            <Plus />
+            Add New Category
+          </Button>
+        }
+      />
 
       <CategoryFiltersBar
         filters={filters}
@@ -185,6 +210,14 @@ export function CategoryPage() {
         open={detailsOpen}
         onOpenChange={setDetailsOpen}
         category={selectedCategory}
+      />
+
+      <CategoryFormDrawer
+        open={formOpen}
+        onOpenChange={setFormOpen}
+        mode={formMode}
+        category={selectedCategory}
+        onSuccess={() => refetch()}
       />
     </div>
   );
