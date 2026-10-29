@@ -1,5 +1,5 @@
 import type { ListAuditsParams } from '@/features/audit/types';
-import type { ListCategoriesQuery } from '@/features/category/types';
+import type { ListCategoriesQuery } from '@/features/inventory/category/types';
 
 export const queryKeys = {
   staff: {
