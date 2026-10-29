@@ -17,6 +17,7 @@ import { StaffRoute } from '@/routes/staff';
 import { PaymentAccountsRoute } from '@/routes/payment-accounts';
 import { NotFoundRoute } from '@/routes/not-found';
 import { AuditsRoute } from '@/routes/audits';
+import { CategoryRoute } from '@/routes/category';
 
 export const routes = [
   {
@@ -49,6 +50,7 @@ export const routes = [
           { path: 'dashboard', element: <DashboardRoute /> },
           { path: 'sales/new', element: <SalesNewRoute /> },
           { path: 'inventory', element: <InventoryRoute /> },
+          { path: 'product-category', element: <CategoryRoute /> },
           { path: 'sales', element: <SalesRoute /> },
           { path: 'stock-movements', element: <StockMovementsRoute /> },
           { path: 'shifts/summary', element: <ShiftSummaryRoute /> },

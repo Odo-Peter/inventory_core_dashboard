@@ -8,6 +8,7 @@ import {
   PlusIcon,
   ReceiptTextIcon,
   SettingsIcon,
+  Truck,
   UsersIcon,
   type LucideIcon,
 } from 'lucide-react';
@@ -37,6 +38,7 @@ export const navGroups: NavGroup[] = [
       { label: 'Dashboard', to: '/dashboard', icon: LayoutDashboardIcon, end: true },
       newSaleItem,
       { label: 'Inventory', to: '/inventory', icon: PackageIcon },
+      { label: 'Product Category', to: '/product-category', icon: Truck },
       { label: 'Sales History', to: '/sales', icon: ReceiptTextIcon, end: true },
     ],
   },
