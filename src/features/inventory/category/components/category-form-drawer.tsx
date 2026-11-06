@@ -77,7 +77,7 @@ export function CategoryFormDrawer({
             {isEdit ? 'Edit category' : 'Add category'}
           </SheetTitle>
           <SheetDescription>
-            {isEdit ? 'Update this category’s name and status.' : 'Create a new product category.'}
+            {isEdit ? "Update this category's name and status." : 'Create a new product category.'}
           </SheetDescription>
         </SheetHeader>
 
@@ -191,7 +191,7 @@ function CategoryForm({ mode, category, onClose, onSuccess }: CategoryFormProps)
                 >
                   <SelectTrigger
                     id="category-active"
-                    className="w-full data-[size=default]:h-10"
+                    className="w-full rounded-sm data-[size=default]:h-10"
                     aria-invalid={!!errors.active}
                     aria-describedby={errors.active ? 'category-active-error' : undefined}
                     onBlur={field.onBlur}

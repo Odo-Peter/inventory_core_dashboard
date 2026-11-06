@@ -20,3 +20,7 @@ export interface ListCategoriesQuery {
   active?: boolean;
   q?: string;
 }
+
+export type ListItemUnitsResponse = {
+  units: string[];
+};

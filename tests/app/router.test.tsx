@@ -106,7 +106,9 @@ describe('app router', () => {
 
   it.each([
     ['/sales/new', 'New Sale'],
-    ['/inventory', 'Inventory'],
+    ['/inventory', 'Store Items'],
+    ['/inventory/categories', 'Categories'],
+    ['/inventory/movements', 'Stock Movements'],
     ['/sales', 'Sales History'],
     ['/stock-movements', 'Stock Movements'],
     ['/shifts/summary', 'Shift Summary'],

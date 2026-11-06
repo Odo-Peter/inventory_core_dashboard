@@ -73,9 +73,6 @@ export function DateRangePicker({ id, from, to, onChange, className }: DateRange
         />
         <div className="flex items-center justify-between gap-1 border-t p-2">
           <div className="flex gap-1">
-            <Button type="button" variant="ghost" size="sm" onClick={() => applyPreset(1)}>
-              Today
-            </Button>
             <Button type="button" variant="ghost" size="sm" onClick={() => applyPreset(7)}>
               7 days
             </Button>
