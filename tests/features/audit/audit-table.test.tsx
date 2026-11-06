@@ -4,7 +4,8 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { getAuditColumns } from '@/features/audit/components/audit-columns';
 import { AuditTable } from '@/features/audit/components/audit-table';
-import type { AuditLog, ListAuditsMeta } from '@/features/audit/types';
+import type { AuditLog } from '@/features/audit/types';
+import type { PaginationMeta } from '@/lib/pagination';
 
 const events: AuditLog[] = [
   {
@@ -32,7 +33,7 @@ const events: AuditLog[] = [
   },
 ];
 
-const meta: ListAuditsMeta = {
+const meta: PaginationMeta = {
   page: 2,
   page_size: 25,
   total: 51,
@@ -48,7 +49,7 @@ function renderTable({
   emptyState,
 }: {
   data?: AuditLog[];
-  tableMeta?: ListAuditsMeta;
+  tableMeta?: PaginationMeta;
   onView?: (event: AuditLog) => void;
   onRowClick?: (event: AuditLog) => void;
   onPageChange?: (page: number) => void;
