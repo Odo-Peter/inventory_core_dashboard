@@ -1,12 +1,5 @@
-import { PlaceholderPage } from '@/features/placeholders/pages/placeholder-page';
+import { StockMovementPage } from '@/features/inventory/stock/pages/stock-movement';
 
 export function StockMovementsRoute() {
-  return (
-    <PlaceholderPage
-      title="Stock Movements"
-      description="Track stock in, out, and adjustments."
-      emptyTitle="No stock movements"
-      emptyDescription="Stock changes will appear here."
-    />
-  );
+  return <StockMovementPage />;
 }

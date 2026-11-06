@@ -18,6 +18,7 @@ import { NotFoundRoute } from '@/routes/not-found';
 import { AuditsRoute } from '@/routes/audits';
 import { CategoryRoute } from '@/routes/category';
 import { ItemRoute } from '@/routes/item';
+import { StockReconciliationRoute } from '@/routes/stock-reconciliation-route';
 
 export const routes = [
   {
@@ -56,6 +57,7 @@ export const routes = [
           { path: 'shifts/summary', element: <ShiftSummaryRoute /> },
           { path: 'admin/staff', element: <StaffRoute /> },
           { path: 'admin/payment-accounts', element: <PaymentAccountsRoute /> },
+          { path: 'admin/stock-reconciliation', element: <StockReconciliationRoute /> },
           { path: 'admin/audits', element: <AuditsRoute /> },
           { path: 'settings', element: <SettingsRoute /> },
         ],

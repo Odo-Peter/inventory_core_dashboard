@@ -1,6 +1,7 @@
 import type { ListAuditsParams } from '@/features/audit/types';
 import type { ListCategoriesQuery } from '@/features/inventory/category/types';
 import type { ListItemsQuery } from '@/features/inventory/items/types';
+import type { ListMovementsQuery, ListReconciliationQuery } from '@/features/inventory/stock/types';
 
 export const queryKeys = {
   staff: {
@@ -35,4 +36,14 @@ export const queryKeys = {
     list: (params: ListAuditsParams) => ['audits', 'list', params] as const,
   },
   auditActions: ['audit-actions'] as const,
+  movementKeys: {
+    all: ['stock-movements'] as const,
+    list: (query: ListMovementsQuery) => [...queryKeys.movementKeys.all, 'list', query] as const,
+    status: (itemId: string) => ['stock-status', itemId] as const,
+  },
+  reconciliationKeys: {
+    all: ['stock-reconciliation'] as const,
+    list: (query: ListReconciliationQuery) =>
+      [...queryKeys.reconciliationKeys.all, 'list', query] as const,
+  },
 } as const;
