@@ -39,7 +39,7 @@ const AccountMenu = ({ onSettings, onSignOut, profile }: AccountMenuProps) => {
   return (
     <DropdownMenu modal={false}>
       <DropdownMenuTrigger
-        className="size-9 rounded-full bg-transparent px-0"
+        className="size-9 cursor-pointer rounded-full bg-transparent px-0"
         aria-label="Open account menu"
       >
         <EntityLogo
@@ -49,7 +49,7 @@ const AccountMenu = ({ onSettings, onSignOut, profile }: AccountMenuProps) => {
           src={avatarSrc}
         />
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="center" className="w-44">
+      <DropdownMenuContent align="center" className="w-max min-w-44">
         <DropdownMenuGroup>
           <DropdownMenuLabel className="flex items-center gap-x-2 px-2 py-1.5">
             <EntityLogo
@@ -58,8 +58,8 @@ const AccountMenu = ({ onSettings, onSignOut, profile }: AccountMenuProps) => {
               isActive
               src={avatarSrc}
             />
-            <div className="flex flex-col">
-              <span className="text-foreground text-sm font-medium">
+            <div className="flex min-w-0 flex-col">
+              <span className="text-foreground text-sm font-medium whitespace-nowrap">
                 {profile.firstName} {profile.lastName}
               </span>
               <span className="text-muted-foreground text-xs font-semibold uppercase">

@@ -16,6 +16,37 @@ import { useMyProfile } from '@/features/auth/hooks/useAuthQueries';
 import { useGetCurrentStore } from '@/features/admin/hooks/useAdminQueries';
 import { EndShiftDialog } from '@/features/shifts/components/end-shift-dialog';
 
+import type { MyProfile } from '@/features/auth/interface';
+import type { Shift } from '@/features/shifts/types';
+
+type ShiftActionProps = {
+  loading: boolean;
+  profile: MyProfile;
+  shift: Shift;
+  onStart: () => void;
+  onEnd: () => void;
+};
+
+function ShiftAction({ loading, profile, shift, onStart, onEnd }: ShiftActionProps) {
+  if (loading) return <Skeleton className="h-10 w-72" />;
+  if (!profile || profile.role === 'admin') return null;
+
+  if (profile.active_shift_id) {
+    return shift ? (
+      <ShiftStatus shift={shift} onEndShift={onEnd} principal={profile} />
+    ) : (
+      <Skeleton className="h-10 w-36" />
+    );
+  }
+
+  return (
+    <Button variant="secondary" onClick={onStart}>
+      <Sparkles />
+      Start Shift
+    </Button>
+  );
+}
+
 export function DashboardPage() {
   const [startShiftOpen, setStartShiftOpen] = useState(false);
   const [endShiftOpen, setEndShiftOpen] = useState(false);
@@ -27,17 +58,25 @@ export function DashboardPage() {
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
-        title={`${store?.name ?? ''} Dashboard`}
+        title={
+          storeLoading ? (
+            <Skeleton className="h-9 w-56" />
+          ) : (
+            `${store?.name ? `${store.name} ` : ''}Dashboard`
+          )
+        }
         description="Sales, stock, and shift overview for today."
         actions={
           <div className="flex flex-wrap items-center gap-x-2 gap-y-3 sm:justify-end">
             {isLoading || profileLoading || storeLoading ? (
               <Skeleton className="h-10 w-28" />
             ) : profile?.role !== 'admin' && profile?.active_shift_id && data ? (
-              <ShiftStatus
+              <ShiftAction
+                loading={isLoading || profileLoading}
+                profile={profile}
                 shift={data}
-                onEndShift={() => setEndShiftOpen(true)}
-                principal={profile}
+                onStart={() => setStartShiftOpen(true)}
+                onEnd={() => setEndShiftOpen(true)}
               />
             ) : profile && profile.role !== 'admin' && !profile?.active_shift_id ? (
               <Button variant="secondary" onClick={() => setStartShiftOpen(true)}>

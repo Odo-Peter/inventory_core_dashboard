@@ -58,6 +58,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const completePinChange = useCallback(() => {
     setMustChangePin(false);
+    sessionStorage.removeItem(STAFF_STORAGE_KEY);
   }, [setMustChangePin]);
 
   const logout = useCallback(async (navigate?: (path: string) => void) => {

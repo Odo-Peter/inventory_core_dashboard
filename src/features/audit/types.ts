@@ -1,3 +1,5 @@
+import type { PaginationMeta } from '@/lib/pagination';
+
 export type ListAuditActionsResponse = {
   actions: string[];
 };
@@ -41,14 +43,7 @@ export type ListAuditsParams = {
   to?: string;
 };
 
-export type ListAuditsMeta = {
-  page: number;
-  page_size: number;
-  total: number;
-  total_pages: number;
-};
-
 export type ListAuditsResponse = {
   data: AuditLog[];
-  meta: ListAuditsMeta;
+  meta: PaginationMeta;
 };

@@ -1,4 +1,3 @@
-// ../components/shift-columns.tsx
 import { createColumnHelper } from '@tanstack/react-table';
 import { EyeIcon, MoreHorizontalIcon } from 'lucide-react';
 

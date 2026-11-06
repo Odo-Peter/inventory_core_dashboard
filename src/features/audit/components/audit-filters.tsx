@@ -55,11 +55,12 @@ function FilterSelect({
         onValueChange={(next) => {
           if (next) onChange(next === 'all' ? '' : next);
         }}
+        modal={false}
       >
-        <SelectTrigger id={id} className="w-full data-[size=default]:h-10">
+        <SelectTrigger id={id} className="bg-card w-full rounded-sm data-[size=default]:h-10">
           <SelectValue />
         </SelectTrigger>
-        <SelectContent>
+        <SelectContent alignItemWithTrigger={false} className="rounded-sm">
           {items.map((item) => (
             <SelectItem key={item.value} value={item.value}>
               {item.label}
@@ -98,7 +99,7 @@ function EntityIdInput({ value, onCommit }: { value: string; onCommit: (v: strin
       spellCheck={false}
       error={invalid}
       errorText={invalid ? 'Enter a valid UUID' : undefined}
-      containerClassName="w-full sm:w-64"
+      containerClassName="w-full sm:w-64 bg-card"
     />
   );
 }
@@ -145,6 +146,7 @@ export function AuditFiltersBar({
           from={filters.from}
           to={filters.to}
           onChange={(range) => onChange(range)}
+          className="bg-card rounded-sm"
         />
       </Field>
 

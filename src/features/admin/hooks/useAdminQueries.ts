@@ -29,6 +29,8 @@ export const useGetCurrentStore = () => {
   return useQuery({
     queryKey: queryKeys.store.current,
     queryFn: getCurrentStore,
+    staleTime: 5 * 60 * 1000,
+    placeholderData: keepPreviousData,
   });
 };
 

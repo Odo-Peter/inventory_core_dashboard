@@ -20,6 +20,23 @@ vi.mock('@/features/admin/services/admin.service', () => ({
   }),
 }));
 
+vi.mock('@/features/inventory/category/services/category.service', () => ({
+  listItems: vi.fn().mockResolvedValue({
+    data: [],
+    meta: { page: 1, page_size: 25, total: 0, total_pages: 0 },
+  }),
+  listCategories: vi.fn().mockResolvedValue({
+    data: [],
+    meta: { page: 1, page_size: 100, total: 0, total_pages: 0 },
+  }),
+  createCategory: vi.fn(),
+  updateCategory: vi.fn(),
+  createItem: vi.fn(),
+  updateItem: vi.fn(),
+  deactivateItem: vi.fn(),
+  getItemUnits: vi.fn().mockResolvedValue({ units: [] }),
+}));
+
 function renderAt(path: string) {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   const router = createMemoryRouter(routes, { initialEntries: [path] });
@@ -50,11 +67,13 @@ describe('app router', () => {
     expect(screen.queryByText('Stocktake Dashboard')).not.toBeInTheDocument();
   });
 
-  it('redirects an authenticated visitor away from the sign-in screen', () => {
+  it('redirects an authenticated visitor away from the sign-in screen', async () => {
     authenticate();
     renderAt('/');
 
-    expect(screen.getByRole('heading', { name: 'Dashboard', level: 1 })).toBeInTheDocument();
+    expect(
+      await screen.findByRole('heading', { name: /main store dashboard/i, level: 1 }),
+    ).toBeInTheDocument();
     expect(screen.getByRole('navigation')).toBeInTheDocument();
   });
 
@@ -73,11 +92,13 @@ describe('app router', () => {
     expect(screen.queryByRole('navigation')).not.toBeInTheDocument();
   });
 
-  it('renders the dashboard inside the app shell', () => {
+  it('renders the dashboard inside the app shell', async () => {
     authenticate();
     renderAt('/dashboard');
 
-    expect(screen.getByRole('heading', { name: 'Dashboard', level: 1 })).toBeInTheDocument();
+    expect(
+      await screen.findByRole('heading', { name: /main store dashboard/i, level: 1 }),
+    ).toBeInTheDocument();
     expect(screen.getByRole('navigation')).toBeInTheDocument();
     expect(screen.getByText('Stocktake Dashboard')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Dashboard' })).toHaveAttribute('aria-current', 'page');
@@ -106,9 +127,10 @@ describe('app router', () => {
 
   it.each([
     ['/sales/new', 'New Sale'],
-    ['/inventory', 'Inventory'],
+    ['/inventory', 'Store Items'],
+    ['/inventory/categories', 'Categories'],
+    ['/inventory/movements', 'Stock Movements'],
     ['/sales', 'Sales History'],
-    ['/stock-movements', 'Stock Movements'],
     ['/shifts/summary', 'Shift Summary'],
     ['/admin/staff', 'Staff & Access'],
     ['/admin/payment-accounts', 'Payment Accounts'],

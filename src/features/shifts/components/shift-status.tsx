@@ -23,7 +23,7 @@ export function ShiftStatus({ shift, onEndShift, principal }: ShiftStatusProps) 
       <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
         <Badge variant="success">Open</Badge>
         <span>
-          Shift open since{' '}
+          Shift open since:{' '}
           <span className="font-medium tabular-nums">{formatTimestamp(shift.clock_in_at)}</span>
         </span>
         <Button type="button" variant="secondary" onClick={() => setDetailsOpen(true)}>

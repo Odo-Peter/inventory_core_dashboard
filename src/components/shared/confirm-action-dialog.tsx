@@ -34,8 +34,8 @@ const ACTION_CONFIG = {
     title: (label: string) => `Deactivate ${label}`,
     description: (name: string) => (
       <>
-        This will remove <b className="text-primary">{name}</b> and revoke any access tied to it.
-        This action can be undone only by verified amins from the app.
+        This will deactivate <b className="text-primary">{name}</b>. While deactivated, it will no
+        longer be active or available for use. You can reactivate it later if needed.
       </>
     ),
     button: 'Deactivate',
@@ -46,8 +46,8 @@ const ACTION_CONFIG = {
     title: (label: string) => `Reactivate ${label}`,
     description: (name: string) => (
       <>
-        This will restore <b className="text-primary">{name}</b> and give back the access they had
-        before.
+        This will reactivate <b className="text-primary">{name}</b> and restore it to its previous
+        active state.
       </>
     ),
     button: 'Reactivate',

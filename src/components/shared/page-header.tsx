@@ -1,12 +1,11 @@
 import type { ReactNode } from 'react';
 import { cn } from 'cn';
 
-interface PageHeaderProps extends React.HTMLAttributes<HTMLDivElement> {
-  title: string;
+interface PageHeaderProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'title'> {
+  title: ReactNode;
   description?: ReactNode;
   actions?: ReactNode;
 }
-
 export function PageHeader({ title, description, actions, className, ...props }: PageHeaderProps) {
   return (
     <header

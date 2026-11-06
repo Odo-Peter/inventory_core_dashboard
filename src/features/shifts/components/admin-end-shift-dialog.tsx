@@ -169,7 +169,7 @@ function AdminEndShiftForm({ shift, isLoading, onClose }: AdminEndShiftFormProps
           name="reason"
           render={({ field, fieldState }) => (
             <FormItem>
-              <Field label="Closing reason" htmlFor="closing-notes">
+              <Field label="Closing reason" htmlFor="closing-notes" required>
                 <Textarea
                   {...field}
                   id="closing-notes"

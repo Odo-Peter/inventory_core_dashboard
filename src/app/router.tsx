@@ -7,7 +7,6 @@ import { AppShell } from '@/components/layout/app-shell';
 
 import { IndexRoute } from '@/routes/index';
 import { DashboardRoute } from '@/routes/dashboard';
-import { InventoryRoute } from '@/routes/inventory';
 import { SettingsRoute } from '@/routes/settings';
 import { SalesNewRoute } from '@/routes/sales-new';
 import { SalesRoute } from '@/routes/sales';
@@ -17,6 +16,8 @@ import { StaffRoute } from '@/routes/staff';
 import { PaymentAccountsRoute } from '@/routes/payment-accounts';
 import { NotFoundRoute } from '@/routes/not-found';
 import { AuditsRoute } from '@/routes/audits';
+import { CategoryRoute } from '@/routes/category';
+import { ItemRoute } from '@/routes/item';
 
 export const routes = [
   {
@@ -48,9 +49,10 @@ export const routes = [
         children: [
           { path: 'dashboard', element: <DashboardRoute /> },
           { path: 'sales/new', element: <SalesNewRoute /> },
-          { path: 'inventory', element: <InventoryRoute /> },
+          { path: 'inventory', element: <ItemRoute /> },
+          { path: 'inventory/categories', element: <CategoryRoute /> },
+          { path: 'inventory/movements', element: <StockMovementsRoute /> },
           { path: 'sales', element: <SalesRoute /> },
-          { path: 'stock-movements', element: <StockMovementsRoute /> },
           { path: 'shifts/summary', element: <ShiftSummaryRoute /> },
           { path: 'admin/staff', element: <StaffRoute /> },
           { path: 'admin/payment-accounts', element: <PaymentAccountsRoute /> },

@@ -39,11 +39,13 @@ export function formatTime(value: string) {
 
 export function formatNaira(kobo: number | null | undefined) {
   if (kobo == null) return '—';
+
   return new Intl.NumberFormat('en-NG', {
     style: 'currency',
     currency: 'NGN',
     minimumFractionDigits: 2,
-  }).format(kobo / 100);
+    maximumFractionDigits: 2,
+  }).format(Math.round(kobo) / 100);
 }
 
 export function formatTimestamp(timeStamp?: string) {
