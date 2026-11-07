@@ -51,5 +51,8 @@ export type UpdateItemPayload = {
   unit?: string;
   cost_price?: number | null;
   reorder_threshold?: number;
-  active?: boolean;
 };
+
+export interface ChangeItemPricePayload {
+  new_price: number;
+}

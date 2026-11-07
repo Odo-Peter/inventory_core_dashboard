@@ -2,14 +2,20 @@ import { useInvalidateAudits } from '@/features/admin/hooks/useAdminMutations';
 import { queryKeys } from '@/lib/query-keys';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import {
+  changeItemPrice,
   createCategory,
   createItem,
   deactivateItem,
+  reactivateItem,
   updateCategory,
   updateItem,
 } from '../services/category.service';
 import type { CategoryFormInput, CategoryUpdateValues } from '../schemas/category-form.schema';
-import type { CreateItemPayload, UpdateItemPayload } from '../../items/types';
+import type {
+  ChangeItemPricePayload,
+  CreateItemPayload,
+  UpdateItemPayload,
+} from '../../items/types';
 
 export const useCreateCategory = () => {
   const queryClient = useQueryClient();
@@ -83,3 +89,30 @@ export const useDeactivateItem = () => {
     },
   });
 };
+
+export function useChangeItemPrice() {
+  const queryClient = useQueryClient();
+  const invalidateAudits = useInvalidateAudits();
+
+  return useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: ChangeItemPricePayload }) =>
+      changeItemPrice(id, payload),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: queryKeys.items.all });
+      invalidateAudits();
+    },
+  });
+}
+
+export function useReactivateItem() {
+  const queryClient = useQueryClient();
+  const invalidateAudits = useInvalidateAudits();
+
+  return useMutation({
+    mutationFn: (id: string) => reactivateItem(id),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: queryKeys.items.all });
+      invalidateAudits();
+    },
+  });
+}

@@ -32,8 +32,10 @@ import {
   type ItemFormValues,
 } from '../schemas/item-form-schema';
 import { useCreateItem, useUpdateItem } from '../../category/hooks/useCategoryMutations';
-import { parseNairaPreview } from '@/features/shifts/schemas/admin-end-shift.schema';
 import { formatNaira } from '@/features/admin/staff/utils';
+import { Badge } from '@/components/ui/badge';
+import { getItemChanges } from '../../category/lib/item-changes';
+import { parseNairaToKobo } from '@/lib/money';
 
 type FormMode = 'add' | 'edit';
 
@@ -45,6 +47,9 @@ interface ItemFormDrawerProps {
   item?: ItemResponse | null;
   categories: { id: string; name: string }[];
   onSuccess?: () => void;
+  onChangePrice?: (item: ItemResponse) => void;
+  onRecordStock?: (item: ItemResponse) => void;
+  onToggleStatus?: (item: ItemResponse) => void;
 }
 
 const emptyValues: ItemFormInput = {
@@ -73,6 +78,77 @@ function toFormValues(item?: ItemResponse | null): ItemFormInput {
   };
 }
 
+function ManagedRow({
+  label,
+  value,
+  actionLabel,
+  onAction,
+}: {
+  label: string;
+  value: React.ReactNode;
+  actionLabel: string;
+  onAction?: () => void;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-3 px-3 py-2.5">
+      <div className="min-w-0">
+        <dt className="text-muted-foreground text-xs">{label}</dt>
+        <dd className="text-sm font-medium">{value}</dd>
+      </div>
+      <Button type="button" variant="outline" size="sm" onClick={onAction} disabled={!onAction}>
+        {actionLabel}
+      </Button>
+    </div>
+  );
+}
+
+function ManagedSeparately({
+  item,
+  onChangePrice,
+  onRecordStock,
+  onToggleStatus,
+}: {
+  item: ItemResponse;
+  onChangePrice?: (item: ItemResponse) => void;
+  onRecordStock?: (item: ItemResponse) => void;
+  onToggleStatus?: (item: ItemResponse) => void;
+}) {
+  return (
+    <section className="border-border rounded-md border">
+      <div className="border-b px-3 py-2">
+        <h3 className="text-sm font-medium">Managed separately</h3>
+        <p className="text-muted-foreground text-xs">
+          Saving this form does not change these. Use the buttons to change them.
+        </p>
+      </div>
+      <dl className="divide-border divide-y">
+        <ManagedRow
+          label="Selling price"
+          value={formatNaira(item.current_price)}
+          actionLabel="Change price"
+          onAction={onChangePrice && (() => onChangePrice(item))}
+        />
+        <ManagedRow
+          label="Stock on hand"
+          value={`${item.stock_quantity} ${item.unit}`}
+          actionLabel="Record movement"
+          onAction={onRecordStock && (() => onRecordStock(item))}
+        />
+        <ManagedRow
+          label="Status"
+          value={
+            <Badge variant={item.active ? 'success' : 'secondary'}>
+              {item.active ? 'Active' : 'Inactive'}
+            </Badge>
+          }
+          actionLabel={item.active ? 'Deactivate' : 'Reactivate'}
+          onAction={onToggleStatus && (() => onToggleStatus(item))}
+        />
+      </dl>
+    </section>
+  );
+}
+
 export function ItemFormDrawer({
   open,
   onOpenChange,
@@ -81,6 +157,9 @@ export function ItemFormDrawer({
   item,
   categories,
   onSuccess,
+  onChangePrice,
+  onRecordStock,
+  onToggleStatus,
 }: ItemFormDrawerProps) {
   const isEdit = mode === 'edit';
 
@@ -105,6 +184,9 @@ export function ItemFormDrawer({
             units={units}
             onClose={() => onOpenChange(false)}
             onSuccess={onSuccess}
+            onChangePrice={onChangePrice}
+            onRecordStock={onRecordStock}
+            onToggleStatus={onToggleStatus}
           />
         )}
       </SheetContent>
@@ -116,12 +198,25 @@ interface ItemFormProps {
   mode: FormMode;
   item?: ItemResponse | null;
   categories: { id: string; name: string }[];
+  units: { value: string; label: string }[];
   onClose: () => void;
   onSuccess?: () => void;
-  units: { value: string; label: string }[];
+  onChangePrice?: (item: ItemResponse) => void;
+  onRecordStock?: (item: ItemResponse) => void;
+  onToggleStatus?: (item: ItemResponse) => void;
 }
 
-function ItemForm({ mode, item, categories, onClose, onSuccess, units }: ItemFormProps) {
+function ItemForm({
+  mode,
+  item,
+  categories,
+  onClose,
+  onSuccess,
+  units,
+  onChangePrice,
+  onRecordStock,
+  onToggleStatus,
+}: ItemFormProps) {
   const isEdit = mode === 'edit';
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -154,8 +249,11 @@ function ItemForm({ mode, item, categories, onClose, onSuccess, units }: ItemFor
     formState: { errors },
   } = form;
 
-  const currentPrice = Math.round(parseNairaPreview(form.watch('current_price')) ?? 0);
-  const costPrice = Math.round(parseNairaPreview(form.watch('cost_price')) ?? 0);
+  const currentPrice = parseNairaToKobo(form.watch('current_price')) ?? 0;
+  const costPrice = parseNairaToKobo(form.watch('cost_price')) ?? 0;
+  const watched = form.watch();
+  const changes = isEdit && item ? getItemChanges(watched, item) : {};
+  const hasChanges = Object.keys(changes).length > 0;
 
   function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0] ?? null;
@@ -177,26 +275,11 @@ function ItemForm({ mode, item, categories, onClose, onSuccess, units }: ItemFor
   async function onSubmit(values: ItemFormValues) {
     try {
       if (isEdit && item) {
-        await updateItem.mutateAsync({
-          id: item.id,
-          payload: {
-            name: values.name,
-            barcode: values.barcode?.trim() || null,
-            category_id:
-              values.category_id && values.category_id !== 'none' ? values.category_id : null,
-            unit: values.unit,
-            cost_price:
-              values.cost_price === '' || values.cost_price == null
-                ? null
-                : Math.round(Number(values.cost_price)),
-            reorder_threshold:
-              values.reorder_threshold === '' || values.reorder_threshold == null
-                ? 0
-                : Math.round(Number(values.reorder_threshold)),
-            active: values.active === 'true',
-          },
-        });
-        toast.success(`Item "${values.name}" updated successfully`);
+        const payload = getItemChanges(values, item);
+        if (Object.keys(payload).length === 0) return;
+
+        await updateItem.mutateAsync({ id: item.id, payload });
+        toast.success(`Item "${item.name}" updated successfully`);
       } else {
         await createItem.mutateAsync({
           name: values.name,
@@ -204,11 +287,8 @@ function ItemForm({ mode, item, categories, onClose, onSuccess, units }: ItemFor
           category_id:
             values.category_id && values.category_id !== 'none' ? values.category_id : null,
           unit: values.unit,
-          current_price: Math.round(Number(values.current_price)),
-          cost_price:
-            values.cost_price === '' || values.cost_price == null
-              ? null
-              : Math.round(Number(values.cost_price)),
+          current_price: parseNairaToKobo(values.current_price) as number,
+          cost_price: values.cost_price ? parseNairaToKobo(values.cost_price) : null,
           reorder_threshold:
             values.reorder_threshold === '' || values.reorder_threshold == null
               ? 0
@@ -341,34 +421,36 @@ function ItemForm({ mode, item, categories, onClose, onSuccess, units }: ItemFor
 
           {/* Prices + reorder */}
           <div className="grid grid-cols-2 gap-3">
-            <FormField
-              control={form.control}
-              name="current_price"
-              render={({ field }) => (
-                <FormItem className="col-span-2">
-                  <FormControl>
-                    <Input
-                      htmlFor="item-current-price"
-                      label="Selling price"
-                      type="number"
-                      required
-                      min={0}
-                      step="1"
-                      error={!!errors.current_price}
-                      errorText={errors.current_price?.message}
-                      helpText={
-                        currentPrice ? (
-                          <span className="font-semibold text-emerald-700">
-                            {formatNaira(currentPrice)}
-                          </span>
-                        ) : null
-                      }
-                      {...field}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
+            {!isEdit && (
+              <FormField
+                control={form.control}
+                name="current_price"
+                render={({ field }) => (
+                  <FormItem className="col-span-2">
+                    <FormControl>
+                      <Input
+                        htmlFor="item-current-price"
+                        label="Selling price"
+                        type="number"
+                        required
+                        min={0}
+                        step="1"
+                        error={!!errors.current_price}
+                        errorText={errors.current_price?.message}
+                        helpText={
+                          currentPrice ? (
+                            <span className="font-semibold text-emerald-700">
+                              {formatNaira(currentPrice)}
+                            </span>
+                          ) : null
+                        }
+                        {...field}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+            )}
 
             <FormField
               control={form.control}
@@ -397,63 +479,59 @@ function ItemForm({ mode, item, categories, onClose, onSuccess, units }: ItemFor
                 </FormItem>
               )}
             />
-
-            <FormField
-              control={form.control}
-              name="reorder_threshold"
-              render={({ field }) => (
-                <FormItem className="col-span-2">
-                  <FormControl>
-                    <Input
-                      htmlFor="item-reorder"
-                      label="Reorder threshold"
-                      type="number"
-                      min={0}
-                      step="1"
-                      error={!!errors.reorder_threshold}
-                      errorText={errors.reorder_threshold?.message}
-                      {...field}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
           </div>
 
-          {/* Status */}
-          <Field label="Status" htmlFor="item-active" required>
-            <Controller
-              control={form.control}
-              name="active"
-              render={({ field }) => (
-                <Select
-                  items={statusOptions}
-                  value={field.value}
-                  onValueChange={(value) => {
-                    if (value) field.onChange(value);
-                  }}
-                >
-                  <SelectTrigger
-                    id="item-active"
-                    className="w-full data-[size=default]:h-10"
-                    aria-invalid={!!errors.active}
-                    aria-describedby={errors.active ? 'item-active-error' : undefined}
-                    onBlur={field.onBlur}
-                  >
-                    <SelectValue placeholder="Select status" />
-                  </SelectTrigger>
-                  <SelectContent side="bottom" className="rounded-md">
-                    {statusOptions.map((opt) => (
-                      <SelectItem key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
+          {isEdit && item && (
+            <ManagedSeparately
+              item={item}
+              onChangePrice={onChangePrice}
+              onRecordStock={onRecordStock}
+              onToggleStatus={onToggleStatus}
             />
-            <FieldError id="item-active-error">{errors.active?.message}</FieldError>
-          </Field>
+          )}
+
+          {!isEdit && (
+            <p className="text-muted-foreground text-xs">
+              New items start with 0 stock. After saving, use Record movement to add opening stock.
+            </p>
+          )}
+
+          {/* Status */}
+          {!isEdit && (
+            <Field label="Status" htmlFor="item-active" required>
+              <Controller
+                control={form.control}
+                name="active"
+                render={({ field }) => (
+                  <Select
+                    items={statusOptions}
+                    value={field.value}
+                    onValueChange={(value) => {
+                      if (value) field.onChange(value);
+                    }}
+                  >
+                    <SelectTrigger
+                      id="item-active"
+                      className="w-full data-[size=default]:h-10"
+                      aria-invalid={!!errors.active}
+                      aria-describedby={errors.active ? 'item-active-error' : undefined}
+                      onBlur={field.onBlur}
+                    >
+                      <SelectValue placeholder="Select status" />
+                    </SelectTrigger>
+                    <SelectContent side="bottom" className="rounded-md">
+                      {statusOptions.map((opt) => (
+                        <SelectItem key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+              <FieldError id="item-active-error">{errors.active?.message}</FieldError>
+            </Field>
+          )}
 
           {/* Image upload (create only, or both if your update supports it) */}
           {!isEdit && (
@@ -490,10 +568,13 @@ function ItemForm({ mode, item, categories, onClose, onSuccess, units }: ItemFor
         </div>
 
         <SheetFooter className="flex-row justify-end border-t">
+          {isEdit && !hasChanges && (
+            <span className="text-muted-foreground mr-auto text-xs">No changes to save</span>
+          )}
           <Button type="button" variant="outline" onClick={onClose} disabled={isPending}>
             Cancel
           </Button>
-          <Button type="submit" disabled={isPending}>
+          <Button type="submit" disabled={isPending || (isEdit && !hasChanges)}>
             {isPending ? (
               <span className="inline-flex items-center gap-2">
                 <Spinner className="h-3.5 w-3.5" />

@@ -7,6 +7,7 @@ import type {
 } from '../types';
 import type { CategoryFormInput, CategoryUpdateValues } from '../schemas/category-form.schema';
 import type {
+  ChangeItemPricePayload,
   CreateItemPayload,
   ItemResponse,
   ListItemsQuery,
@@ -98,9 +99,6 @@ export const updateItem = async (id: string, payload: UpdateItemPayload): Promis
   if (payload.reorder_threshold !== undefined) {
     body.reorder_threshold = payload.reorder_threshold;
   }
-  if (payload.active !== undefined) {
-    body.active = payload.active;
-  }
 
   const { data } = await axiosInstance.patch<ItemResponse>(`/items/${id}`, body);
   return data;
@@ -113,5 +111,18 @@ export const deactivateItem = async (id: string): Promise<ItemResponse> => {
 
 export const getItemUnits = async (): Promise<ListItemUnitsResponse> => {
   const { data } = await axiosInstance.get<ListItemUnitsResponse>('/items/units');
+  return data;
+};
+
+export const changeItemPrice = async (
+  id: string,
+  payload: ChangeItemPricePayload,
+): Promise<ItemResponse> => {
+  const { data } = await axiosInstance.post<ItemResponse>(`/items/${id}/price`, payload);
+  return data;
+};
+
+export const reactivateItem = async (id: string): Promise<ItemResponse> => {
+  const { data } = await axiosInstance.patch<ItemResponse>(`/items/${id}`, { active: true });
   return data;
 };

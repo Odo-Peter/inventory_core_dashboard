@@ -21,7 +21,10 @@ const PAGE_DESCRIPTION =
   'A read-only record of important actions in your store, such as staff changes, PIN resets, and shift activity. Entries cannot be edited or deleted.';
 
 // entity_type is a free string on the backend, extend as new entity types appear
-const ENTITY_TYPE_OPTIONS = ['Staff', 'Shift'].map((value) => ({ value, label: value }));
+const ENTITY_TYPE_OPTIONS = ['Staff', 'Shift', 'Item', 'Stock'].map((value) => ({
+  value,
+  label: value,
+}));
 
 export function AuditLogsPage() {
   const navigate = useNavigate();

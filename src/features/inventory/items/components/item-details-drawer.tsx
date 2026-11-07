@@ -10,7 +10,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet';
-import { formatStaffDate } from '@/features/admin/staff/utils';
+import { formatNaira, formatStaffDate } from '@/features/admin/staff/utils';
 
 import type { ItemResponse } from '../types';
 
@@ -74,9 +74,9 @@ export function ItemDetailsDrawer({
             <section className="rounded-lg border">
               <h3 className="border-b px-3 py-2 text-xs font-medium">Pricing and stock</h3>
               <dl className="grid grid-cols-2 gap-3 p-3">
-                <DetailItem label="Current price">{item.current_price.toLocaleString()}</DetailItem>
+                <DetailItem label="Current price">{formatNaira(item.current_price)}</DetailItem>
                 <DetailItem label="Cost price">
-                  {item.cost_price == null ? '—' : item.cost_price.toLocaleString()}
+                  {item.cost_price == null ? '—' : formatNaira(item.cost_price)}
                 </DetailItem>
                 <DetailItem label="Stock quantity">
                   {item.stock_quantity} {item.unit}(s)

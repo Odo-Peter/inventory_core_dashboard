@@ -19,8 +19,10 @@ import {
   useListItems,
   useListItemUnits,
 } from '../../category/hooks/useCategoryQueries';
-import { useDeactivateItem } from '../../category/hooks/useCategoryMutations';
+import { useDeactivateItem, useReactivateItem } from '../../category/hooks/useCategoryMutations';
 import type { ItemResponse, ListItemsQuery } from '../types';
+import { ChangePriceDialog } from '../components/change-price-dialog';
+import { RecordMovementDrawer } from '../../stock/components/record-movement-drawer';
 
 const PAGE_SIZE = 25;
 
@@ -48,6 +50,8 @@ function readItemFilters(params: URLSearchParams): ItemFilters {
 export function ItemPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [selectedItem, setSelectedItem] = useState<ItemResponse | null>(null);
+  const [priceTarget, setPriceTarget] = useState<ItemResponse | null>(null);
+  const [stockTarget, setStockTarget] = useState<ItemResponse | null>(null);
   const [formMode, setFormMode] = useState<FormMode>('add');
 
   const [detailsOpen, setDetailsOpen] = useState(false);
@@ -80,7 +84,9 @@ export function ItemPage() {
   const { data, isLoading, isFetching, isError, refetch } = useListItems(params);
   const { data: categoryData } = useListCategories({ page: 1, page_size: 100 });
   const { data: units } = useListItemUnits();
+
   const deactivateItem = useDeactivateItem();
+  const reactivateItem = useReactivateItem();
 
   const items = useMemo(() => data?.data ?? [], [data]);
   const categories = useMemo(() => categoryData?.data ?? [], [categoryData]);
@@ -173,17 +179,35 @@ export function ItemPage() {
     [],
   );
 
+  const requestReactivate = useCallback(
+    (item: ItemResponse) => setConfirmTarget({ item, action: 'reactivate' }),
+    [],
+  );
+  const requestChangePrice = useCallback((item: ItemResponse) => setPriceTarget(item), []);
+  const requestRecordStock = useCallback((item: ItemResponse) => setStockTarget(item), []);
+
   const columns = useMemo(
     () =>
       getItemColumns(
         {
           onView: handleViewItem,
           onEdit: handleEditItem,
+          onChangePrice: requestChangePrice,
+          onRecordStock: requestRecordStock,
           onDeactivate: requestDeactivate,
+          onReactivate: requestReactivate,
         },
         categoryNames,
       ),
-    [handleViewItem, handleEditItem, categoryNames],
+    [
+      handleViewItem,
+      handleEditItem,
+      requestChangePrice,
+      requestRecordStock,
+      requestDeactivate,
+      requestReactivate,
+      categoryNames,
+    ],
   );
 
   useEffect(() => {
@@ -251,6 +275,27 @@ export function ItemPage() {
         units={unitOptions}
         categories={categories}
         onSuccess={() => refetch()}
+        onChangePrice={requestChangePrice}
+        onRecordStock={requestRecordStock}
+        onToggleStatus={(item: ItemResponse) =>
+          item.active ? requestDeactivate(item) : requestReactivate(item)
+        }
+      />
+
+      <ChangePriceDialog
+        item={priceTarget}
+        open={!!priceTarget}
+        onOpenChange={(open) => !open && setPriceTarget(null)}
+        onSuccess={(updated) => {
+          setSelectedItem((prev) => (prev?.id === updated.id ? updated : prev));
+        }}
+      />
+
+      <RecordMovementDrawer
+        open={!!stockTarget}
+        onOpenChange={(open) => !open && setStockTarget(null)}
+        initialItem={stockTarget}
+        onSuccess={() => refetch()}
       />
 
       <ConfirmActionDialog
@@ -260,7 +305,11 @@ export function ItemPage() {
         entityId={confirmTarget?.item.id ?? null}
         entityName={confirmTarget?.item.name}
         entityLabel="item"
-        onConfirm={(id) => deactivateItem.mutateAsync(id)}
+        onConfirm={(id) =>
+          confirmTarget?.action === 'reactivate'
+            ? reactivateItem.mutateAsync(id)
+            : deactivateItem.mutateAsync(id)
+        }
         onSuccess={() =>
           toast.success(
             confirmTarget?.action === 'reactivate' ? 'Item reactivated' : 'Item deactivated',
