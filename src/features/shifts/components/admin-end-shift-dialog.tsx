@@ -27,7 +27,7 @@ import {
   type AdminEndShiftValues,
 } from '../schemas/admin-end-shift.schema';
 import { useForceCloseShift } from '@/features/admin/hooks/useAdminMutations';
-import { koboToNairaInput } from '@/lib/money';
+import { parseNairaToKobo } from '@/lib/money';
 
 const NOTE_LIMIT = 500;
 
@@ -96,7 +96,7 @@ function AdminEndShiftForm({ shift, isLoading, onClose }: AdminEndShiftFormProps
   } = form;
 
   const notesLength = form.watch('reason')?.length ?? 0;
-  const closingCashKobo = koboToNairaInput(Number(form.watch('closing_cash_counted')));
+  const closingCashKobo = parseNairaToKobo(form.watch('closing_cash_counted'));
 
   async function onSubmit(values: AdminEndShiftValues) {
     try {

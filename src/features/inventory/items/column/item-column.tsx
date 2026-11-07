@@ -2,6 +2,8 @@ import { createColumnHelper } from '@tanstack/react-table';
 import {
   EyeIcon,
   HistoryIcon,
+  ImageIcon,
+  ImageOffIcon,
   MoreHorizontalIcon,
   PackagePlusIcon,
   PencilIcon,
@@ -32,6 +34,8 @@ export interface ItemColumnActions {
   onRecordStock: (item: ItemResponse) => void;
   onDeactivate: (item: ItemResponse) => void;
   onReactivate: (item: ItemResponse) => void;
+  onChangeImage: (item: ItemResponse) => void;
+  onRemoveImage: (item: ItemResponse) => void;
 }
 
 const columnHelper = createColumnHelper<DataTableFeatures, ItemResponse>();
@@ -73,6 +77,16 @@ function ItemRowActions({ item, actions }: { item: ItemResponse; actions: ItemCo
           <HistoryIcon />
           View stock history
         </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => actions.onChangeImage(item)}>
+          <ImageIcon />
+          {item.image_key ? 'Replace image' : 'Add image'}
+        </DropdownMenuItem>
+        {item.image_key && (
+          <DropdownMenuItem onClick={() => actions.onRemoveImage(item)}>
+            <ImageOffIcon />
+            Remove image
+          </DropdownMenuItem>
+        )}
         <DropdownMenuSeparator />
         {item.active ? (
           <DropdownMenuItem variant="destructive" onClick={() => actions.onDeactivate(item)}>

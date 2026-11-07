@@ -9,9 +9,11 @@ import type { CategoryFormInput, CategoryUpdateValues } from '../schemas/categor
 import type {
   ChangeItemPricePayload,
   CreateItemPayload,
+  ItemImageResponse,
   ItemResponse,
   ListItemsQuery,
   ListItemsResponse,
+  PriceHistoryListResponse,
   UpdateItemPayload,
 } from '../../items/types';
 
@@ -124,5 +126,27 @@ export const changeItemPrice = async (
 
 export const reactivateItem = async (id: string): Promise<ItemResponse> => {
   const { data } = await axiosInstance.patch<ItemResponse>(`/items/${id}`, { active: true });
+  return data;
+};
+
+export const listItemPriceHistory = async (
+  id: string,
+  params: { page: number; page_size: number },
+): Promise<PriceHistoryListResponse> => {
+  const { data } = await axiosInstance.get<PriceHistoryListResponse>(`/items/${id}/price-history`, {
+    params,
+  });
+  return data;
+};
+
+export const uploadItemImage = async (id: string, file: File): Promise<ItemImageResponse> => {
+  const body = new FormData();
+  body.append('image', file);
+  const { data } = await axiosInstance.put<ItemImageResponse>(`/items/${id}/image`, body);
+  return data;
+};
+
+export const removeItemImage = async (id: string): Promise<ItemImageResponse> => {
+  const { data } = await axiosInstance.delete<ItemImageResponse>(`/items/${id}/image`);
   return data;
 };

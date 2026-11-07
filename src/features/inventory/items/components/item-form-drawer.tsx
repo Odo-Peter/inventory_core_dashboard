@@ -71,8 +71,8 @@ function toFormValues(item?: ItemResponse | null): ItemFormInput {
     barcode: item.barcode ?? '',
     category_id: item.category_id ?? '',
     unit: item.unit ?? '',
-    current_price: String(item.current_price ?? ''),
-    cost_price: item.cost_price == null ? '' : String(item.cost_price),
+    current_price: item.current_price == null ? '' : String(item.current_price / 100),
+    cost_price: item.cost_price == null ? '' : String(item.cost_price / 100),
     reorder_threshold: String(item.reorder_threshold ?? 0),
     active: item.active ? 'true' : 'false',
   };

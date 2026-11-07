@@ -56,3 +56,28 @@ export type UpdateItemPayload = {
 export interface ChangeItemPricePayload {
   new_price: number;
 }
+
+export interface PriceHistoryEntry {
+  id: string;
+  item_id: string;
+  old_price: number;
+  new_price: number;
+  changed_by_staff_id: string | null;
+  changed_by_name?: string | null; // present once the backend adds the join
+  changed_at: string;
+}
+
+export interface PriceHistoryListResponse {
+  data: PriceHistoryEntry[];
+  meta: PaginationMeta;
+}
+
+export interface ImageVariantUrls {
+  // match ImageVariantUrlsDto, e.g. thumb / medium / original
+  [variant: string]: string;
+}
+
+export interface ItemImageResponse {
+  item_id: string;
+  image: ImageVariantUrls | null; // null after removal
+}

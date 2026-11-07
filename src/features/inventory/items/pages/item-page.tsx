@@ -19,10 +19,16 @@ import {
   useListItems,
   useListItemUnits,
 } from '../../category/hooks/useCategoryQueries';
-import { useDeactivateItem, useReactivateItem } from '../../category/hooks/useCategoryMutations';
+import {
+  useDeactivateItem,
+  useReactivateItem,
+  useRemoveItemImage,
+} from '../../category/hooks/useCategoryMutations';
 import type { ItemResponse, ListItemsQuery } from '../types';
 import { ChangePriceDialog } from '../components/change-price-dialog';
 import { RecordMovementDrawer } from '../../stock/components/record-movement-drawer';
+import { ItemImageDialog } from '../components/item-image-dialog';
+import { getImageErrorMessage } from '../../category/lib/item-image';
 
 const PAGE_SIZE = 25;
 
@@ -34,6 +40,12 @@ const FILTER_PARAM = {
 } as const;
 
 type FormMode = 'add' | 'edit';
+
+const confirmCopy = {
+  deactivate: 'Item deactivated',
+  reactivate: 'Item reactivated',
+  removeImage: 'Image removed',
+} as const;
 
 function readItemFilters(params: URLSearchParams): ItemFilters {
   const active = params.get('active');
@@ -52,6 +64,8 @@ export function ItemPage() {
   const [selectedItem, setSelectedItem] = useState<ItemResponse | null>(null);
   const [priceTarget, setPriceTarget] = useState<ItemResponse | null>(null);
   const [stockTarget, setStockTarget] = useState<ItemResponse | null>(null);
+  const [imageTarget, setImageTarget] = useState<ItemResponse | null>(null);
+
   const [formMode, setFormMode] = useState<FormMode>('add');
 
   const [detailsOpen, setDetailsOpen] = useState(false);
@@ -87,6 +101,7 @@ export function ItemPage() {
 
   const deactivateItem = useDeactivateItem();
   const reactivateItem = useReactivateItem();
+  const removeImage = useRemoveItemImage();
 
   const items = useMemo(() => data?.data ?? [], [data]);
   const categories = useMemo(() => categoryData?.data ?? [], [categoryData]);
@@ -186,6 +201,11 @@ export function ItemPage() {
   const requestChangePrice = useCallback((item: ItemResponse) => setPriceTarget(item), []);
   const requestRecordStock = useCallback((item: ItemResponse) => setStockTarget(item), []);
 
+  const requestChangeImage = useCallback((item: ItemResponse) => setImageTarget(item), []);
+  const requestRemoveImage = useCallback(
+    (item: ItemResponse) => setConfirmTarget({ item, action: 'removeImage' }),
+    [],
+  );
   const columns = useMemo(
     () =>
       getItemColumns(
@@ -196,6 +216,8 @@ export function ItemPage() {
           onRecordStock: requestRecordStock,
           onDeactivate: requestDeactivate,
           onReactivate: requestReactivate,
+          onChangeImage: requestChangeImage,
+          onRemoveImage: requestRemoveImage,
         },
         categoryNames,
       ),
@@ -298,23 +320,37 @@ export function ItemPage() {
         onSuccess={() => refetch()}
       />
 
+      <ItemImageDialog
+        item={imageTarget}
+        open={!!imageTarget}
+        onOpenChange={(open) => !open && setImageTarget(null)}
+        onSuccess={() => refetch()}
+      />
+
       <ConfirmActionDialog
         open={!!confirmTarget}
         onOpenChange={(open) => !open && setConfirmTarget(null)}
         action={confirmTarget?.action}
         entityId={confirmTarget?.item.id ?? null}
         entityName={confirmTarget?.item.name}
-        entityLabel="item"
-        onConfirm={(id) =>
-          confirmTarget?.action === 'reactivate'
-            ? reactivateItem.mutateAsync(id)
-            : deactivateItem.mutateAsync(id)
-        }
-        onSuccess={() =>
-          toast.success(
-            confirmTarget?.action === 'reactivate' ? 'Item reactivated' : 'Item deactivated',
-          )
-        }
+        entityLabel={confirmTarget?.action === 'removeImage' ? 'image' : 'item'}
+        onConfirm={async (id) => {
+          switch (confirmTarget?.action) {
+            case 'reactivate':
+              return await reactivateItem.mutateAsync(id);
+            case 'removeImage':
+              try {
+                return await removeImage.mutateAsync(id);
+              } catch (err) {
+                throw new Error(getImageErrorMessage(err));
+              }
+            default:
+              return await deactivateItem.mutateAsync(id);
+          }
+        }}
+        onSuccess={() => {
+          if (confirmTarget) toast.success(confirmCopy[confirmTarget.action]);
+        }}
       />
     </div>
   );

@@ -7,8 +7,10 @@ import {
   createItem,
   deactivateItem,
   reactivateItem,
+  removeItemImage,
   updateCategory,
   updateItem,
+  uploadItemImage,
 } from '../services/category.service';
 import type { CategoryFormInput, CategoryUpdateValues } from '../schemas/category-form.schema';
 import type {
@@ -110,6 +112,32 @@ export function useReactivateItem() {
 
   return useMutation({
     mutationFn: (id: string) => reactivateItem(id),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: queryKeys.items.all });
+      invalidateAudits();
+    },
+  });
+}
+
+export function useUploadItemImage() {
+  const queryClient = useQueryClient();
+  const invalidateAudits = useInvalidateAudits();
+
+  return useMutation({
+    mutationFn: ({ id, file }: { id: string; file: File }) => uploadItemImage(id, file),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: queryKeys.items.all });
+      invalidateAudits();
+    },
+  });
+}
+
+export function useRemoveItemImage() {
+  const queryClient = useQueryClient();
+  const invalidateAudits = useInvalidateAudits();
+
+  return useMutation({
+    mutationFn: (id: string) => removeItemImage(id),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: queryKeys.items.all });
       invalidateAudits();

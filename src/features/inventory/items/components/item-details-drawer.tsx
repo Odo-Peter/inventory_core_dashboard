@@ -13,6 +13,7 @@ import {
 import { formatNaira, formatStaffDate } from '@/features/admin/staff/utils';
 
 import type { ItemResponse } from '../types';
+import { ItemPriceHistory } from './item-price-history';
 
 interface ItemDetailsDrawerProps {
   open: boolean;
@@ -83,6 +84,11 @@ export function ItemDetailsDrawer({
                 </DetailItem>
                 <DetailItem label="Reorder threshold">{item.reorder_threshold}</DetailItem>
               </dl>
+            </section>
+
+            <section className="rounded-lg border">
+              <h3 className="border-b px-3 py-2 text-xs font-medium">Pricing History</h3>
+              <dl className="w-full gap-3 p-3">{item && <ItemPriceHistory itemId={item.id} />}</dl>
             </section>
 
             <section className="rounded-lg border">
