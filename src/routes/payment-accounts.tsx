@@ -1,12 +1,5 @@
-import { PlaceholderPage } from '@/features/placeholders/pages/placeholder-page';
+import { PosAccountsPage } from '@/features/pos/pages/pos-accounts-page';
 
 export function PaymentAccountsRoute() {
-  return (
-    <PlaceholderPage
-      title="Payment Accounts"
-      description="Manage payment accounts for this store."
-      emptyTitle="No payment accounts"
-      emptyDescription="Payment accounts will appear here."
-    />
-  );
+  return <PosAccountsPage />;
 }
