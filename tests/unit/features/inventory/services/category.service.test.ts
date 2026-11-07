@@ -2,13 +2,18 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import axiosInstance from '@/lib/axiosInstance';
 import {
+  changeItemPrice,
+  createCategory,
   createItem,
   deactivateItem,
   getItemUnits,
+  listCategories,
   listItems,
+  reactivateItem,
+  updateCategory,
   updateItem,
 } from '@/features/inventory/category/services/category.service';
-import { itemFixtures, itemMeta } from '../../../../helpers/items';
+import { categoryFixtures, itemFixtures, itemMeta, makeItem } from '../../../../helpers/items';
 
 vi.mock('@/lib/axiosInstance', () => ({
   default: {
@@ -99,23 +104,34 @@ describe('inventory category.service item APIs', () => {
   });
 
   it('sends only defined update fields and converts empty values to null', async () => {
-    const updated = { ...itemFixtures[0], active: false };
+    const updated = { ...itemFixtures[0], name: 'Coca-Cola Zero' };
     mockedAxios.patch.mockResolvedValue({ data: updated });
 
     const result = await updateItem('item-1', {
       name: 'Coca-Cola Zero',
       barcode: '',
       category_id: '',
-      active: false,
     });
 
     expect(mockedAxios.patch).toHaveBeenCalledWith('/items/item-1', {
       name: 'Coca-Cola Zero',
       barcode: null,
       category_id: null,
-      active: false,
     });
     expect(result).toEqual(updated);
+  });
+
+  it('sends cost price and reorder threshold when they are part of the update', async () => {
+    const updated = makeItem({ cost_price: 125000, reorder_threshold: 8 });
+    mockedAxios.patch.mockResolvedValue({ data: updated });
+
+    await updateItem('item-1', { cost_price: 125000, reorder_threshold: 8, unit: 'pack' });
+
+    expect(mockedAxios.patch).toHaveBeenCalledWith('/items/item-1', {
+      cost_price: 125000,
+      reorder_threshold: 8,
+      unit: 'pack',
+    });
   });
 
   it('posts to the deactivate endpoint and returns the item', async () => {
@@ -136,5 +152,49 @@ describe('inventory category.service item APIs', () => {
 
     expect(mockedAxios.get).toHaveBeenCalledWith('/items/units');
     expect(result).toEqual(response);
+  });
+
+  it('lists categories with the supplied query parameters', async () => {
+    const response = { data: categoryFixtures, meta: itemMeta };
+    mockedAxios.get.mockResolvedValue({ data: response });
+    const params = { page: 1, page_size: 100, active: true, q: 'bev' };
+
+    const result = await listCategories(params);
+
+    expect(mockedAxios.get).toHaveBeenCalledWith('/categories', { params });
+    expect(result).toEqual(response);
+  });
+
+  it('creates and updates categories through the expected endpoints', async () => {
+    const created = categoryFixtures[0];
+    const updated = { ...categoryFixtures[0], name: 'Drinks' };
+    mockedAxios.post.mockResolvedValue({ data: created });
+    mockedAxios.patch.mockResolvedValue({ data: updated });
+
+    await expect(createCategory({ name: 'Beverages' })).resolves.toEqual(created);
+    await expect(updateCategory('category-1', { name: 'Drinks' })).resolves.toEqual(updated);
+
+    expect(mockedAxios.post).toHaveBeenCalledWith('/categories', { name: 'Beverages' });
+    expect(mockedAxios.patch).toHaveBeenCalledWith('/categories/category-1', { name: 'Drinks' });
+  });
+
+  it('changes an item price through the dedicated price endpoint', async () => {
+    const updated = makeItem({ current_price: 200000 });
+    mockedAxios.post.mockResolvedValue({ data: updated });
+
+    const result = await changeItemPrice('item-1', { new_price: 200000 });
+
+    expect(mockedAxios.post).toHaveBeenCalledWith('/items/item-1/price', { new_price: 200000 });
+    expect(result).toEqual(updated);
+  });
+
+  it('reactivates an item with a partial active update', async () => {
+    const reactivated = makeItem({ active: true });
+    mockedAxios.patch.mockResolvedValue({ data: reactivated });
+
+    const result = await reactivateItem('item-1');
+
+    expect(mockedAxios.patch).toHaveBeenCalledWith('/items/item-1', { active: true });
+    expect(result).toEqual(reactivated);
   });
 });

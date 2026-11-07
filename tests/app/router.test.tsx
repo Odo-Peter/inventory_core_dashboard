@@ -34,7 +34,26 @@ vi.mock('@/features/inventory/category/services/category.service', () => ({
   createItem: vi.fn(),
   updateItem: vi.fn(),
   deactivateItem: vi.fn(),
+  reactivateItem: vi.fn(),
+  changeItemPrice: vi.fn(),
   getItemUnits: vi.fn().mockResolvedValue({ units: [] }),
+}));
+
+vi.mock('@/features/inventory/stock/services/stock.service', () => ({
+  listStockMovements: vi.fn().mockResolvedValue({
+    data: [],
+    meta: { page: 1, page_size: 25, total: 0, total_pages: 0 },
+  }),
+  getStockStatus: vi.fn(),
+  listReconciliation: vi.fn().mockResolvedValue({
+    data: [],
+    meta: { page: 1, page_size: 25, total: 0, total_pages: 0 },
+  }),
+  recordMovement: vi.fn(),
+  initializeStock: vi.fn(),
+  receiveStock: vi.fn(),
+  adjustStock: vi.fn(),
+  recordDamage: vi.fn(),
 }));
 
 function renderAt(path: string) {
@@ -130,6 +149,7 @@ describe('app router', () => {
     ['/inventory', 'Store Items'],
     ['/inventory/categories', 'Categories'],
     ['/inventory/movements', 'Stock Movements'],
+    ['/admin/stock-reconciliation', 'Stock Reconciliation'],
     ['/sales', 'Sales History'],
     ['/shifts/summary', 'Shift Summary'],
     ['/admin/staff', 'Staff & Access'],

@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 
 import { ItemDetailsDrawer } from '@/features/inventory/items/components/item-details-drawer';
+import { formatNaira } from '@/features/admin/staff/utils';
 import { itemFixtures, makeItem } from '../../helpers/items';
 
 function renderDrawer({
@@ -37,8 +38,8 @@ describe('ItemDetailsDrawer', () => {
     expect(within(dialog).getByText('1234567890')).toBeInTheDocument();
     expect(within(dialog).getByText('Beverages')).toBeInTheDocument();
     expect(within(dialog).getByText('bottle')).toBeInTheDocument();
-    expect(within(dialog).getByText('1,500')).toBeInTheDocument();
-    expect(within(dialog).getByText('1,000')).toBeInTheDocument();
+    expect(within(dialog).getByText(formatNaira(1500))).toBeInTheDocument();
+    expect(within(dialog).getByText(formatNaira(1000))).toBeInTheDocument();
     expect(within(dialog).getByText('24 bottle(s)')).toBeInTheDocument();
     expect(within(dialog).getByText('5')).toBeInTheDocument();
     expect(within(dialog).getByText('item-1')).toBeInTheDocument();

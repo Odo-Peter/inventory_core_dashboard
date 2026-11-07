@@ -6,6 +6,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ItemFormDrawer } from '@/features/inventory/items/components/item-form-drawer';
 import { createItem, updateItem } from '@/features/inventory/category/services/category.service';
+import { formatNaira } from '@/features/admin/staff/utils';
 import { categoryFixtures, itemFixtures, makeItem } from '../../helpers/items';
 
 vi.mock('sonner', () => ({
@@ -35,9 +36,18 @@ const units = [
 interface RenderDrawerOptions {
   mode?: 'add' | 'edit';
   item?: (typeof itemFixtures)[number] | null;
+  onChangePrice?: (item: (typeof itemFixtures)[number]) => void;
+  onRecordStock?: (item: (typeof itemFixtures)[number]) => void;
+  onToggleStatus?: (item: (typeof itemFixtures)[number]) => void;
 }
 
-function renderDrawer({ mode = 'add', item = null }: RenderDrawerOptions = {}) {
+function renderDrawer({
+  mode = 'add',
+  item = null,
+  onChangePrice,
+  onRecordStock,
+  onToggleStatus,
+}: RenderDrawerOptions = {}) {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
   });
@@ -54,6 +64,9 @@ function renderDrawer({ mode = 'add', item = null }: RenderDrawerOptions = {}) {
         units={units}
         categories={categoryFixtures}
         onSuccess={onSuccess}
+        onChangePrice={onChangePrice}
+        onRecordStock={onRecordStock}
+        onToggleStatus={onToggleStatus}
       />
     </QueryClientProvider>,
   );
@@ -102,8 +115,6 @@ describe('ItemFormDrawer', () => {
     await user.type(screen.getByLabelText('Barcode'), '9876543210');
     await user.type(screen.getByLabelText('Selling price'), '1200');
     await user.type(screen.getByLabelText('Cost price'), '900');
-    await user.clear(screen.getByLabelText('Reorder threshold'));
-    await user.type(screen.getByLabelText('Reorder threshold'), '4');
     await chooseOption(user, 'Category', 'Beverages');
 
     await user.click(screen.getByRole('button', { name: 'Save Item' }));
@@ -115,9 +126,11 @@ describe('ItemFormDrawer', () => {
           barcode: '9876543210',
           category_id: 'category-1',
           unit: 'bottle',
-          current_price: 1200,
-          cost_price: 900,
-          reorder_threshold: 4,
+          // Money is stored as kobo: ₦1,200.00 and ₦900.00
+          current_price: 120000,
+          cost_price: 90000,
+          // The reorder input was removed from the form, so the API default is sent.
+          reorder_threshold: 0,
           active: true,
         }),
       );
@@ -184,28 +197,31 @@ describe('ItemFormDrawer', () => {
     expect(await screen.findByRole('heading', { name: 'Edit item' })).toBeInTheDocument();
     expect(screen.getByLabelText('Item name')).toHaveValue('Coca-Cola 50cl');
     expect(screen.getByLabelText('Barcode')).toHaveValue('1234567890');
-    expect(screen.getByLabelText('Selling price')).toHaveValue(1500);
+    // Price is managed separately in edit mode, so there is no price input.
+    expect(screen.queryByLabelText('Selling price')).not.toBeInTheDocument();
+    expect(screen.getByText(formatNaira(1500))).toBeInTheDocument();
+    // NOTE: this is the current behaviour, not the intended one. Edit defaults put
+    // the raw kobo integer (1000) into the naira cost input instead of ₦10.00.
+    // See the "cost price corruption" note in the test report.
     expect(screen.getByLabelText('Cost price')).toHaveValue(1000);
-    expect(screen.getByLabelText('Reorder threshold')).toHaveValue(5);
-    expect(screen.getByRole('combobox', { name: 'Status' })).toHaveTextContent('Active');
+    expect(screen.queryByLabelText('Reorder threshold')).not.toBeInTheDocument();
+    expect(screen.queryByRole('combobox', { name: 'Status' })).not.toBeInTheDocument();
+    expect(screen.getByText('Managed separately')).toBeInTheDocument();
+    expect(screen.getByText('Active')).toBeInTheDocument();
 
     await user.clear(screen.getByLabelText('Item name'));
     await user.type(screen.getByLabelText('Item name'), 'Coca-Cola Zero');
-    await chooseOption(user, 'Status', 'Inactive');
     await user.click(screen.getByRole('button', { name: 'Update Item' }));
 
     await waitFor(() => {
       expect(updateItem).toHaveBeenCalledWith('item-1', {
         name: 'Coca-Cola Zero',
-        barcode: '1234567890',
-        category_id: 'category-1',
-        unit: 'bottle',
-        cost_price: 1000,
-        reorder_threshold: 5,
-        active: false,
+        // Regression: the pre-filled "1000" is parsed as ₦1,000.00 (100000 kobo),
+        // so an untouched cost price is resubmitted with a different value.
+        cost_price: 100000,
       });
     });
-    expect(toast.success).toHaveBeenCalledWith('Item "Coca-Cola Zero" updated successfully');
+    expect(toast.success).toHaveBeenCalledWith('Item "Coca-Cola 50cl" updated successfully');
     expect(onSuccess).toHaveBeenCalledTimes(1);
     expect(onOpenChange).toHaveBeenCalledWith(false);
   });
@@ -237,5 +253,124 @@ describe('ItemFormDrawer', () => {
 
     expect(onOpenChange).toHaveBeenCalledWith(false);
     expect(createItem).not.toHaveBeenCalled();
+  });
+
+  it('blocks decimal prices because the price inputs still use step="1"', async () => {
+    // Regression documentation: the API accepts kobo, but both price inputs retain
+    // step="1". Native form validation therefore rejects values such as 1500.50 and
+    // the submit handler never runs. See the test report's "Possible bugs" section.
+    const user = userEvent.setup();
+    renderDrawer();
+
+    await screen.findByRole('heading', { name: 'Add item' });
+    await user.type(screen.getByLabelText('Item name'), 'Precision Item');
+    await user.type(screen.getByLabelText('Selling price'), '1500.50');
+    await user.type(screen.getByLabelText('Cost price'), '1000.25');
+
+    const sellingPrice = screen.getByLabelText('Selling price') as HTMLInputElement;
+    const costPrice = screen.getByLabelText('Cost price') as HTMLInputElement;
+
+    expect(sellingPrice).toHaveValue(1500.5);
+    expect(sellingPrice.step).toBe('1');
+    expect(sellingPrice.validity.stepMismatch).toBe(true);
+    expect(costPrice.validity.stepMismatch).toBe(true);
+
+    await user.click(screen.getByRole('button', { name: 'Save Item' }));
+    expect(createItem).not.toHaveBeenCalled();
+  });
+
+  it('converts whole-naira form values to kobo', async () => {
+    vi.mocked(createItem).mockResolvedValue(itemFixtures[0]);
+    const user = userEvent.setup();
+    renderDrawer();
+
+    await screen.findByRole('heading', { name: 'Add item' });
+    await user.type(screen.getByLabelText('Item name'), 'Whole Naira Item');
+    await user.type(screen.getByLabelText('Selling price'), '1500');
+    await user.type(screen.getByLabelText('Cost price'), '1000');
+    await user.click(screen.getByRole('button', { name: 'Save Item' }));
+
+    await waitFor(() => {
+      expect(createItem).toHaveBeenCalledWith(
+        expect.objectContaining({
+          current_price: 150000,
+          cost_price: 100000,
+        }),
+      );
+    });
+  });
+
+  it('includes the uploaded image in the create payload', async () => {
+    vi.mocked(createItem).mockResolvedValue(itemFixtures[0]);
+    Object.defineProperty(URL, 'createObjectURL', {
+      configurable: true,
+      value: vi.fn(() => 'blob:item-preview'),
+    });
+
+    const user = userEvent.setup();
+    renderDrawer();
+    const image = new File(['fake-image'], 'cola.png', { type: 'image/png' });
+
+    await screen.findByRole('heading', { name: 'Add item' });
+    await fillRequiredFields(user);
+    await user.upload(screen.getByLabelText('Image'), image);
+    await user.click(screen.getByRole('button', { name: 'Save Item' }));
+
+    await waitFor(() => {
+      expect(createItem).toHaveBeenCalledWith(expect.objectContaining({ image }));
+    });
+  });
+
+  it('disables saving edit mode until something changes', async () => {
+    const user = userEvent.setup();
+    // cost_price is null so the known kobo/naira default bug does not already
+    // register a change on mount.
+    renderDrawer({ mode: 'edit', item: makeItem({ cost_price: null }) });
+
+    await screen.findByRole('heading', { name: 'Edit item' });
+
+    expect(screen.getByText('No changes to save')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Update Item' })).toBeDisabled();
+    expect(updateItem).not.toHaveBeenCalled();
+
+    await user.type(screen.getByLabelText('Item name'), ' Zero');
+    expect(screen.queryByText('No changes to save')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Update Item' })).toBeEnabled();
+  });
+
+  it('delegates price, stock, and status changes from the managed section', async () => {
+    const user = userEvent.setup();
+    const onChangePrice = vi.fn();
+    const onRecordStock = vi.fn();
+    const onToggleStatus = vi.fn();
+    renderDrawer({
+      mode: 'edit',
+      item: itemFixtures[0],
+      onChangePrice,
+      onRecordStock,
+      onToggleStatus,
+    });
+
+    await screen.findByRole('heading', { name: 'Edit item' });
+    await user.click(screen.getByRole('button', { name: 'Change price' }));
+    await user.click(screen.getByRole('button', { name: 'Record movement' }));
+    await user.click(screen.getByRole('button', { name: 'Deactivate' }));
+
+    expect(onChangePrice).toHaveBeenCalledWith(itemFixtures[0]);
+    expect(onRecordStock).toHaveBeenCalledWith(itemFixtures[0]);
+    expect(onToggleStatus).toHaveBeenCalledWith(itemFixtures[0]);
+  });
+
+  it('uses "Reactivate" for an inactive item in the managed section', async () => {
+    const user = userEvent.setup();
+    const onToggleStatus = vi.fn();
+    const inactive = makeItem({ name: 'Fanta Orange 50cl', active: false });
+    renderDrawer({ mode: 'edit', item: inactive, onToggleStatus });
+
+    await screen.findByRole('heading', { name: 'Edit item' });
+    expect(screen.getByText('Inactive')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Reactivate' }));
+
+    expect(onToggleStatus).toHaveBeenCalledWith(inactive);
   });
 });
