@@ -36,6 +36,7 @@ import { formatNaira } from '@/features/admin/staff/utils';
 import { Badge } from '@/components/ui/badge';
 import { getItemChanges } from '../../category/lib/item-changes';
 import { parseNairaToKobo } from '@/lib/money';
+import { useCan } from '@/lib/rbac';
 
 type FormMode = 'add' | 'edit';
 
@@ -113,6 +114,15 @@ function ManagedSeparately({
   onRecordStock?: (item: ItemResponse) => void;
   onToggleStatus?: (item: ItemResponse) => void;
 }) {
+  const canChangePrice = useCan('itemChangePrice');
+  const canRecordStock = useCan('stockRecord');
+  const canDeactivate = useCan('itemDeactivate');
+  const canReactivate = useCan('itemReactivate');
+  const canToggleStatus = item.active ? canDeactivate : canReactivate;
+  const hasActions = canChangePrice || canRecordStock || canToggleStatus;
+
+  if (!hasActions) return null;
+
   return (
     <section className="border-border rounded-md border">
       <div className="border-b px-3 py-2">
@@ -122,28 +132,34 @@ function ManagedSeparately({
         </p>
       </div>
       <dl className="divide-border divide-y">
-        <ManagedRow
-          label="Selling price"
-          value={formatNaira(item.current_price)}
-          actionLabel="Change price"
-          onAction={onChangePrice && (() => onChangePrice(item))}
-        />
-        <ManagedRow
-          label="Stock on hand"
-          value={`${item.stock_quantity} ${item.unit}`}
-          actionLabel="Record movement"
-          onAction={onRecordStock && (() => onRecordStock(item))}
-        />
-        <ManagedRow
-          label="Status"
-          value={
-            <Badge variant={item.active ? 'success' : 'secondary'}>
-              {item.active ? 'Active' : 'Inactive'}
-            </Badge>
-          }
-          actionLabel={item.active ? 'Deactivate' : 'Reactivate'}
-          onAction={onToggleStatus && (() => onToggleStatus(item))}
-        />
+        {canChangePrice ? (
+          <ManagedRow
+            label="Selling price"
+            value={formatNaira(item.current_price)}
+            actionLabel="Change price"
+            onAction={onChangePrice && (() => onChangePrice(item))}
+          />
+        ) : null}
+        {canRecordStock ? (
+          <ManagedRow
+            label="Stock on hand"
+            value={`${item.stock_quantity} ${item.unit}`}
+            actionLabel="Record movement"
+            onAction={onRecordStock && (() => onRecordStock(item))}
+          />
+        ) : null}
+        {canToggleStatus ? (
+          <ManagedRow
+            label="Status"
+            value={
+              <Badge variant={item.active ? 'success' : 'secondary'}>
+                {item.active ? 'Active' : 'Inactive'}
+              </Badge>
+            }
+            actionLabel={item.active ? 'Deactivate' : 'Reactivate'}
+            onAction={onToggleStatus && (() => onToggleStatus(item))}
+          />
+        ) : null}
       </dl>
     </section>
   );
@@ -225,6 +241,7 @@ function ItemForm({
   const createItem = useCreateItem();
   const updateItem = useUpdateItem();
   const isPending = createItem.isPending || updateItem.isPending;
+  const canViewCostPrice = useCan('itemViewCostPrice');
 
   const form = useForm<ItemFormInput, unknown, ItemFormValues>({
     resolver: zodResolver(itemFormSchema) as unknown as Resolver<
@@ -452,33 +469,35 @@ function ItemForm({
               />
             )}
 
-            <FormField
-              control={form.control}
-              name="cost_price"
-              render={({ field }) => (
-                <FormItem className="col-span-2">
-                  <FormControl>
-                    <Input
-                      htmlFor="item-cost-price"
-                      label="Cost price"
-                      type="number"
-                      min={0}
-                      step="1"
-                      error={!!errors.cost_price}
-                      errorText={errors.cost_price?.message}
-                      helpText={
-                        costPrice ? (
-                          <span className="font-semibold text-emerald-700">
-                            {formatNaira(costPrice)}
-                          </span>
-                        ) : null
-                      }
-                      {...field}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
+            {canViewCostPrice ? (
+              <FormField
+                control={form.control}
+                name="cost_price"
+                render={({ field }) => (
+                  <FormItem className="col-span-2">
+                    <FormControl>
+                      <Input
+                        htmlFor="item-cost-price"
+                        label="Cost price"
+                        type="number"
+                        min={0}
+                        step="1"
+                        error={!!errors.cost_price}
+                        errorText={errors.cost_price?.message}
+                        helpText={
+                          costPrice ? (
+                            <span className="font-semibold text-emerald-700">
+                              {formatNaira(costPrice)}
+                            </span>
+                          ) : null
+                        }
+                        {...field}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+            ) : null}
           </div>
 
           {isEdit && item && (

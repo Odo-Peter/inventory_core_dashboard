@@ -15,6 +15,7 @@ import { SaleDetailsDrawer } from '../components/sale-details-drawer';
 import { SalesFiltersBar } from '../components/sales-filters';
 import { SalesTable } from '../components/sales-table';
 import { useListSales } from '../hooks/useSalesQueries';
+import { useCan } from '@/lib/rbac';
 
 const PAGE_SIZE = 25;
 const PAGE_DESCRIPTION =
@@ -32,6 +33,9 @@ export function SalesHistoryPage() {
   const query = useMemo(() => toSalesParams(filters, page, PAGE_SIZE), [filters, page]);
 
   const { data, isLoading, isFetching, isError, refetch } = useListSales(query);
+
+  // Cashiers see only their own sales; managers and admins see the store.
+  const salesOwnScope = useCan('salesOwnScope');
 
   const sales = useMemo(() => data?.data ?? [], [data]);
   const meta = data?.meta;
@@ -101,6 +105,15 @@ export function SalesHistoryPage() {
   return (
     <div className="flex flex-col gap-5">
       <PageHeader title="Sales History" description={PAGE_DESCRIPTION} />
+
+      {salesOwnScope ? (
+        <div
+          role="status"
+          className="border-border bg-muted/40 text-muted-foreground rounded-lg border px-4 py-2 text-xs"
+        >
+          Showing your sales only. Managers and admins can see the whole store.
+        </div>
+      ) : null}
 
       <SalesFiltersBar
         filters={filters}

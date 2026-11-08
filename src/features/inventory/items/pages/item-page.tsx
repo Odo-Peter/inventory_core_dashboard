@@ -13,6 +13,7 @@ import { ItemDetailsDrawer } from '../components/item-details-drawer';
 import { getItemColumns } from '../column/item-column';
 import { ItemFormDrawer } from '../components/item-form-drawer';
 import { ConfirmActionDialog, type ConfirmAction } from '@/components/shared/confirm-action-dialog';
+import { Can, useCan } from '@/lib/rbac';
 
 import {
   useListCategories,
@@ -102,6 +103,34 @@ export function ItemPage() {
   const deactivateItem = useDeactivateItem();
   const reactivateItem = useReactivateItem();
   const removeImage = useRemoveItemImage();
+
+  const canEdit = useCan('itemEdit');
+  const canChangePrice = useCan('itemChangePrice');
+  const canRecordStock = useCan('stockRecord');
+  const canViewStock = useCan('stockView');
+  const canChangeImage = useCan('itemImage');
+  const canDeactivate = useCan('itemDeactivate');
+  const canReactivate = useCan('itemReactivate');
+  const itemPermissions = useMemo(
+    () => ({
+      edit: canEdit,
+      changePrice: canChangePrice,
+      recordStock: canRecordStock,
+      viewStock: canViewStock,
+      changeImage: canChangeImage,
+      deactivate: canDeactivate,
+      reactivate: canReactivate,
+    }),
+    [
+      canEdit,
+      canChangePrice,
+      canRecordStock,
+      canViewStock,
+      canChangeImage,
+      canDeactivate,
+      canReactivate,
+    ],
+  );
 
   const items = useMemo(() => data?.data ?? [], [data]);
   const categories = useMemo(() => categoryData?.data ?? [], [categoryData]);
@@ -220,6 +249,7 @@ export function ItemPage() {
           onRemoveImage: requestRemoveImage,
         },
         categoryNames,
+        itemPermissions,
       ),
     [
       handleViewItem,
@@ -229,6 +259,7 @@ export function ItemPage() {
       requestDeactivate,
       requestReactivate,
       categoryNames,
+      itemPermissions,
     ],
   );
 
@@ -244,10 +275,12 @@ export function ItemPage() {
         title="Store Items"
         description="Manage your store's inventory, prices, and stock levels."
         actions={
-          <Button onClick={openAddItem}>
-            <Plus />
-            Add New Item
-          </Button>
+          <Can permission="itemCreate">
+            <Button onClick={openAddItem}>
+              <Plus />
+              Add New Item
+            </Button>
+          </Can>
         }
       />
 

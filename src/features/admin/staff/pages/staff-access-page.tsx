@@ -18,6 +18,7 @@ import { useDeactivateStaff, useReactivateStaff } from '../../hooks/useAdminMuta
 import { ResetPinDialog } from '../components/reset-pin-dialog';
 import { UnlockStaffDialog } from '../components/unlock-staff-dialog';
 import { getStaffColumns } from '../components/staff-columns';
+import { Can, useCan } from '@/lib/rbac';
 
 type FormMode = 'add' | 'edit';
 
@@ -40,6 +41,21 @@ export function StaffAccessPage() {
   const { data, isLoading } = useListStaff();
   const deactivateStaff = useDeactivateStaff();
   const reactivateStaff = useReactivateStaff();
+
+  const canEdit = useCan('staffEdit');
+  const canResetPin = useCan('staffResetPin');
+  const canUnlock = useCan('staffUnlock');
+  const canDeactivate = useCan('staffDeactivate');
+  const canReactivate = useCan('staffReactivate');
+  const staffPermissions = useMemo(
+    () => ({
+      edit: canEdit,
+      resetPin: canResetPin,
+      unlock: canUnlock,
+      manageStatus: canDeactivate || canReactivate,
+    }),
+    [canEdit, canResetPin, canUnlock, canDeactivate, canReactivate],
+  );
 
   // Stable handlers, so the columns are only built once
   const requestDeactivate = useCallback(
@@ -72,14 +88,17 @@ export function StaffAccessPage() {
 
   const columns = useMemo(
     () =>
-      getStaffColumns({
-        onView: openStaffDetails,
-        onEdit: openEditStaff,
-        onResetPin: resetPin,
-        onDeactivate: requestDeactivate,
-        onReactivate: requestReactivate,
-        onUnlock: unlockAccount,
-      }),
+      getStaffColumns(
+        {
+          onView: openStaffDetails,
+          onEdit: openEditStaff,
+          onResetPin: resetPin,
+          onDeactivate: requestDeactivate,
+          onReactivate: requestReactivate,
+          onUnlock: unlockAccount,
+        },
+        staffPermissions,
+      ),
     [
       openStaffDetails,
       openEditStaff,
@@ -87,6 +106,7 @@ export function StaffAccessPage() {
       requestDeactivate,
       requestReactivate,
       unlockAccount,
+      staffPermissions,
     ],
   );
 
@@ -104,10 +124,12 @@ export function StaffAccessPage() {
         title="Staff & Access"
         description="Manage staff accounts, roles, and access."
         actions={
-          <Button onClick={openAddStaff}>
-            <PlusIcon data-icon="inline-start" />
-            Add Staff
-          </Button>
+          <Can permission="staffCreate">
+            <Button onClick={openAddStaff}>
+              <PlusIcon data-icon="inline-start" />
+              Add Staff
+            </Button>
+          </Can>
         }
       />
 

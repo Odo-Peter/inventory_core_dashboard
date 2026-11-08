@@ -8,6 +8,7 @@ import { ItemFormDrawer } from '@/features/inventory/items/components/item-form-
 import { createItem, updateItem } from '@/features/inventory/category/services/category.service';
 import { formatNaira } from '@/features/admin/staff/utils';
 import { categoryFixtures, itemFixtures, makeItem } from '../../helpers/items';
+import { RoleProvider } from '../../helpers/role';
 
 vi.mock('sonner', () => ({
   toast: {
@@ -55,20 +56,22 @@ function renderDrawer({
   const onSuccess = vi.fn();
 
   render(
-    <QueryClientProvider client={queryClient}>
-      <ItemFormDrawer
-        open
-        onOpenChange={onOpenChange}
-        mode={mode}
-        item={item}
-        units={units}
-        categories={categoryFixtures}
-        onSuccess={onSuccess}
-        onChangePrice={onChangePrice}
-        onRecordStock={onRecordStock}
-        onToggleStatus={onToggleStatus}
-      />
-    </QueryClientProvider>,
+    <RoleProvider role="admin">
+      <QueryClientProvider client={queryClient}>
+        <ItemFormDrawer
+          open
+          onOpenChange={onOpenChange}
+          mode={mode}
+          item={item}
+          units={units}
+          categories={categoryFixtures}
+          onSuccess={onSuccess}
+          onChangePrice={onChangePrice}
+          onRecordStock={onRecordStock}
+          onToggleStatus={onToggleStatus}
+        />
+      </QueryClientProvider>
+    </RoleProvider>,
   );
 
   return { onOpenChange, onSuccess };

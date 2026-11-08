@@ -15,6 +15,7 @@ import type { Shift } from '../types';
 import { formatNaira, formatStaffDate, formatTime } from '@/features/admin/staff/utils';
 import { useGetStaff } from '@/features/admin/hooks/useAdminQueries';
 import { useMyProfile } from '@/features/auth/hooks/useAuthQueries';
+import { can } from '@/lib/rbac';
 
 interface ShiftDetailsDrawerProps {
   open: boolean;
@@ -44,13 +45,10 @@ function canEndShift(shift: Shift, principal?: { id: string; role?: string }): b
   if (!isShiftOpen(shift) || !principal) return false;
 
   const isOwner = principal.id === shift.staff_id;
-  const isManagerOrAdmin = principal.role === 'admin' || principal.role === 'manager';
 
-  return isOwner || isManagerOrAdmin;
-}
-
-function isManagerOrAdmin(role?: string) {
-  return role === 'admin' || role === 'manager';
+  // Clocking out your own shift is a clock action (admin is denied it);
+  // closing someone else's shift is the manager+ force-close action.
+  return isOwner ? can(principal.role, 'shiftClock') : can(principal.role, 'shiftsForceClose');
 }
 
 function formatShiftDuration(clockIn: string, clockOut: string): string {
@@ -68,7 +66,7 @@ export function ShiftDetailsDrawer({
   principal,
   onAdminEndShift,
 }: ShiftDetailsDrawerProps) {
-  const canLookupStaff = isManagerOrAdmin(principal?.role);
+  const canLookupStaff = can(principal?.role, 'staffView');
 
   const { data: staff, isError: staffLookupFailed } = useGetStaff(shift?.staff_id ?? '', {
     enabled: open && !!shift?.staff_id && canLookupStaff,
@@ -101,7 +99,7 @@ export function ShiftDetailsDrawer({
     onOpenChange(false);
 
     // Admin/manager closing someone else's open shift → reason dialog
-    if (isForeignShift && isManagerOrAdmin(principal?.role) && onAdminEndShift) {
+    if (isForeignShift && can(principal?.role, 'shiftsForceClose') && onAdminEndShift) {
       onAdminEndShift(shift);
       return;
     }

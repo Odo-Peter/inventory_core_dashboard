@@ -21,14 +21,26 @@ export interface PosAccountColumnActions {
   onDeactivate: (account: PosAccount) => void;
 }
 
+export interface PosAccountColumnPermissions {
+  edit: boolean;
+  deactivate: boolean;
+}
+
+const ALL_POS_PERMISSIONS: PosAccountColumnPermissions = {
+  edit: true,
+  deactivate: true,
+};
+
 const columnHelper = createColumnHelper<DataTableFeatures, PosAccount>();
 
 function PosAccountRowActions({
   account,
   actions,
+  permissions,
 }: {
   account: PosAccount;
   actions: PosAccountColumnActions;
+  permissions: PosAccountColumnPermissions;
 }) {
   const { onView, onEdit, onDeactivate } = actions;
 
@@ -51,11 +63,13 @@ function PosAccountRowActions({
           <EyeIcon />
           View details
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => onEdit(account)}>
-          <PencilIcon />
-          Edit
-        </DropdownMenuItem>
-        {account.active && (
+        {permissions.edit ? (
+          <DropdownMenuItem onClick={() => onEdit(account)}>
+            <PencilIcon />
+            Edit
+          </DropdownMenuItem>
+        ) : null}
+        {permissions.deactivate && account.active ? (
           <>
             <DropdownMenuSeparator />
             <DropdownMenuItem variant="destructive" onClick={() => onDeactivate(account)}>
@@ -63,13 +77,16 @@ function PosAccountRowActions({
               Deactivate
             </DropdownMenuItem>
           </>
-        )}
+        ) : null}
       </DropdownMenuContent>
     </DropdownMenu>
   );
 }
 
-export const getPosAccountColumns = (actions: PosAccountColumnActions) =>
+export const getPosAccountColumns = (
+  actions: PosAccountColumnActions,
+  permissions: PosAccountColumnPermissions = ALL_POS_PERMISSIONS,
+) =>
   columnHelper.columns([
     columnHelper.accessor('label', {
       header: 'Label',
@@ -123,7 +140,11 @@ export const getPosAccountColumns = (actions: PosAccountColumnActions) =>
       header: () => <span className="sr-only">Actions</span>,
       cell: ({ row }) => (
         <div className="text-right">
-          <PosAccountRowActions account={row.original} actions={actions} />
+          <PosAccountRowActions
+            account={row.original}
+            actions={actions}
+            permissions={permissions}
+          />
         </div>
       ),
     }),

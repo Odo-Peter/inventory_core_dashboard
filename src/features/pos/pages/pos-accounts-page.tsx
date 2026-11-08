@@ -14,6 +14,7 @@ import { getPosAccountColumns } from '../components/pos-account-columns';
 import type { PosAccount } from '../types';
 import { useListPosAccounts } from '../hooks/usePosQueries';
 import { useDeactivatePosAccount } from '../hooks/usePosMutations';
+import { Can, useCan } from '@/lib/rbac';
 
 type FormMode = 'add' | 'edit';
 
@@ -30,6 +31,13 @@ export function PosAccountsPage() {
 
   const { data, isLoading } = useListPosAccounts();
   const deactivateAccount = useDeactivatePosAccount();
+
+  const canEdit = useCan('posAccountsEdit');
+  const canDeactivate = useCan('posAccountsDeactivate');
+  const posPermissions = useMemo(
+    () => ({ edit: canEdit, deactivate: canDeactivate }),
+    [canEdit, canDeactivate],
+  );
 
   const requestDeactivate = useCallback(
     (account: PosAccount) => setConfirmTarget({ account, action: 'deactivate' }),
@@ -55,12 +63,15 @@ export function PosAccountsPage() {
 
   const columns = useMemo(
     () =>
-      getPosAccountColumns({
-        onView: openAccountDetails,
-        onEdit: openEditAccount,
-        onDeactivate: requestDeactivate,
-      }),
-    [openAccountDetails, openEditAccount, requestDeactivate],
+      getPosAccountColumns(
+        {
+          onView: openAccountDetails,
+          onEdit: openEditAccount,
+          onDeactivate: requestDeactivate,
+        },
+        posPermissions,
+      ),
+    [openAccountDetails, openEditAccount, requestDeactivate, posPermissions],
   );
 
   const accounts = useMemo(() => data?.data ?? [], [data]);
@@ -74,10 +85,12 @@ export function PosAccountsPage() {
         title="POS Accounts"
         description="Manage POS terminals and payment accounts."
         actions={
-          <Button onClick={openAddAccount}>
-            <PlusIcon data-icon="inline-start" />
-            Add POS Account
-          </Button>
+          <Can permission="posAccountsCreate">
+            <Button onClick={openAddAccount}>
+              <PlusIcon data-icon="inline-start" />
+              Add POS Account
+            </Button>
+          </Can>
         }
       />
 

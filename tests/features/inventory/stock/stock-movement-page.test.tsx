@@ -19,6 +19,7 @@ import {
 } from '../../../helpers/stock';
 import { listItemsResponse } from '../../../helpers/items';
 import { resolveRange } from '@/features/inventory/stock/lib/movement-utils';
+import { RoleProvider } from '../../../helpers/role';
 
 process.env.TZ = 'UTC';
 
@@ -60,21 +61,23 @@ function renderPage(initialEntry = '/inventory/movements') {
   });
 
   const view = render(
-    <QueryClientProvider client={queryClient}>
-      <MemoryRouter initialEntries={[initialEntry]}>
-        <Routes>
-          <Route
-            path="/inventory/movements"
-            element={
-              <>
-                <StockMovementPage />
-                <LocationProbe />
-              </>
-            }
-          />
-        </Routes>
-      </MemoryRouter>
-    </QueryClientProvider>,
+    <RoleProvider role="admin">
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter initialEntries={[initialEntry]}>
+          <Routes>
+            <Route
+              path="/inventory/movements"
+              element={
+                <>
+                  <StockMovementPage />
+                  <LocationProbe />
+                </>
+              }
+            />
+          </Routes>
+        </MemoryRouter>
+      </QueryClientProvider>
+    </RoleProvider>,
   );
 
   return { queryClient, ...view };

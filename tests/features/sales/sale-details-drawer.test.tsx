@@ -7,6 +7,7 @@ import { SaleDetailsDrawer } from '@/features/sales/components/sale-details-draw
 import { getSale, printSaleReceipt } from '@/features/sales/services/sales.service';
 import { formatNaira } from '@/features/admin/staff/utils';
 import { makeReceipt, makeSale } from '../../helpers/sales';
+import { RoleProvider } from '../../helpers/role';
 
 vi.mock('@/features/sales/services/sales.service', () => ({
   listSales: vi.fn(),
@@ -31,9 +32,11 @@ function renderDrawer({
   });
 
   render(
-    <QueryClientProvider client={queryClient}>
-      <SaleDetailsDrawer open={open} onOpenChange={onOpenChange} saleId={saleId} />
-    </QueryClientProvider>,
+    <RoleProvider role="cashier">
+      <QueryClientProvider client={queryClient}>
+        <SaleDetailsDrawer open={open} onOpenChange={onOpenChange} saleId={saleId} />
+      </QueryClientProvider>
+    </RoleProvider>,
   );
 
   return { onOpenChange };

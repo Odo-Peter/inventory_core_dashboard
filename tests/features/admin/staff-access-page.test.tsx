@@ -13,6 +13,7 @@ import {
   replacePhoneNumber,
   staffFixtures,
 } from '../../helpers/staff';
+import { RoleProvider } from '../../helpers/role';
 
 vi.mock('sonner', () => ({
   toast: {
@@ -38,9 +39,11 @@ function renderPage() {
   });
 
   render(
-    <QueryClientProvider client={queryClient}>
-      <StaffAccessPage />
-    </QueryClientProvider>,
+    <RoleProvider role="admin">
+      <QueryClientProvider client={queryClient}>
+        <StaffAccessPage />
+      </QueryClientProvider>
+    </RoleProvider>,
   );
 
   return queryClient;

@@ -29,6 +29,7 @@ import {
   openItemRowActions,
 } from '../../helpers/items';
 import { buildStockStatus } from '../../helpers/stock';
+import { RoleProvider } from '../../helpers/role';
 
 vi.mock('sonner', () => ({
   toast: {
@@ -70,13 +71,15 @@ function renderPage(initialEntry = '/inventory') {
   });
 
   const view = render(
-    <QueryClientProvider client={queryClient}>
-      <MemoryRouter initialEntries={[initialEntry]}>
-        <Routes>
-          <Route path="/inventory" element={<ItemPage />} />
-        </Routes>
-      </MemoryRouter>
-    </QueryClientProvider>,
+    <RoleProvider role="admin">
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter initialEntries={[initialEntry]}>
+          <Routes>
+            <Route path="/inventory" element={<ItemPage />} />
+          </Routes>
+        </MemoryRouter>
+      </QueryClientProvider>
+    </RoleProvider>,
   );
 
   return { queryClient, ...view };

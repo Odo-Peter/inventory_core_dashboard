@@ -38,9 +38,45 @@ export interface ItemColumnActions {
   onRemoveImage: (item: ItemResponse) => void;
 }
 
+export interface ItemColumnPermissions {
+  edit: boolean;
+  changePrice: boolean;
+  recordStock: boolean;
+  viewStock: boolean;
+  changeImage: boolean;
+  deactivate: boolean;
+  reactivate: boolean;
+}
+
+const ALL_ITEM_PERMISSIONS: ItemColumnPermissions = {
+  edit: true,
+  changePrice: true,
+  recordStock: true,
+  viewStock: true,
+  changeImage: true,
+  deactivate: true,
+  reactivate: true,
+};
+
 const columnHelper = createColumnHelper<DataTableFeatures, ItemResponse>();
 
-function ItemRowActions({ item, actions }: { item: ItemResponse; actions: ItemColumnActions }) {
+function ItemRowActions({
+  item,
+  actions,
+  permissions,
+}: {
+  item: ItemResponse;
+  actions: ItemColumnActions;
+  permissions: ItemColumnPermissions;
+}) {
+  const hasManagementActions =
+    permissions.edit ||
+    permissions.changePrice ||
+    permissions.recordStock ||
+    permissions.viewStock ||
+    permissions.changeImage ||
+    (item.active ? permissions.deactivate : permissions.reactivate);
+
   return (
     <DropdownMenu modal={false}>
       <DropdownMenuTrigger
@@ -61,44 +97,55 @@ function ItemRowActions({ item, actions }: { item: ItemResponse; actions: ItemCo
           <EyeIcon />
           View details
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => actions.onEdit(item)}>
-          <PencilIcon />
-          Edit details
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => actions.onChangePrice(item)}>
-          <TagIcon />
-          Change price
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => actions.onRecordStock(item)}>
-          <PackagePlusIcon />
-          Record stock movement
-        </DropdownMenuItem>
-        <DropdownMenuItem render={<Link to={`/inventory/movements?item_id=${item.id}`} />}>
-          <HistoryIcon />
-          View stock history
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => actions.onChangeImage(item)}>
-          <ImageIcon />
-          {item.image_key ? 'Replace image' : 'Add image'}
-        </DropdownMenuItem>
-        {item.image_key && (
+        {permissions.edit ? (
+          <DropdownMenuItem onClick={() => actions.onEdit(item)}>
+            <PencilIcon />
+            Edit details
+          </DropdownMenuItem>
+        ) : null}
+        {permissions.changePrice ? (
+          <DropdownMenuItem onClick={() => actions.onChangePrice(item)}>
+            <TagIcon />
+            Change price
+          </DropdownMenuItem>
+        ) : null}
+        {permissions.recordStock ? (
+          <DropdownMenuItem onClick={() => actions.onRecordStock(item)}>
+            <PackagePlusIcon />
+            Record stock movement
+          </DropdownMenuItem>
+        ) : null}
+        {permissions.viewStock ? (
+          <DropdownMenuItem render={<Link to={`/inventory/movements?item_id=${item.id}`} />}>
+            <HistoryIcon />
+            View stock history
+          </DropdownMenuItem>
+        ) : null}
+        {permissions.changeImage ? (
+          <DropdownMenuItem onClick={() => actions.onChangeImage(item)}>
+            <ImageIcon />
+            {item.image_key ? 'Replace image' : 'Add image'}
+          </DropdownMenuItem>
+        ) : null}
+        {permissions.changeImage && item.image_key ? (
           <DropdownMenuItem onClick={() => actions.onRemoveImage(item)}>
             <ImageOffIcon />
             Remove image
           </DropdownMenuItem>
-        )}
-        <DropdownMenuSeparator />
-        {item.active ? (
+        ) : null}
+        {hasManagementActions ? <DropdownMenuSeparator /> : null}
+        {item.active && permissions.deactivate ? (
           <DropdownMenuItem variant="destructive" onClick={() => actions.onDeactivate(item)}>
             <Trash2Icon />
             Deactivate item
           </DropdownMenuItem>
-        ) : (
+        ) : null}
+        {!item.active && permissions.reactivate ? (
           <DropdownMenuItem onClick={() => actions.onReactivate(item)}>
             <RotateCcwIcon />
             Reactivate item
           </DropdownMenuItem>
-        )}
+        ) : null}
       </DropdownMenuContent>
     </DropdownMenu>
   );
@@ -107,6 +154,7 @@ function ItemRowActions({ item, actions }: { item: ItemResponse; actions: ItemCo
 export const getItemColumns = (
   actions: ItemColumnActions,
   categoryNames: Record<string, string> = {},
+  permissions: ItemColumnPermissions = ALL_ITEM_PERMISSIONS,
 ) =>
   columnHelper.columns([
     columnHelper.accessor('name', {
@@ -178,7 +226,7 @@ export const getItemColumns = (
       header: () => <span className="sr-only">Actions</span>,
       cell: ({ row }) => (
         <div className="text-right" onClick={(event) => event.stopPropagation()}>
-          <ItemRowActions item={row.original} actions={actions} />
+          <ItemRowActions item={row.original} actions={actions} permissions={permissions} />
         </div>
       ),
     }),

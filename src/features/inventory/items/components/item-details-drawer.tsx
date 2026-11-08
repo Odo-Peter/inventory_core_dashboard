@@ -11,6 +11,7 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet';
 import { formatNaira, formatStaffDate } from '@/features/admin/staff/utils';
+import { useCan } from '@/lib/rbac';
 
 import type { ItemResponse } from '../types';
 import { ItemPriceHistory } from './item-price-history';
@@ -39,6 +40,8 @@ export function ItemDetailsDrawer({
   item,
   categoryName,
 }: ItemDetailsDrawerProps) {
+  const canViewCostPrice = useCan('itemViewCostPrice');
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       {item ? (
@@ -76,9 +79,11 @@ export function ItemDetailsDrawer({
               <h3 className="border-b px-3 py-2 text-xs font-medium">Pricing and stock</h3>
               <dl className="grid grid-cols-2 gap-3 p-3">
                 <DetailItem label="Current price">{formatNaira(item.current_price)}</DetailItem>
-                <DetailItem label="Cost price">
-                  {item.cost_price == null ? '—' : formatNaira(item.cost_price)}
-                </DetailItem>
+                {canViewCostPrice ? (
+                  <DetailItem label="Cost price">
+                    {item.cost_price == null ? '—' : formatNaira(item.cost_price)}
+                  </DetailItem>
+                ) : null}
                 <DetailItem label="Stock quantity">
                   {item.stock_quantity} {item.unit}(s)
                 </DetailItem>

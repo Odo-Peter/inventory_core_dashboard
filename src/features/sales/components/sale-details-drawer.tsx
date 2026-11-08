@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/sheet';
 import { Spinner } from '@/components/ui/spinner';
 import { dateTimeFormatter, formatNaira } from '@/features/admin/staff/utils';
+import { Can } from '@/lib/rbac';
 
 import { usePrintSaleReceipt } from '../hooks/useSalesMutations';
 import { useSale } from '../hooks/useSalesQueries';
@@ -193,21 +194,23 @@ function SaleDetails({ saleId, onClose }: { saleId: string; onClose: () => void 
             Print
           </Button>
         ) : null}
-        <Button
-          type="button"
-          onClick={handleReprint}
-          disabled={printReceipt.isPending}
-          aria-label="Reprint receipt"
-        >
-          {printReceipt.isPending ? (
-            <>
-              <Spinner className="size-4" />
-              Preparing...
-            </>
-          ) : (
-            'Reprint receipt'
-          )}
-        </Button>
+        <Can permission="salesReprint">
+          <Button
+            type="button"
+            onClick={handleReprint}
+            disabled={printReceipt.isPending}
+            aria-label="Reprint receipt"
+          >
+            {printReceipt.isPending ? (
+              <>
+                <Spinner className="size-4" />
+                Preparing...
+              </>
+            ) : (
+              'Reprint receipt'
+            )}
+          </Button>
+        </Can>
       </SheetFooter>
     </>
   );

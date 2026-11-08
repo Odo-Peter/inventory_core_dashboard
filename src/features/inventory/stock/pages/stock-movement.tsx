@@ -12,6 +12,7 @@ import { useListStockMovements } from '../hooks/useStockMovementQueries';
 import { isReason, resolveRange } from '../lib/movement-utils';
 import type { ListMovementsQuery } from '../types';
 import { getMovementColumns } from '../components/movement-column';
+import { Can } from '@/lib/rbac';
 
 const PAGE_SIZE = 25;
 
@@ -119,10 +120,12 @@ export function StockMovementPage() {
         title="Stock Movements"
         description="Every change to your stock, newest first."
         actions={
-          <Button onClick={() => setRecordOpen(true)}>
-            <Plus className="size-4" />
-            Record movement
-          </Button>
+          <Can permission="stockRecord">
+            <Button onClick={() => setRecordOpen(true)}>
+              <Plus className="size-4" />
+              Record movement
+            </Button>
+          </Can>
         }
       />
 
