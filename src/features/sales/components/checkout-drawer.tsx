@@ -143,9 +143,9 @@ function CheckoutForm({
     options?.[value] ? [{ value, label: paymentMethodLabel(value) }] : [],
   );
   const accounts = method === 'cash' ? [] : (options?.[method]?.accounts ?? []);
-  const accountKey = accounts.map((account) => account.id).join(',');
 
   useEffect(() => {
+    const methodAccounts = method === 'cash' ? [] : (options?.[method]?.accounts ?? []);
     const current = form.getValues('pos_account_id');
 
     if (method === 'cash') {
@@ -153,15 +153,17 @@ function CheckoutForm({
       return;
     }
 
-    if (accounts.length === 1) {
-      if (current !== accounts[0].id) form.setValue('pos_account_id', accounts[0].id);
+    if (methodAccounts.length === 1) {
+      if (current !== methodAccounts[0].id) {
+        form.setValue('pos_account_id', methodAccounts[0].id);
+      }
       return;
     }
 
-    if (current && !accounts.some((account) => account.id === current)) {
+    if (current && !methodAccounts.some((account) => account.id === current)) {
       form.setValue('pos_account_id', '');
     }
-  }, [method, accountKey, form]);
+  }, [method, options, form]);
 
   const isPending = createSale.isPending || isSubmitting;
   const expectedTotal = lines.reduce(
