@@ -11,6 +11,7 @@ import {
   buildReconciliationRow,
   reconciliationFixtures,
 } from '../../../helpers/stock';
+import { RoleProvider } from '../../../helpers/role';
 
 vi.mock('@/features/inventory/stock/services/stock.service', () => ({
   listStockMovements: vi.fn(),
@@ -34,21 +35,23 @@ function renderPage(initialEntry = '/inventory/reconciliation') {
   });
 
   const view = render(
-    <QueryClientProvider client={queryClient}>
-      <MemoryRouter initialEntries={[initialEntry]}>
-        <Routes>
-          <Route
-            path="/inventory/reconciliation"
-            element={
-              <>
-                <StockReconciliationPage />
-                <LocationProbe />
-              </>
-            }
-          />
-        </Routes>
-      </MemoryRouter>
-    </QueryClientProvider>,
+    <RoleProvider>
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter initialEntries={[initialEntry]}>
+          <Routes>
+            <Route
+              path="/inventory/reconciliation"
+              element={
+                <>
+                  <StockReconciliationPage />
+                  <LocationProbe />
+                </>
+              }
+            />
+          </Routes>
+        </MemoryRouter>
+      </QueryClientProvider>
+    </RoleProvider>,
   );
 
   return { queryClient, ...view };

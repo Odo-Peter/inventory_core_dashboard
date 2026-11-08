@@ -12,6 +12,7 @@ import type { CartLine } from '@/features/sales/types';
 import type { ItemResponse } from '@/features/inventory/items/types';
 import { makeItem } from '../../helpers/items';
 import { makePaymentOptions, makeSale } from '../../helpers/sales';
+import { RoleProvider } from '../../helpers/role';
 
 vi.mock('@/features/sales/services/sales.service', () => ({
   listSales: vi.fn(),
@@ -77,21 +78,23 @@ function renderCheckout({
   onCompleted = vi.fn(),
 }: RenderOptions = {}) {
   render(
-    <QueryClientProvider client={createQueryClient()}>
-      <CheckoutDrawer
-        open={open}
-        onOpenChange={onOpenChange}
-        lines={lines}
-        total={total}
-        checkoutDisabled={checkoutDisabled}
-        disabledReason={disabledReason}
-        onSetQuantity={onSetQuantity}
-        onRemove={onRemove}
-        onRefreshItems={onRefreshItems}
-        onSyncItems={onSyncItems}
-        onCompleted={onCompleted}
-      />
-    </QueryClientProvider>,
+    <RoleProvider>
+      <QueryClientProvider client={createQueryClient()}>
+        <CheckoutDrawer
+          open={open}
+          onOpenChange={onOpenChange}
+          lines={lines}
+          total={total}
+          checkoutDisabled={checkoutDisabled}
+          disabledReason={disabledReason}
+          onSetQuantity={onSetQuantity}
+          onRemove={onRemove}
+          onRefreshItems={onRefreshItems}
+          onSyncItems={onSyncItems}
+          onCompleted={onCompleted}
+        />
+      </QueryClientProvider>
+    </RoleProvider>,
   );
 
   return { onOpenChange, onSetQuantity, onRemove, onRefreshItems, onSyncItems, onCompleted };
@@ -143,13 +146,15 @@ function renderHarness(
 ) {
   const onCompleted = vi.fn();
   render(
-    <QueryClientProvider client={createQueryClient()}>
-      <CheckoutHarness
-        initialLines={initialLines}
-        onRefreshItems={onRefreshItems}
-        onCompleted={onCompleted}
-      />
-    </QueryClientProvider>,
+    <RoleProvider>
+      <QueryClientProvider client={createQueryClient()}>
+        <CheckoutHarness
+          initialLines={initialLines}
+          onRefreshItems={onRefreshItems}
+          onCompleted={onCompleted}
+        />
+      </QueryClientProvider>
+    </RoleProvider>,
   );
   return { onCompleted };
 }

@@ -9,6 +9,7 @@ import { getSale, listSales, printSaleReceipt } from '@/features/sales/services/
 import { formatNaira } from '@/features/admin/staff/utils';
 import { resolveRange } from '@/features/inventory/stock/lib/movement-utils';
 import { makeReceipt, makeSale, makeSaleListItem, saleListFixtures } from '../../helpers/sales';
+import { RoleProvider } from '../../helpers/role';
 
 process.env.TZ = 'UTC';
 
@@ -32,21 +33,23 @@ function renderPage(initialEntry = '/sales') {
   });
 
   render(
-    <QueryClientProvider client={queryClient}>
-      <MemoryRouter initialEntries={[initialEntry]}>
-        <Routes>
-          <Route
-            path="/sales"
-            element={
-              <>
-                <SalesHistoryPage />
-                <LocationProbe />
-              </>
-            }
-          />
-        </Routes>
-      </MemoryRouter>
-    </QueryClientProvider>,
+    <RoleProvider>
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter initialEntries={[initialEntry]}>
+          <Routes>
+            <Route
+              path="/sales"
+              element={
+                <>
+                  <SalesHistoryPage />
+                  <LocationProbe />
+                </>
+              }
+            />
+          </Routes>
+        </MemoryRouter>
+      </QueryClientProvider>
+    </RoleProvider>,
   );
 }
 

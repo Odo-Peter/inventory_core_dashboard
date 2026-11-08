@@ -9,6 +9,7 @@ import { getStockStatus, recordMovement } from '@/features/inventory/stock/servi
 import { listItems } from '@/features/inventory/category/services/category.service';
 import { buildMovement, buildStockStatus } from '../../../helpers/stock';
 import { listItemsResponse, makeItem } from '../../../helpers/items';
+import { RoleProvider } from '../../../helpers/role';
 
 vi.mock('sonner', () => ({
   toast: {
@@ -59,14 +60,16 @@ function renderDrawer({
   });
 
   render(
-    <QueryClientProvider client={queryClient}>
-      <RecordMovementDrawer
-        open={open}
-        onOpenChange={onOpenChange}
-        initialItem={initialItem}
-        onSuccess={onSuccess}
-      />
-    </QueryClientProvider>,
+    <RoleProvider>
+      <QueryClientProvider client={queryClient}>
+        <RecordMovementDrawer
+          open={open}
+          onOpenChange={onOpenChange}
+          initialItem={initialItem}
+          onSuccess={onSuccess}
+        />
+      </QueryClientProvider>
+    </RoleProvider>,
   );
 
   return { onOpenChange, onSuccess };

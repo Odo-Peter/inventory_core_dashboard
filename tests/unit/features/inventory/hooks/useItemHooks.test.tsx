@@ -32,6 +32,7 @@ import {
 import { queryKeys } from '@/lib/query-keys';
 import type { CreateItemPayload } from '@/features/inventory/items/types';
 import { categoryFixtures, itemFixtures, itemMeta, makeItem } from '../../../../helpers/items';
+import { RoleProvider } from '../../../../helpers/role';
 
 vi.mock('@/features/inventory/category/services/category.service', () => ({
   listItems: vi.fn(),
@@ -55,7 +56,11 @@ function createWrapper() {
   });
 
   function Wrapper({ children }: { children: ReactNode }) {
-    return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
+    return (
+      <RoleProvider>
+        <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+      </RoleProvider>
+    );
   }
 
   return { queryClient, wrapper: Wrapper };

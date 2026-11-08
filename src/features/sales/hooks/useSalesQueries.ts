@@ -2,6 +2,7 @@ import { keepPreviousData, useMutation, useQuery } from '@tanstack/react-query';
 
 import { getItemByBarcode } from '@/features/inventory/category/services/category.service';
 import { queryKeys } from '@/lib/query-keys';
+import { useRoleEnabled } from '@/lib/rbac';
 
 import { getPaymentOptions, getSale, getSalesSummary, listSales } from '../services/sales.service';
 import type { ListSalesQuery } from '../types';
@@ -11,6 +12,7 @@ export function useListSales(query: ListSalesQuery) {
     queryKey: queryKeys.sales.list(query),
     queryFn: () => listSales(query),
     placeholderData: keepPreviousData,
+    enabled: useRoleEnabled('salesHistory'),
   });
 }
 
@@ -18,7 +20,7 @@ export function useSale(id: string | null) {
   return useQuery({
     queryKey: queryKeys.sales.detail(id ?? ''),
     queryFn: () => getSale(id as string),
-    enabled: Boolean(id),
+    enabled: useRoleEnabled('salesDetail', Boolean(id)),
   });
 }
 
@@ -27,6 +29,7 @@ export function usePaymentOptions() {
     queryKey: queryKeys.sales.paymentOptions,
     queryFn: getPaymentOptions,
     staleTime: 60 * 1000,
+    enabled: useRoleEnabled('salesPaymentOptions'),
   });
 }
 
@@ -35,7 +38,7 @@ export function useSalesSummary(query: ListSalesQuery, enabled = true) {
     queryKey: queryKeys.sales.summary(query),
     queryFn: () => getSalesSummary(query),
     placeholderData: keepPreviousData,
-    enabled,
+    enabled: useRoleEnabled('salesSummary', enabled),
   });
 }
 

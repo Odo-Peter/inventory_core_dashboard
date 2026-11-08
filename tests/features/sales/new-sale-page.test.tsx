@@ -22,6 +22,7 @@ import { formatNaira } from '@/features/admin/staff/utils';
 import type { MyProfile } from '@/features/auth/interface';
 import { categoryFixtures, itemMeta, listItemsResponse, makeItem } from '../../helpers/items';
 import { makePaymentOptions, makeReceipt, makeSale } from '../../helpers/sales';
+import { RoleProvider } from '../../helpers/role';
 
 vi.mock('sonner', () => ({
   toast: {
@@ -103,21 +104,23 @@ function renderPage(initialEntry = '/sales/new') {
   });
 
   render(
-    <QueryClientProvider client={queryClient}>
-      <MemoryRouter initialEntries={[initialEntry]}>
-        <Routes>
-          <Route
-            path="/sales/new"
-            element={
-              <>
-                <NewSalePage />
-                <LocationProbe />
-              </>
-            }
-          />
-        </Routes>
-      </MemoryRouter>
-    </QueryClientProvider>,
+    <RoleProvider>
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter initialEntries={[initialEntry]}>
+          <Routes>
+            <Route
+              path="/sales/new"
+              element={
+                <>
+                  <NewSalePage />
+                  <LocationProbe />
+                </>
+              }
+            />
+          </Routes>
+        </MemoryRouter>
+      </QueryClientProvider>
+    </RoleProvider>,
   );
 }
 

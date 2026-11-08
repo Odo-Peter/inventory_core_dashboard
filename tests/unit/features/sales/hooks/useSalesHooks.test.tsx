@@ -31,6 +31,7 @@ import {
   salesMeta,
   salesSummary,
 } from '../../../../helpers/sales';
+import { RoleProvider } from '../../../../helpers/role';
 
 vi.mock('@/features/sales/services/sales.service', () => ({
   listSales: vi.fn(),
@@ -54,7 +55,11 @@ function createWrapper() {
   });
 
   function Wrapper({ children }: { children: ReactNode }) {
-    return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
+    return (
+      <RoleProvider>
+        <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+      </RoleProvider>
+    );
   }
 
   return { queryClient, wrapper: Wrapper };
