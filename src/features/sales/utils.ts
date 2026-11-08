@@ -26,6 +26,12 @@ export function isOutOfStock(item: { stock_quantity: number }) {
   return item.stock_quantity <= 0;
 }
 
+export function clampQuantity(quantity: number, max: number) {
+  const safeMax = Math.max(1, Math.trunc(max));
+  const safeQuantity = Number.isFinite(quantity) ? Math.trunc(quantity) : 1;
+  return Math.min(Math.max(safeQuantity, 1), safeMax);
+}
+
 export interface SaleErrorInfo {
   code?: string;
   message: string;

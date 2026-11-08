@@ -3,17 +3,7 @@ import { useCallback, useMemo, useState } from 'react';
 import type { ItemResponse } from '@/features/inventory/items/types';
 
 import type { CartLine } from '../types';
-
-export function clampQuantity(quantity: number, max: number) {
-  const safeMax = Math.max(1, Math.trunc(max));
-  const safeQuantity = Number.isFinite(quantity) ? Math.trunc(quantity) : 1;
-  return Math.min(Math.max(safeQuantity, 1), safeMax);
-}
-
-/** A cart line is unavailable when the item was deactivated or stock dropped below the quantity. */
-export function isCartLineUnavailable(line: CartLine) {
-  return !line.item.active || line.item.stock_quantity < line.quantity;
-}
+import { clampQuantity } from '../utils';
 
 /**
  * Client-side cart for the sales page. It stores item snapshots so prices and
