@@ -39,6 +39,18 @@ vi.mock('@/features/inventory/category/services/category.service', () => ({
   getItemUnits: vi.fn().mockResolvedValue({ units: [] }),
 }));
 
+vi.mock('@/features/sales/services/sales.service', () => ({
+  listSales: vi.fn().mockResolvedValue({
+    data: [],
+    meta: { page: 1, page_size: 25, total: 0, total_pages: 0 },
+  }),
+  getSale: vi.fn(),
+  createSale: vi.fn(),
+  getPaymentOptions: vi.fn().mockResolvedValue({ cash: { method: 'cash', accounts: [] } }),
+  getSalesSummary: vi.fn(),
+  printSaleReceipt: vi.fn(),
+}));
+
 vi.mock('@/features/inventory/stock/services/stock.service', () => ({
   listStockMovements: vi.fn().mockResolvedValue({
     data: [],
