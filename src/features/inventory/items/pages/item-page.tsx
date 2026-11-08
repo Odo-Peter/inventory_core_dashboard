@@ -13,14 +13,23 @@ import { ItemDetailsDrawer } from '../components/item-details-drawer';
 import { getItemColumns } from '../column/item-column';
 import { ItemFormDrawer } from '../components/item-form-drawer';
 import { ConfirmActionDialog, type ConfirmAction } from '@/components/shared/confirm-action-dialog';
+import { Can, useCan } from '@/lib/rbac';
 
 import {
   useListCategories,
   useListItems,
   useListItemUnits,
 } from '../../category/hooks/useCategoryQueries';
-import { useDeactivateItem } from '../../category/hooks/useCategoryMutations';
+import {
+  useDeactivateItem,
+  useReactivateItem,
+  useRemoveItemImage,
+} from '../../category/hooks/useCategoryMutations';
 import type { ItemResponse, ListItemsQuery } from '../types';
+import { ChangePriceDialog } from '../components/change-price-dialog';
+import { RecordMovementDrawer } from '../../stock/components/record-movement-drawer';
+import { ItemImageDialog } from '../components/item-image-dialog';
+import { getImageErrorMessage } from '../../category/lib/item-image';
 
 const PAGE_SIZE = 25;
 
@@ -32,6 +41,12 @@ const FILTER_PARAM = {
 } as const;
 
 type FormMode = 'add' | 'edit';
+
+const confirmCopy = {
+  deactivate: 'Item deactivated',
+  reactivate: 'Item reactivated',
+  removeImage: 'Image removed',
+} as const;
 
 function readItemFilters(params: URLSearchParams): ItemFilters {
   const active = params.get('active');
@@ -48,6 +63,10 @@ function readItemFilters(params: URLSearchParams): ItemFilters {
 export function ItemPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [selectedItem, setSelectedItem] = useState<ItemResponse | null>(null);
+  const [priceTarget, setPriceTarget] = useState<ItemResponse | null>(null);
+  const [stockTarget, setStockTarget] = useState<ItemResponse | null>(null);
+  const [imageTarget, setImageTarget] = useState<ItemResponse | null>(null);
+
   const [formMode, setFormMode] = useState<FormMode>('add');
 
   const [detailsOpen, setDetailsOpen] = useState(false);
@@ -80,7 +99,38 @@ export function ItemPage() {
   const { data, isLoading, isFetching, isError, refetch } = useListItems(params);
   const { data: categoryData } = useListCategories({ page: 1, page_size: 100 });
   const { data: units } = useListItemUnits();
+
   const deactivateItem = useDeactivateItem();
+  const reactivateItem = useReactivateItem();
+  const removeImage = useRemoveItemImage();
+
+  const canEdit = useCan('itemEdit');
+  const canChangePrice = useCan('itemChangePrice');
+  const canRecordStock = useCan('stockRecord');
+  const canViewStock = useCan('stockView');
+  const canChangeImage = useCan('itemImage');
+  const canDeactivate = useCan('itemDeactivate');
+  const canReactivate = useCan('itemReactivate');
+  const itemPermissions = useMemo(
+    () => ({
+      edit: canEdit,
+      changePrice: canChangePrice,
+      recordStock: canRecordStock,
+      viewStock: canViewStock,
+      changeImage: canChangeImage,
+      deactivate: canDeactivate,
+      reactivate: canReactivate,
+    }),
+    [
+      canEdit,
+      canChangePrice,
+      canRecordStock,
+      canViewStock,
+      canChangeImage,
+      canDeactivate,
+      canReactivate,
+    ],
+  );
 
   const items = useMemo(() => data?.data ?? [], [data]);
   const categories = useMemo(() => categoryData?.data ?? [], [categoryData]);
@@ -173,17 +223,44 @@ export function ItemPage() {
     [],
   );
 
+  const requestReactivate = useCallback(
+    (item: ItemResponse) => setConfirmTarget({ item, action: 'reactivate' }),
+    [],
+  );
+  const requestChangePrice = useCallback((item: ItemResponse) => setPriceTarget(item), []);
+  const requestRecordStock = useCallback((item: ItemResponse) => setStockTarget(item), []);
+
+  const requestChangeImage = useCallback((item: ItemResponse) => setImageTarget(item), []);
+  const requestRemoveImage = useCallback(
+    (item: ItemResponse) => setConfirmTarget({ item, action: 'removeImage' }),
+    [],
+  );
   const columns = useMemo(
     () =>
       getItemColumns(
         {
           onView: handleViewItem,
           onEdit: handleEditItem,
+          onChangePrice: requestChangePrice,
+          onRecordStock: requestRecordStock,
           onDeactivate: requestDeactivate,
+          onReactivate: requestReactivate,
+          onChangeImage: requestChangeImage,
+          onRemoveImage: requestRemoveImage,
         },
         categoryNames,
+        itemPermissions,
       ),
-    [handleViewItem, handleEditItem, categoryNames],
+    [
+      handleViewItem,
+      handleEditItem,
+      requestChangePrice,
+      requestRecordStock,
+      requestDeactivate,
+      requestReactivate,
+      categoryNames,
+      itemPermissions,
+    ],
   );
 
   useEffect(() => {
@@ -198,10 +275,12 @@ export function ItemPage() {
         title="Store Items"
         description="Manage your store's inventory, prices, and stock levels."
         actions={
-          <Button onClick={openAddItem}>
-            <Plus />
-            Add New Item
-          </Button>
+          <Can permission="itemCreate">
+            <Button onClick={openAddItem}>
+              <Plus />
+              Add New Item
+            </Button>
+          </Can>
         }
       />
 
@@ -251,6 +330,34 @@ export function ItemPage() {
         units={unitOptions}
         categories={categories}
         onSuccess={() => refetch()}
+        onChangePrice={requestChangePrice}
+        onRecordStock={requestRecordStock}
+        onToggleStatus={(item: ItemResponse) =>
+          item.active ? requestDeactivate(item) : requestReactivate(item)
+        }
+      />
+
+      <ChangePriceDialog
+        item={priceTarget}
+        open={!!priceTarget}
+        onOpenChange={(open) => !open && setPriceTarget(null)}
+        onSuccess={(updated) => {
+          setSelectedItem((prev) => (prev?.id === updated.id ? updated : prev));
+        }}
+      />
+
+      <RecordMovementDrawer
+        open={!!stockTarget}
+        onOpenChange={(open) => !open && setStockTarget(null)}
+        initialItem={stockTarget}
+        onSuccess={() => refetch()}
+      />
+
+      <ItemImageDialog
+        item={imageTarget}
+        open={!!imageTarget}
+        onOpenChange={(open) => !open && setImageTarget(null)}
+        onSuccess={() => refetch()}
       />
 
       <ConfirmActionDialog
@@ -259,13 +366,24 @@ export function ItemPage() {
         action={confirmTarget?.action}
         entityId={confirmTarget?.item.id ?? null}
         entityName={confirmTarget?.item.name}
-        entityLabel="item"
-        onConfirm={(id) => deactivateItem.mutateAsync(id)}
-        onSuccess={() =>
-          toast.success(
-            confirmTarget?.action === 'reactivate' ? 'Item reactivated' : 'Item deactivated',
-          )
-        }
+        entityLabel={confirmTarget?.action === 'removeImage' ? 'image' : 'item'}
+        onConfirm={async (id) => {
+          switch (confirmTarget?.action) {
+            case 'reactivate':
+              return await reactivateItem.mutateAsync(id);
+            case 'removeImage':
+              try {
+                return await removeImage.mutateAsync(id);
+              } catch (err) {
+                throw new Error(getImageErrorMessage(err));
+              }
+            default:
+              return await deactivateItem.mutateAsync(id);
+          }
+        }}
+        onSuccess={() => {
+          if (confirmTarget) toast.success(confirmCopy[confirmTarget.action]);
+        }}
       />
     </div>
   );

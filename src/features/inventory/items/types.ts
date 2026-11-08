@@ -6,6 +6,12 @@ export interface ItemResponse {
   sku: string;
   barcode: string | null;
   image_key: string | null;
+  /**
+   * Image URLs are not returned by the item list/get endpoints per the sales
+   * contract; they only come back from the manager image upload/delete routes.
+   * Kept optional so callers that do have them can render a product image.
+   */
+  variants?: ImageVariantUrls | null;
   name: string;
   category_id: string | null;
   unit: string;
@@ -51,5 +57,33 @@ export type UpdateItemPayload = {
   unit?: string;
   cost_price?: number | null;
   reorder_threshold?: number;
-  active?: boolean;
 };
+
+export interface ChangeItemPricePayload {
+  new_price: number;
+}
+
+export interface PriceHistoryEntry {
+  id: string;
+  item_id: string;
+  old_price: number;
+  new_price: number;
+  changed_by_staff_id: string | null;
+  changed_by_name?: string | null; // present once the backend adds the join
+  changed_at: string;
+}
+
+export interface PriceHistoryListResponse {
+  data: PriceHistoryEntry[];
+  meta: PaginationMeta;
+}
+
+export interface ImageVariantUrls {
+  // match ImageVariantUrlsDto, e.g. thumb / medium / original
+  [variant: string]: string;
+}
+
+export interface ItemImageResponse {
+  item_id: string;
+  image: ImageVariantUrls | null; // null after removal
+}

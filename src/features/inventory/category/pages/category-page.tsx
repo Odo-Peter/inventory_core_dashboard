@@ -12,6 +12,7 @@ import type { CategoryResponse, ListCategoriesQuery } from '../types';
 import { getCategoryColumns } from '../column/category-column';
 import { CategoryDetailsDrawer } from '../components/category-details-drawer';
 import { CategoryFormDrawer } from '../components/category-form-drawer';
+import { Can, useCan } from '@/lib/rbac';
 
 const PAGE_SIZE = 25;
 
@@ -56,6 +57,9 @@ export function CategoryPage() {
   );
 
   const { data, isLoading, isFetching, isError, refetch } = useListCategories(params);
+
+  const canEdit = useCan('categoryEdit');
+  const categoryPermissions = useMemo(() => ({ edit: canEdit, changeStatus: canEdit }), [canEdit]);
 
   const categories = useMemo(() => data?.data ?? [], [data]);
   const meta = data?.meta;
@@ -148,13 +152,22 @@ export function CategoryPage() {
 
   const columns = useMemo(
     () =>
-      getCategoryColumns({
-        onView: handleViewCategory,
-        onEdit: handleEditCategory,
-        onDeactivate: handleDeactivateCategory,
-        onReactivate: handleReactivateCategory,
-      }),
-    [handleViewCategory, handleEditCategory, handleDeactivateCategory, handleReactivateCategory],
+      getCategoryColumns(
+        {
+          onView: handleViewCategory,
+          onEdit: handleEditCategory,
+          onDeactivate: handleDeactivateCategory,
+          onReactivate: handleReactivateCategory,
+        },
+        categoryPermissions,
+      ),
+    [
+      handleViewCategory,
+      handleEditCategory,
+      handleDeactivateCategory,
+      handleReactivateCategory,
+      categoryPermissions,
+    ],
   );
 
   useEffect(() => {
@@ -169,10 +182,12 @@ export function CategoryPage() {
         title="Categories"
         description="Manage your store's product categories."
         actions={
-          <Button onClick={openAddCategory}>
-            <Plus />
-            Add New Category
-          </Button>
+          <Can permission="categoryCreate">
+            <Button onClick={openAddCategory}>
+              <Plus />
+              Add New Category
+            </Button>
+          </Can>
         }
       />
 

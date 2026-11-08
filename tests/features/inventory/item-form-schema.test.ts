@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
-import { itemFormSchema } from '@/features/inventory/items/schemas/item-form-schema';
+import {
+  changePriceSchema,
+  itemFormSchema,
+} from '@/features/inventory/items/schemas/item-form-schema';
 
 const validItem = {
   name: 'Coca-Cola 50cl',
@@ -44,18 +47,38 @@ describe('itemFormSchema', () => {
     expect(firstError({ ...validItem, barcode: '1'.repeat(65) })).toBeTruthy();
   });
 
-  it('requires a non-negative selling price', () => {
+  it('requires a naira selling price with up to two decimals', () => {
     expect(firstError({ ...validItem, current_price: '' })).toBe('Selling price is required');
-    expect(firstError({ ...validItem, current_price: '-1' })).toBe('Must be a non-negative number');
+    expect(firstError({ ...validItem, current_price: '-1' })).toBe(
+      'Enter an amount like 1500 or 1500.50',
+    );
     expect(firstError({ ...validItem, current_price: 'abc' })).toBe(
-      'Must be a non-negative number',
+      'Enter an amount like 1500 or 1500.50',
+    );
+    expect(firstError({ ...validItem, current_price: '1.234' })).toBe(
+      'Enter an amount like 1500 or 1500.50',
+    );
+    expect(firstError({ ...validItem, current_price: '1,500' })).toBe(
+      'Enter an amount like 1500 or 1500.50',
     );
   });
 
+  it.each(['0', '1500', '1500.5', '1500.50', ' 1500 '])(
+    'accepts the valid naira input %j',
+    (current_price) => {
+      expect(itemFormSchema.safeParse({ ...validItem, current_price }).success).toBe(true);
+    },
+  );
+
   it('allows a blank cost price but rejects negative or non-numeric values', () => {
     expect(itemFormSchema.safeParse({ ...validItem, cost_price: '' }).success).toBe(true);
-    expect(firstError({ ...validItem, cost_price: '-20' })).toBe('Must be a non-negative number');
-    expect(firstError({ ...validItem, cost_price: 'ten' })).toBe('Must be a non-negative number');
+    expect(firstError({ ...validItem, cost_price: '-20' })).toBe(
+      'Enter an amount like 1500 or 1500.50',
+    );
+    expect(firstError({ ...validItem, cost_price: 'ten' })).toBe(
+      'Enter an amount like 1500 or 1500.50',
+    );
+    expect(itemFormSchema.safeParse({ ...validItem, cost_price: '12.34' }).success).toBe(true);
   });
 
   it('allows a blank reorder threshold but requires a non-negative integer', () => {
@@ -66,11 +89,35 @@ describe('itemFormSchema', () => {
     expect(firstError({ ...validItem, reorder_threshold: '1.5' })).toBe(
       'Must be a non-negative integer',
     );
+    expect(firstError({ ...validItem, reorder_threshold: 'abc' })).toBe(
+      'Must be a non-negative integer',
+    );
+    expect(itemFormSchema.safeParse({ ...validItem, reorder_threshold: '12' }).success).toBe(true);
   });
 
   it('requires a valid active status', () => {
     expect(itemFormSchema.safeParse({ ...validItem, active: 'true' }).success).toBe(true);
     expect(itemFormSchema.safeParse({ ...validItem, active: 'false' }).success).toBe(true);
     expect(itemFormSchema.safeParse({ ...validItem, active: 'yes' }).success).toBe(false);
+  });
+});
+
+describe('changePriceSchema', () => {
+  it('requires a new price', () => {
+    expect(changePriceSchema.safeParse({ new_price: '' }).success).toBe(false);
+    expect(changePriceSchema.safeParse({}).success).toBe(false);
+  });
+
+  it.each(['0', '1500', '1500.5', '1500.50'])('accepts the naira amount %j', (new_price) => {
+    expect(changePriceSchema.safeParse({ new_price }).success).toBe(true);
+  });
+
+  it.each(['-1', 'abc', '1.234', '1,500'])('rejects the invalid amount %j', (new_price) => {
+    const result = changePriceSchema.safeParse({ new_price });
+
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues[0]?.message).toBe('Enter an amount like 1500 or 1500.50');
+    }
   });
 });

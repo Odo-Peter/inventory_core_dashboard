@@ -55,6 +55,7 @@ function renderPage() {
           <Routes>
             <Route path="/" element={<StaffLoginPage />} />
             <Route path="/dashboard" element={<div>Dashboard destination</div>} />
+            <Route path="/sales/new" element={<div>Sales destination</div>} />
           </Routes>
         </MemoryRouter>
       </AuthProvider>
@@ -167,7 +168,7 @@ describe('StaffLoginPage', () => {
     expect(screen.getByLabelText('Staff Code')).toHaveAttribute('aria-invalid', 'false');
   });
 
-  it('shows a loading state and navigates to the dashboard on success', async () => {
+  it('shows a loading state and navigates to the cashier home on success', async () => {
     let resolveLogin: (value: AuthTokenResponse) => void = () => {};
     vi.mocked(login).mockImplementation(
       () =>
@@ -193,7 +194,7 @@ describe('StaffLoginPage', () => {
     });
 
     expect(
-      await screen.findByText('Dashboard destination', undefined, { timeout: 2000 }),
+      await screen.findByText('Sales destination', undefined, { timeout: 2000 }),
     ).toBeInTheDocument();
     expect(vi.mocked(login)).toHaveBeenCalledTimes(1);
     expect(vi.mocked(login).mock.calls[0][0]).toEqual({ staff_code: 'STAFF01', pin: '123456' });

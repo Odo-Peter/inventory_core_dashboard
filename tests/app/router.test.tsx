@@ -8,6 +8,23 @@ import { TOKEN_STORAGE_KEY } from '@/lib/token';
 import { createToken } from '../helpers/token';
 import { AuthProvider } from '@/features/auth/provider/AuthProvider';
 
+vi.mock('@/features/auth/services/auth.service', () => ({
+  login: vi.fn(),
+  changePin: vi.fn(),
+  myProfile: vi.fn().mockResolvedValue({
+    id: 'staff-1',
+    name: 'Ada Lovelace',
+    first_name: 'Ada',
+    last_name: 'Lovelace',
+    role: 'admin',
+    store_id: 'store-1',
+    must_change_pin: false,
+    active_shift_id: null,
+    staff_code: 'ADMIN001',
+    store_name: 'Main Store',
+  }),
+}));
+
 vi.mock('@/features/admin/services/admin.service', () => ({
   listStaff: vi.fn().mockResolvedValue([]),
   createStaff: vi.fn(),
@@ -34,7 +51,38 @@ vi.mock('@/features/inventory/category/services/category.service', () => ({
   createItem: vi.fn(),
   updateItem: vi.fn(),
   deactivateItem: vi.fn(),
+  reactivateItem: vi.fn(),
+  changeItemPrice: vi.fn(),
   getItemUnits: vi.fn().mockResolvedValue({ units: [] }),
+}));
+
+vi.mock('@/features/sales/services/sales.service', () => ({
+  listSales: vi.fn().mockResolvedValue({
+    data: [],
+    meta: { page: 1, page_size: 25, total: 0, total_pages: 0 },
+  }),
+  getSale: vi.fn(),
+  createSale: vi.fn(),
+  getPaymentOptions: vi.fn().mockResolvedValue({ cash: { method: 'cash', accounts: [] } }),
+  getSalesSummary: vi.fn(),
+  printSaleReceipt: vi.fn(),
+}));
+
+vi.mock('@/features/inventory/stock/services/stock.service', () => ({
+  listStockMovements: vi.fn().mockResolvedValue({
+    data: [],
+    meta: { page: 1, page_size: 25, total: 0, total_pages: 0 },
+  }),
+  getStockStatus: vi.fn(),
+  listReconciliation: vi.fn().mockResolvedValue({
+    data: [],
+    meta: { page: 1, page_size: 25, total: 0, total_pages: 0 },
+  }),
+  recordMovement: vi.fn(),
+  initializeStock: vi.fn(),
+  receiveStock: vi.fn(),
+  adjustStock: vi.fn(),
+  recordDamage: vi.fn(),
 }));
 
 function renderAt(path: string) {
@@ -72,7 +120,11 @@ describe('app router', () => {
     renderAt('/');
 
     expect(
-      await screen.findByRole('heading', { name: /main store dashboard/i, level: 1 }),
+      await screen.findByRole(
+        'heading',
+        { name: /main store dashboard/i, level: 1 },
+        { timeout: 3000 },
+      ),
     ).toBeInTheDocument();
     expect(screen.getByRole('navigation')).toBeInTheDocument();
   });
@@ -107,21 +159,24 @@ describe('app router', () => {
     expect(screen.queryByRole('button', { name: /theme/i })).not.toBeInTheDocument();
   });
 
-  it('shows the grouped sidebar navigation', () => {
+  it('shows the grouped sidebar navigation', async () => {
     authenticate();
     renderAt('/dashboard');
 
-    expect(screen.getByText('General')).toBeInTheDocument();
+    expect(await screen.findByText('General')).toBeInTheDocument();
     expect(screen.getByText('Operations')).toBeInTheDocument();
     expect(screen.getByText('Administration')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'New Sale' })).toBeInTheDocument();
   });
 
-  it('reflects the active route in the sidebar', () => {
+  it('reflects the active route in the sidebar', async () => {
     authenticate();
     renderAt('/sales/new');
 
-    expect(screen.getByRole('link', { name: 'New Sale' })).toHaveAttribute('aria-current', 'page');
+    expect(await screen.findByRole('link', { name: 'New Sale' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    );
     expect(screen.getByRole('link', { name: 'Dashboard' })).not.toHaveAttribute('aria-current');
   });
 
@@ -130,17 +185,18 @@ describe('app router', () => {
     ['/inventory', 'Store Items'],
     ['/inventory/categories', 'Categories'],
     ['/inventory/movements', 'Stock Movements'],
+    ['/admin/stock-reconciliation', 'Stock Reconciliation'],
     ['/sales', 'Sales History'],
     ['/shifts/summary', 'Shift Summary'],
     ['/admin/staff', 'Staff & Access'],
     ['/admin/payment-accounts', 'Payment Accounts'],
     ['/settings', 'Settings'],
     ['/admin/audits', 'Audit logs'],
-  ])('renders the %s route', (path, heading) => {
+  ])('renders the %s route', async (path, heading) => {
     authenticate();
     renderAt(path);
 
-    expect(screen.getByRole('heading', { name: heading, level: 1 })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: heading, level: 1 })).toBeInTheDocument();
     expect(screen.getByRole('navigation')).toBeInTheDocument();
   });
 

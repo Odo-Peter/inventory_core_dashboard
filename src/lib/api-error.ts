@@ -18,7 +18,7 @@ type ServerErrorBody = {
   message?: string | string[];
 };
 
-export function toApiError(error: unknown): Error {
+export function toApiError(error: unknown): ApiError {
   if (axios.isCancel(error)) return new ApiError('You need to sign in to continue.');
 
   if (!axios.isAxiosError(error)) {

@@ -21,7 +21,7 @@ import {
 } from '../schemas/change-pin.schema';
 
 import { useChangePin } from '../hooks/useAuthMutation';
-import { TOKEN_STORAGE_KEY } from '@/lib/token';
+import { setStoredToken } from '@/lib/token';
 
 interface ChangePinDialogProps {
   open: boolean;
@@ -53,7 +53,7 @@ export function ChangePinDialog({ open, onSuccess }: ChangePinDialogProps) {
     try {
       const response = await mutateAsync(payload);
       if (response?.access_token) {
-        sessionStorage.setItem(TOKEN_STORAGE_KEY, response.access_token);
+        setStoredToken(response.access_token);
       }
       toast.success('PIN updated successfully');
       form.reset();

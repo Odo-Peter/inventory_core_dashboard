@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { useAuditActions, useAudits } from '@/features/admin/hooks/useAdminQueries';
 import { useListStaff } from '@/features/admin/hooks/useAdminQueries';
 import { useMyProfile } from '@/features/auth/hooks/useAuthQueries';
+import { useCan } from '@/lib/rbac';
 
 import { AuditDetailsDrawer } from '../components/audit-details-drawer';
 import { getAuditColumns } from '../components/audit-columns';
@@ -21,7 +22,10 @@ const PAGE_DESCRIPTION =
   'A read-only record of important actions in your store, such as staff changes, PIN resets, and shift activity. Entries cannot be edited or deleted.';
 
 // entity_type is a free string on the backend, extend as new entity types appear
-const ENTITY_TYPE_OPTIONS = ['Staff', 'Shift'].map((value) => ({ value, label: value }));
+const ENTITY_TYPE_OPTIONS = ['Staff', 'Shift', 'Item', 'Stock'].map((value) => ({
+  value,
+  label: value,
+}));
 
 export function AuditLogsPage() {
   const navigate = useNavigate();
@@ -30,7 +34,7 @@ export function AuditLogsPage() {
   const [detailsOpen, setDetailsOpen] = useState(false);
 
   const { data: profile, isLoading: profileLoading } = useMyProfile();
-  const isAdmin = profile?.role === 'admin';
+  const canViewAudit = useCan('auditView');
 
   // Filters and page live in the URL, so a filtered view is shareable and survives refresh
   const filters = useMemo(() => readAuditFilters(searchParams), [searchParams]);
@@ -113,7 +117,7 @@ export function AuditLogsPage() {
     }
   }, [meta, page, handlePageChange]);
 
-  if (!profileLoading && profile && !isAdmin) {
+  if (!profileLoading && profile && !canViewAudit) {
     return (
       <div className="flex flex-col gap-6">
         <PageHeader title="Audit logs" description={PAGE_DESCRIPTION} />

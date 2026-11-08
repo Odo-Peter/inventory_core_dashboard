@@ -1,12 +1,5 @@
-import { PlaceholderPage } from '@/features/placeholders/pages/placeholder-page';
+import { SalesHistoryPage } from '@/features/sales/pages/sales-history-page';
 
 export function SalesRoute() {
-  return (
-    <PlaceholderPage
-      title="Sales History"
-      description="Review completed and pending sales."
-      emptyTitle="No sales recorded"
-      emptyDescription="Completed sales will appear here."
-    />
-  );
+  return <SalesHistoryPage />;
 }

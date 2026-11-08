@@ -1,9 +1,11 @@
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { MemoryRouter } from 'react-router';
 import { describe, expect, it, vi } from 'vitest';
 
 import { getItemColumns } from '@/features/inventory/items/column/item-column';
 import { ItemTable } from '@/features/inventory/items/components/item-table';
+import { formatNaira } from '@/features/admin/staff/utils';
 import type { ItemResponse } from '@/features/inventory/items/types';
 import {
   categoryFixtures,
@@ -23,7 +25,12 @@ function renderTable({
   const callbacks = {
     onView: vi.fn(),
     onEdit: vi.fn(),
+    onChangePrice: vi.fn(),
+    onChangeImage: vi.fn(),
+    onRemoveImage: vi.fn(),
+    onRecordStock: vi.fn(),
     onDeactivate: vi.fn(),
+    onReactivate: vi.fn(),
     onRowClick: vi.fn(),
     onPageChange: vi.fn(),
   };
@@ -33,14 +40,16 @@ function renderTable({
   );
 
   render(
-    <ItemTable
-      columns={getItemColumns(callbacks, categoryNames)}
-      items={items}
-      meta={meta}
-      description={`${items.length} items`}
-      onRowClick={callbacks.onRowClick}
-      onPageChange={callbacks.onPageChange}
-    />,
+    <MemoryRouter>
+      <ItemTable
+        columns={getItemColumns(callbacks, categoryNames)}
+        items={items}
+        meta={meta}
+        description={`${items.length} items`}
+        onRowClick={callbacks.onRowClick}
+        onPageChange={callbacks.onPageChange}
+      />
+    </MemoryRouter>,
   );
 
   return callbacks;
@@ -63,7 +72,7 @@ describe('ItemTable', () => {
     expect(colaRow).not.toBeNull();
     expect(within(colaRow as HTMLElement).getByText('SKU-001')).toBeInTheDocument();
     expect(within(colaRow as HTMLElement).getByText('Beverages')).toBeInTheDocument();
-    expect(within(colaRow as HTMLElement).getByText('1,500')).toBeInTheDocument();
+    expect(within(colaRow as HTMLElement).getByText(formatNaira(1500))).toBeInTheDocument();
     expect(within(colaRow as HTMLElement).getByText('24 bottle')).toBeInTheDocument();
     expect(within(colaRow as HTMLElement).getByText('Active')).toBeInTheDocument();
     expect(within(colaRow as HTMLElement).queryByText('Low stock')).not.toBeInTheDocument();
@@ -98,8 +107,10 @@ describe('ItemTable', () => {
 
   it.each([
     ['View details', 'onView'],
-    ['Edit Item', 'onEdit'],
-    ['Deactivate Item', 'onDeactivate'],
+    ['Edit details', 'onEdit'],
+    ['Change price', 'onChangePrice'],
+    ['Record stock movement', 'onRecordStock'],
+    ['Deactivate item', 'onDeactivate'],
   ] as const)('invokes the %s row action without selecting the row', async (action, callback) => {
     const user = userEvent.setup();
     const callbacks = renderTable();
@@ -109,6 +120,31 @@ describe('ItemTable', () => {
 
     expect(callbacks[callback]).toHaveBeenCalledTimes(1);
     expect(callbacks[callback]).toHaveBeenCalledWith(itemFixtures[0]);
+    expect(callbacks.onRowClick).not.toHaveBeenCalled();
+  });
+
+  it('renders the stock history link and reactivate action for inactive items', async () => {
+    const user = userEvent.setup();
+    const callbacks = renderTable();
+    const fanta = itemFixtures[1];
+
+    const menu = await openItemRowActions(user, 'Fanta Orange 50cl');
+    const history = within(menu).getByRole('menuitem', { name: 'View stock history' });
+    expect(history).toHaveAttribute('href', `/inventory/movements?item_id=${fanta.id}`);
+
+    await user.click(within(menu).getByRole('menuitem', { name: 'Reactivate item' }));
+
+    expect(callbacks.onReactivate).toHaveBeenCalledWith(fanta);
+    expect(callbacks.onRowClick).not.toHaveBeenCalled();
+  });
+
+  it('does not select the row when the stock history link is clicked', async () => {
+    const user = userEvent.setup();
+    const callbacks = renderTable();
+
+    const menu = await openItemRowActions(user, 'Coca-Cola 50cl');
+    await user.click(within(menu).getByRole('menuitem', { name: 'View stock history' }));
+
     expect(callbacks.onRowClick).not.toHaveBeenCalled();
   });
 

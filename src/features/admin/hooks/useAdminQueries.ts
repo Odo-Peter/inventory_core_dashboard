@@ -7,12 +7,14 @@ import {
   listStaff,
 } from '../services/admin.service';
 import { queryKeys } from '@/lib/query-keys';
+import { useRoleEnabled } from '@/lib/rbac';
 import type { ListAuditsParams } from '@/features/audit/types';
 
 export const useListStaff = () => {
   return useQuery({
     queryKey: queryKeys.staff.all,
     queryFn: listStaff,
+    enabled: useRoleEnabled('staffView'),
   });
 };
 
@@ -20,7 +22,7 @@ export const useGetStaff = (id: string, options?: { enabled?: boolean }) => {
   return useQuery({
     queryKey: queryKeys.staff.detail(id),
     queryFn: () => getStaff(id),
-    enabled: Boolean(id) && (options?.enabled ?? true),
+    enabled: useRoleEnabled('staffView', Boolean(id) && (options?.enabled ?? true)),
     retry: false,
   });
 };
@@ -31,6 +33,7 @@ export const useGetCurrentStore = () => {
     queryFn: getCurrentStore,
     staleTime: 5 * 60 * 1000,
     placeholderData: keepPreviousData,
+    enabled: useRoleEnabled('storeView'),
   });
 };
 
@@ -39,6 +42,7 @@ export const useAudits = (params: ListAuditsParams = {}) => {
     queryKey: queryKeys.audits.list(params),
     queryFn: () => getAudits(params),
     placeholderData: keepPreviousData,
+    enabled: useRoleEnabled('auditView'),
   });
 };
 
@@ -48,5 +52,6 @@ export const useAuditActions = () => {
     queryFn: getAuditActions,
     staleTime: 1000 * 60 * 60,
     select: (data) => data.actions,
+    enabled: useRoleEnabled('auditView'),
   });
 };

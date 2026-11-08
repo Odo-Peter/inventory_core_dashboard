@@ -22,16 +22,29 @@ export interface CategoryColumnActions {
   onReactivate: (category: CategoryResponse) => void;
 }
 
+export interface CategoryColumnPermissions {
+  edit: boolean;
+  changeStatus: boolean;
+}
+
+const ALL_CATEGORY_PERMISSIONS: CategoryColumnPermissions = {
+  edit: true,
+  changeStatus: true,
+};
+
 const columnHelper = createColumnHelper<DataTableFeatures, CategoryResponse>();
 
 function CategoryRowActions({
   category,
   actions,
+  permissions,
 }: {
   category: CategoryResponse;
   actions: CategoryColumnActions;
+  permissions: CategoryColumnPermissions;
 }) {
   const { onView, onEdit, onDeactivate, onReactivate } = actions;
+  const hasManagementActions = permissions.edit || permissions.changeStatus;
 
   return (
     <DropdownMenu modal={false}>
@@ -54,30 +67,37 @@ function CategoryRowActions({
           View details
         </DropdownMenuItem>
 
-        <DropdownMenuItem onClick={() => onEdit(category)}>
-          <PencilIcon />
-          Edit
-        </DropdownMenuItem>
-
-        <DropdownMenuSeparator />
-
-        {category.active ? (
-          <DropdownMenuItem variant="destructive" onClick={() => onDeactivate(category)}>
-            <Trash2Icon />
-            Deactivate
+        {permissions.edit ? (
+          <DropdownMenuItem onClick={() => onEdit(category)}>
+            <PencilIcon />
+            Edit
           </DropdownMenuItem>
-        ) : (
-          <DropdownMenuItem variant="success" onClick={() => onReactivate(category)}>
-            <UserCheck />
-            Reactivate
-          </DropdownMenuItem>
-        )}
+        ) : null}
+
+        {hasManagementActions ? <DropdownMenuSeparator /> : null}
+
+        {permissions.changeStatus ? (
+          category.active ? (
+            <DropdownMenuItem variant="destructive" onClick={() => onDeactivate(category)}>
+              <Trash2Icon />
+              Deactivate
+            </DropdownMenuItem>
+          ) : (
+            <DropdownMenuItem variant="success" onClick={() => onReactivate(category)}>
+              <UserCheck />
+              Reactivate
+            </DropdownMenuItem>
+          )
+        ) : null}
       </DropdownMenuContent>
     </DropdownMenu>
   );
 }
 
-export const getCategoryColumns = (actions: CategoryColumnActions) =>
+export const getCategoryColumns = (
+  actions: CategoryColumnActions,
+  permissions: CategoryColumnPermissions = ALL_CATEGORY_PERMISSIONS,
+) =>
   columnHelper.columns([
     columnHelper.accessor('name', {
       header: 'Category',
@@ -118,7 +138,7 @@ export const getCategoryColumns = (actions: CategoryColumnActions) =>
       header: () => <span className="sr-only">Actions</span>,
       cell: ({ row }) => (
         <div className="text-right" onClick={(event) => event.stopPropagation()}>
-          <CategoryRowActions category={row.original} actions={actions} />
+          <CategoryRowActions category={row.original} actions={actions} permissions={permissions} />
         </div>
       ),
     }),

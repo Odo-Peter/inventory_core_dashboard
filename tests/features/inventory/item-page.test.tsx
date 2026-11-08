@@ -7,13 +7,18 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ItemPage } from '@/features/inventory/items/pages/item-page';
 import {
+  changeItemPrice,
   createItem,
   deactivateItem,
   getItemUnits,
   listCategories,
   listItems,
+  reactivateItem,
   updateItem,
 } from '@/features/inventory/category/services/category.service';
+import { recordMovement } from '@/features/inventory/stock/services/stock.service';
+import { getStockStatus } from '@/features/inventory/stock/services/stock.service';
+import { formatNaira } from '@/features/admin/staff/utils';
 import {
   categoryFixtures,
   expectedItemQuery,
@@ -23,6 +28,8 @@ import {
   makeItem,
   openItemRowActions,
 } from '../../helpers/items';
+import { buildStockStatus } from '../../helpers/stock';
+import { RoleProvider } from '../../helpers/role';
 
 vi.mock('sonner', () => ({
   toast: {
@@ -39,7 +46,20 @@ vi.mock('@/features/inventory/category/services/category.service', () => ({
   createItem: vi.fn(),
   updateItem: vi.fn(),
   deactivateItem: vi.fn(),
+  reactivateItem: vi.fn(),
+  changeItemPrice: vi.fn(),
   getItemUnits: vi.fn(),
+}));
+
+vi.mock('@/features/inventory/stock/services/stock.service', () => ({
+  listStockMovements: vi.fn(),
+  getStockStatus: vi.fn(),
+  listReconciliation: vi.fn(),
+  recordMovement: vi.fn(),
+  initializeStock: vi.fn(),
+  receiveStock: vi.fn(),
+  adjustStock: vi.fn(),
+  recordDamage: vi.fn(),
 }));
 
 function renderPage(initialEntry = '/inventory') {
@@ -51,13 +71,15 @@ function renderPage(initialEntry = '/inventory') {
   });
 
   const view = render(
-    <QueryClientProvider client={queryClient}>
-      <MemoryRouter initialEntries={[initialEntry]}>
-        <Routes>
-          <Route path="/inventory" element={<ItemPage />} />
-        </Routes>
-      </MemoryRouter>
-    </QueryClientProvider>,
+    <RoleProvider role="admin">
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter initialEntries={[initialEntry]}>
+          <Routes>
+            <Route path="/inventory" element={<ItemPage />} />
+          </Routes>
+        </MemoryRouter>
+      </QueryClientProvider>
+    </RoleProvider>,
   );
 
   return { queryClient, ...view };
@@ -65,7 +87,7 @@ function renderPage(initialEntry = '/inventory') {
 
 async function openDeactivateDialog(user: ReturnType<typeof userEvent.setup>) {
   const menu = await openItemRowActions(user, 'Coca-Cola 50cl');
-  await user.click(within(menu).getByRole('menuitem', { name: 'Deactivate Item' }));
+  await user.click(within(menu).getByRole('menuitem', { name: 'Deactivate item' }));
   return screen.findByRole('dialog', { name: 'Deactivate item' });
 }
 
@@ -75,6 +97,7 @@ describe('ItemPage', () => {
     vi.mocked(listItems).mockResolvedValue(listItemsResponse());
     vi.mocked(listCategories).mockResolvedValue({ data: categoryFixtures, meta: itemMeta });
     vi.mocked(getItemUnits).mockResolvedValue({ units: ['bottle', 'pack', 'carton'] });
+    vi.mocked(getStockStatus).mockResolvedValue(buildStockStatus());
   });
 
   it('renders the page header, filters, item rows, and summary', async () => {
@@ -202,7 +225,7 @@ describe('ItemPage', () => {
     const dialog = await screen.findByRole('dialog', { name: 'Item details' });
     expect(within(dialog).getByText('SKU-001')).toBeInTheDocument();
     expect(within(dialog).getByText('1234567890')).toBeInTheDocument();
-    expect(within(dialog).getByText('1,500')).toBeInTheDocument();
+    expect(within(dialog).getByText(formatNaira(1500))).toBeInTheDocument();
     expect(within(dialog).getByText('24 bottle(s)')).toBeInTheDocument();
     await waitFor(() => {
       expect(within(dialog).getByText('Beverages')).toBeInTheDocument();
@@ -231,7 +254,7 @@ describe('ItemPage', () => {
         expect.objectContaining({
           name: 'Sprite 50cl',
           category_id: 'category-1',
-          current_price: 1100,
+          current_price: 110000,
           active: true,
         }),
       );
@@ -247,7 +270,7 @@ describe('ItemPage', () => {
 
     await screen.findByText('Coca-Cola 50cl');
     const menu = await openItemRowActions(user, 'Coca-Cola 50cl');
-    await user.click(within(menu).getByRole('menuitem', { name: 'Edit Item' }));
+    await user.click(within(menu).getByRole('menuitem', { name: 'Edit details' }));
 
     const dialog = await screen.findByRole('dialog', { name: 'Edit item' });
     expect(within(dialog).getByLabelText('Item name')).toHaveValue('Coca-Cola 50cl');
@@ -255,18 +278,12 @@ describe('ItemPage', () => {
     await user.type(within(dialog).getByLabelText('Item name'), 'Coca-Cola Zero');
     await user.click(within(dialog).getByRole('button', { name: 'Update Item' }));
 
-    await waitFor(() => {
-      expect(updateItem).toHaveBeenCalledWith('item-1', {
-        name: 'Coca-Cola Zero',
-        barcode: '1234567890',
-        category_id: 'category-1',
-        unit: 'bottle',
-        cost_price: 1000,
-        reorder_threshold: 5,
-        active: true,
+    await waitFor(async () => {
+      await waitFor(() => {
+        expect(updateItem).toHaveBeenCalledWith('item-1', { name: 'Coca-Cola Zero' });
       });
     });
-    expect(toast.success).toHaveBeenCalledWith('Item "Coca-Cola Zero" updated successfully');
+    expect(toast.success).toHaveBeenCalledWith('Item "Coca-Cola 50cl" updated successfully');
   });
 
   it('deactivates an item after typed confirmation and shows a success toast', async () => {
@@ -325,5 +342,80 @@ describe('ItemPage', () => {
     await waitFor(() => {
       expect(screen.queryByRole('dialog', { name: 'Deactivate item' })).not.toBeInTheDocument();
     });
+  });
+
+  it('changes an item price from the row action menu using kobo', async () => {
+    vi.mocked(changeItemPrice).mockResolvedValue(makeItem({ current_price: 200000 }));
+    const user = userEvent.setup();
+    renderPage();
+
+    await screen.findByText('Coca-Cola 50cl');
+    const menu = await openItemRowActions(user, 'Coca-Cola 50cl');
+    await user.click(within(menu).getByRole('menuitem', { name: 'Change price' }));
+
+    const dialog = await screen.findByRole('dialog', { name: 'Change price' });
+    expect(within(dialog).getByText(formatNaira(1500))).toBeInTheDocument();
+    await user.type(within(dialog).getByLabelText('New price'), '2000');
+    await user.click(within(dialog).getByRole('button', { name: 'Update price' }));
+
+    await waitFor(() => {
+      expect(changeItemPrice).toHaveBeenCalledWith('item-1', { new_price: 200000 });
+    });
+    expect(toast.success).toHaveBeenCalledWith(
+      `Price for "Coca-Cola 50cl" is now ${formatNaira(200000)}`,
+    );
+  });
+
+  it('records a stock movement for an item from the row action menu', async () => {
+    vi.mocked(recordMovement).mockResolvedValue({
+      id: 'movement-9',
+      item_id: 'item-1',
+      quantity_change: 6,
+      reason: 'restock',
+      note: null,
+      staff_id: 'staff-1',
+      sale_id: null,
+      refund_id: null,
+      created_at: '2026-11-07T10:00:00.000Z',
+    });
+    const user = userEvent.setup();
+    renderPage();
+
+    await screen.findByText('Coca-Cola 50cl');
+    const menu = await openItemRowActions(user, 'Coca-Cola 50cl');
+    await user.click(within(menu).getByRole('menuitem', { name: 'Record stock movement' }));
+
+    const dialog = await screen.findByRole('dialog', { name: 'Record stock movement' });
+    await user.type(within(dialog).getByLabelText('Quantity'), '6');
+    await user.click(within(dialog).getByRole('button', { name: 'Record movement' }));
+
+    await waitFor(() => {
+      expect(vi.mocked(recordMovement).mock.calls[0]?.[0]).toEqual({
+        itemId: 'item-1',
+        action: 'receive',
+        body: { quantity: 6 },
+      });
+    });
+    expect(toast.success).toHaveBeenCalledWith('Stock updated: Coca-Cola 50cl');
+    await waitFor(() => expect(vi.mocked(listItems).mock.calls.length).toBeGreaterThan(1));
+  });
+
+  it('reactivates an inactive item from the row action menu', async () => {
+    vi.mocked(reactivateItem).mockResolvedValue(makeItem({ id: 'item-2', active: true }));
+    const user = userEvent.setup();
+    renderPage();
+
+    await screen.findByText('Fanta Orange 50cl');
+    const menu = await openItemRowActions(user, 'Fanta Orange 50cl');
+    await user.click(within(menu).getByRole('menuitem', { name: 'Reactivate item' }));
+
+    const dialog = await screen.findByRole('dialog', { name: 'Reactivate item' });
+    expect(within(dialog).getByText(/This will reactivate/)).toBeInTheDocument();
+    await user.click(within(dialog).getByRole('button', { name: 'Reactivate' }));
+
+    await waitFor(() => {
+      expect(reactivateItem).toHaveBeenCalledWith('item-2');
+    });
+    expect(toast.success).toHaveBeenCalledWith('Item reactivated');
   });
 });

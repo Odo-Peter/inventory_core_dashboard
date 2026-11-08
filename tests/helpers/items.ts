@@ -33,6 +33,9 @@ export function makeItem(overrides: Partial<ItemResponse> = {}): ItemResponse {
   return { ...defaultItem, ...overrides };
 }
 
+/** Alias used by the stock tests, which need an item factory but not item fixtures. */
+export const buildItem = makeItem;
+
 export const itemFixtures: ItemResponse[] = [
   defaultItem,
   makeItem({

@@ -23,11 +23,11 @@ import { formatNaira, formatTime } from '@/features/admin/staff/utils';
 import { FieldError } from '@/components/states';
 import {
   adminEndShiftSchema,
-  parseNairaPreview,
   type AdminEndShiftFormInput,
   type AdminEndShiftValues,
 } from '../schemas/admin-end-shift.schema';
 import { useForceCloseShift } from '@/features/admin/hooks/useAdminMutations';
+import { parseNairaToKobo } from '@/lib/money';
 
 const NOTE_LIMIT = 500;
 
@@ -96,7 +96,7 @@ function AdminEndShiftForm({ shift, isLoading, onClose }: AdminEndShiftFormProps
   } = form;
 
   const notesLength = form.watch('reason')?.length ?? 0;
-  const closingCashKobo = parseNairaPreview(form.watch('closing_cash_counted'));
+  const closingCashKobo = parseNairaToKobo(form.watch('closing_cash_counted'));
 
   async function onSubmit(values: AdminEndShiftValues) {
     try {
@@ -151,7 +151,7 @@ function AdminEndShiftForm({ shift, isLoading, onClose }: AdminEndShiftFormProps
                       <span>
                         Total cash counted in the drawer at the end of the shift:{' '}
                         <span className="font-semibold text-emerald-700">
-                          ${formatNaira(closingCashKobo)}
+                          ${formatNaira(Number(closingCashKobo))}
                         </span>
                       </span>
                     )

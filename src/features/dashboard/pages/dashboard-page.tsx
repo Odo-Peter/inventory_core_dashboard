@@ -15,6 +15,7 @@ import { useGetCurrentShift } from '@/features/shifts/hooks/useShiftQueries';
 import { useMyProfile } from '@/features/auth/hooks/useAuthQueries';
 import { useGetCurrentStore } from '@/features/admin/hooks/useAdminQueries';
 import { EndShiftDialog } from '@/features/shifts/components/end-shift-dialog';
+import { useCan } from '@/lib/rbac';
 
 import type { MyProfile } from '@/features/auth/interface';
 import type { Shift } from '@/features/shifts/types';
@@ -28,8 +29,10 @@ type ShiftActionProps = {
 };
 
 function ShiftAction({ loading, profile, shift, onStart, onEnd }: ShiftActionProps) {
+  const canClock = useCan('shiftClock');
+
   if (loading) return <Skeleton className="h-10 w-72" />;
-  if (!profile || profile.role === 'admin') return null;
+  if (!profile || !canClock) return null;
 
   if (profile.active_shift_id) {
     return shift ? (
@@ -50,6 +53,7 @@ function ShiftAction({ loading, profile, shift, onStart, onEnd }: ShiftActionPro
 export function DashboardPage() {
   const [startShiftOpen, setStartShiftOpen] = useState(false);
   const [endShiftOpen, setEndShiftOpen] = useState(false);
+  const canClock = useCan('shiftClock');
 
   const { data: store, isLoading: storeLoading } = useGetCurrentStore();
   const { data: profile, isLoading: profileLoading } = useMyProfile();
@@ -70,7 +74,7 @@ export function DashboardPage() {
           <div className="flex flex-wrap items-center gap-x-2 gap-y-3 sm:justify-end">
             {isLoading || profileLoading || storeLoading ? (
               <Skeleton className="h-10 w-28" />
-            ) : profile?.role !== 'admin' && profile?.active_shift_id && data ? (
+            ) : profile?.active_shift_id && data ? (
               <ShiftAction
                 loading={isLoading || profileLoading}
                 profile={profile}
@@ -78,7 +82,7 @@ export function DashboardPage() {
                 onStart={() => setStartShiftOpen(true)}
                 onEnd={() => setEndShiftOpen(true)}
               />
-            ) : profile && profile.role !== 'admin' && !profile?.active_shift_id ? (
+            ) : profile && canClock && !profile?.active_shift_id ? (
               <Button variant="secondary" onClick={() => setStartShiftOpen(true)}>
                 <Sparkles />
                 Start Shift

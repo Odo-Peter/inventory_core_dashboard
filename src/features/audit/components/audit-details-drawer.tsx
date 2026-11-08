@@ -92,7 +92,7 @@ function renderDetails(details: Record<string, unknown> | null | undefined) {
       {entries.map(([key, value]) => {
         if (value === null || value === undefined) {
           return (
-            <div key={key} className="flex items-start justify-between gap-2">
+            <div key={key} className="flex flex-col items-start justify-between gap-2">
               <p className="text-muted-foreground text-xs">{humanizeKey(key)}</p>
               <p className="text-sm">—</p>
             </div>
@@ -109,9 +109,9 @@ function renderDetails(details: Record<string, unknown> | null | undefined) {
           );
         }
         return (
-          <div key={key} className="flex items-start justify-between gap-2">
+          <div key={key} className="flex flex-col items-start justify-between gap-2">
             <p className="text-muted-foreground text-xs">{humanizeKey(key)}</p>
-            <p className="text-right text-sm break-all">{String(value)}</p>
+            <p className="text-sm break-all">{String(value)}</p>
           </div>
         );
       })}

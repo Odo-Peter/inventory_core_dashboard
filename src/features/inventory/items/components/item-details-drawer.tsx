@@ -10,9 +10,11 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet';
-import { formatStaffDate } from '@/features/admin/staff/utils';
+import { formatNaira, formatStaffDate } from '@/features/admin/staff/utils';
+import { useCan } from '@/lib/rbac';
 
 import type { ItemResponse } from '../types';
+import { ItemPriceHistory } from './item-price-history';
 
 interface ItemDetailsDrawerProps {
   open: boolean;
@@ -38,6 +40,8 @@ export function ItemDetailsDrawer({
   item,
   categoryName,
 }: ItemDetailsDrawerProps) {
+  const canViewCostPrice = useCan('itemViewCostPrice');
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       {item ? (
@@ -74,15 +78,22 @@ export function ItemDetailsDrawer({
             <section className="rounded-lg border">
               <h3 className="border-b px-3 py-2 text-xs font-medium">Pricing and stock</h3>
               <dl className="grid grid-cols-2 gap-3 p-3">
-                <DetailItem label="Current price">{item.current_price.toLocaleString()}</DetailItem>
-                <DetailItem label="Cost price">
-                  {item.cost_price == null ? '—' : item.cost_price.toLocaleString()}
-                </DetailItem>
+                <DetailItem label="Current price">{formatNaira(item.current_price)}</DetailItem>
+                {canViewCostPrice ? (
+                  <DetailItem label="Cost price">
+                    {item.cost_price == null ? '—' : formatNaira(item.cost_price)}
+                  </DetailItem>
+                ) : null}
                 <DetailItem label="Stock quantity">
                   {item.stock_quantity} {item.unit}(s)
                 </DetailItem>
                 <DetailItem label="Reorder threshold">{item.reorder_threshold}</DetailItem>
               </dl>
+            </section>
+
+            <section className="rounded-lg border">
+              <h3 className="border-b px-3 py-2 text-xs font-medium">Pricing History</h3>
+              <dl className="w-full gap-3 p-3">{item && <ItemPriceHistory itemId={item.id} />}</dl>
             </section>
 
             <section className="rounded-lg border">

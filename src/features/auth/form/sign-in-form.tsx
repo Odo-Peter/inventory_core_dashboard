@@ -8,7 +8,8 @@ import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import { signInFormSchema, type SignInFormInput, type SignInValues } from './sign-in-form.schema';
 import { Input } from '@/components/ui/form/input';
-import { TOKEN_STORAGE_KEY } from '@/lib/token';
+import { setStoredToken } from '@/lib/token';
+import { getRoleHome } from '@/lib/rbac';
 
 import { useLogin } from '../hooks/useAuthMutation';
 import { useAuth } from '../hooks/useAuth';
@@ -40,14 +41,14 @@ const SignInForm = () => {
       const response = await mutateAsync(payload);
 
       if (response.access_token) {
-        sessionStorage.setItem(TOKEN_STORAGE_KEY, response.access_token);
+        setStoredToken(response.access_token);
         if (response.staff?.must_change_pin) {
           requirePinChange(response.staff);
           toast.success('Signed in successfully');
           return;
         }
         toast.success('Signed in successfully');
-        navigate('/dashboard');
+        navigate(getRoleHome(response.staff?.role));
       }
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Sign in failed');

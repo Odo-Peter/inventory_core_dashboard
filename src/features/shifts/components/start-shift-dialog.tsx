@@ -27,7 +27,7 @@ import {
 } from '../schemas/start-shift.schema';
 import { useStartShift } from '../hooks/useShiftMutations';
 import { dateTimeFormatter, formatNaira } from '@/features/admin/staff/utils';
-import { parseNairaPreview } from '../schemas/admin-end-shift.schema';
+import { parseNairaToKobo } from '@/lib/money';
 
 const NOTE_LIMIT = 1_000;
 
@@ -99,7 +99,7 @@ function StartShiftForm({ profile, onClose, isLoading, store }: StartShiftFormPr
   } = form;
 
   const notesLength = form.watch('opening_notes')?.length ?? 0;
-  const openingCash = parseNairaPreview(form.watch('opening_float'));
+  const openingCash = parseNairaToKobo(form.watch('opening_float'));
 
   const staffCode = profile.staff_code;
   const role = profile.role.charAt(0).toUpperCase() + profile.role.slice(1);
@@ -163,7 +163,7 @@ function StartShiftForm({ profile, onClose, isLoading, store }: StartShiftFormPr
                       <span>
                         Cash already in the drawer before the shift starts:{' '}
                         <span className="font-semibold text-emerald-700">
-                          ${formatNaira(openingCash)}
+                          {formatNaira(Number(openingCash))}
                         </span>
                       </span>
                     )

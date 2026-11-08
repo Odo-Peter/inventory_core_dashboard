@@ -34,10 +34,35 @@ export interface StaffColumnActions {
   onUnlock: (staff: Staff) => void;
 }
 
+export interface StaffColumnPermissions {
+  edit: boolean;
+  resetPin: boolean;
+  unlock: boolean;
+  manageStatus: boolean;
+}
+
+const ALL_STAFF_PERMISSIONS: StaffColumnPermissions = {
+  edit: true,
+  resetPin: true,
+  unlock: true,
+  manageStatus: true,
+};
+
 const columnHelper = createColumnHelper<DataTableFeatures, Staff>();
 
-function StaffRowActions({ staff, actions }: { staff: Staff; actions: StaffColumnActions }) {
+function StaffRowActions({
+  staff,
+  actions,
+  permissions,
+}: {
+  staff: Staff;
+  actions: StaffColumnActions;
+  permissions: StaffColumnPermissions;
+}) {
   const { onView, onEdit, onResetPin, onDeactivate, onReactivate, onUnlock } = actions;
+  const hasManagementActions =
+    permissions.edit || permissions.resetPin || (permissions.unlock && staff.is_locked);
+  const hasStatusActions = permissions.manageStatus;
 
   return (
     <DropdownMenu modal={false}>
@@ -58,38 +83,46 @@ function StaffRowActions({ staff, actions }: { staff: Staff; actions: StaffColum
           <EyeIcon />
           View details
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => onEdit(staff)}>
-          <PencilIcon />
-          Edit
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => onResetPin(staff)}>
-          <KeyRoundIcon />
-          Reset PIN
-        </DropdownMenuItem>
-        {staff.is_locked && (
+        {permissions.edit ? (
+          <DropdownMenuItem onClick={() => onEdit(staff)}>
+            <PencilIcon />
+            Edit
+          </DropdownMenuItem>
+        ) : null}
+        {permissions.resetPin ? (
+          <DropdownMenuItem onClick={() => onResetPin(staff)}>
+            <KeyRoundIcon />
+            Reset PIN
+          </DropdownMenuItem>
+        ) : null}
+        {permissions.unlock && staff.is_locked ? (
           <DropdownMenuItem onClick={() => onUnlock(staff)}>
             <UnlockIcon />
             Unlock Account
           </DropdownMenuItem>
-        )}
-        <DropdownMenuSeparator />
-        {staff.active ? (
+        ) : null}
+        {hasManagementActions && hasStatusActions ? <DropdownMenuSeparator /> : null}
+        {hasStatusActions && staff.active ? (
           <DropdownMenuItem variant="destructive" onClick={() => onDeactivate(staff)}>
             <Trash2Icon />
             Deactivate
           </DropdownMenuItem>
-        ) : (
+        ) : null}
+        {hasStatusActions && !staff.active ? (
           <DropdownMenuItem variant="success" onClick={() => onReactivate(staff)}>
             <UserCheck />
             Activate
           </DropdownMenuItem>
-        )}
+        ) : null}
       </DropdownMenuContent>
     </DropdownMenu>
   );
 }
 
-export const getStaffColumns = (actions: StaffColumnActions) =>
+export const getStaffColumns = (
+  actions: StaffColumnActions,
+  permissions: StaffColumnPermissions = ALL_STAFF_PERMISSIONS,
+) =>
   columnHelper.columns([
     columnHelper.display({
       id: 'staff',
@@ -158,7 +191,7 @@ export const getStaffColumns = (actions: StaffColumnActions) =>
       header: () => <span className="sr-only">Actions</span>,
       cell: ({ row }) => (
         <div className="text-right">
-          <StaffRowActions staff={row.original} actions={actions} />
+          <StaffRowActions staff={row.original} actions={actions} permissions={permissions} />
         </div>
       ),
     }),

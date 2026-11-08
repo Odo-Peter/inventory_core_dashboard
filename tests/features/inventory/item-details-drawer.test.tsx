@@ -1,9 +1,25 @@
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 import { ItemDetailsDrawer } from '@/features/inventory/items/components/item-details-drawer';
+import { formatNaira } from '@/features/admin/staff/utils';
 import { itemFixtures, makeItem } from '../../helpers/items';
+import { beforeEach } from 'vitest';
+
+const useCanMock = vi.fn((permission: string) => permission === 'itemViewCostPrice');
+const useRoleEnabledMock = vi.fn((permission: string) => permission === 'itemViewCostPrice');
+
+vi.mock('@/lib/rbac', () => ({
+  useCan: (permission: string) => useCanMock(permission),
+  useRoleEnabled: (permission: string) => useRoleEnabledMock(permission),
+}));
+
+beforeEach(() => {
+  useCanMock.mockImplementation((permission: string) => permission === 'itemViewCostPrice');
+  useRoleEnabledMock.mockImplementation((permission: string) => permission === 'itemViewCostPrice');
+});
 
 function renderDrawer({
   item = itemFixtures[0],
@@ -14,8 +30,17 @@ function renderDrawer({
   categoryName?: string;
   onOpenChange?: (open: boolean) => void;
 } = {}) {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: { retry: false },
+      mutations: { retry: false },
+    },
+  });
+
   render(
-    <ItemDetailsDrawer open onOpenChange={onOpenChange} item={item} categoryName={categoryName} />,
+    <QueryClientProvider client={queryClient}>
+      <ItemDetailsDrawer open onOpenChange={onOpenChange} item={item} categoryName={categoryName} />
+    </QueryClientProvider>,
   );
 
   return { onOpenChange };
@@ -37,8 +62,8 @@ describe('ItemDetailsDrawer', () => {
     expect(within(dialog).getByText('1234567890')).toBeInTheDocument();
     expect(within(dialog).getByText('Beverages')).toBeInTheDocument();
     expect(within(dialog).getByText('bottle')).toBeInTheDocument();
-    expect(within(dialog).getByText('1,500')).toBeInTheDocument();
-    expect(within(dialog).getByText('1,000')).toBeInTheDocument();
+    expect(within(dialog).getByText(formatNaira(1500))).toBeInTheDocument();
+    expect(within(dialog).getByText(formatNaira(1000))).toBeInTheDocument();
     expect(within(dialog).getByText('24 bottle(s)')).toBeInTheDocument();
     expect(within(dialog).getByText('5')).toBeInTheDocument();
     expect(within(dialog).getByText('item-1')).toBeInTheDocument();
@@ -92,5 +117,52 @@ describe('ItemDetailsDrawer', () => {
     await user.click(within(dialog).getAllByRole('button', { name: 'Close' })[0]);
 
     expect(onOpenChange).toHaveBeenCalledWith(false);
+  });
+});
+
+describe('when the user cannot view cost price', () => {
+  beforeEach(() => {
+    useCanMock.mockReturnValue(false);
+    useRoleEnabledMock.mockReturnValue(false);
+  });
+
+  it('does not show the cost price', () => {
+    renderDrawer();
+
+    const dialog = screen.getByRole('dialog', { name: 'Item details' });
+
+    // Selling price still visible
+    expect(within(dialog).getByText(formatNaira(1500))).toBeInTheDocument();
+
+    // Cost price hidden
+    expect(within(dialog).queryByText(formatNaira(1000))).not.toBeInTheDocument();
+    expect(within(dialog).queryByText(/cost price/i)).not.toBeInTheDocument();
+  });
+
+  it('still shows other item details', () => {
+    renderDrawer();
+
+    const dialog = screen.getByRole('dialog', { name: 'Item details' });
+    expect(within(dialog).getByText('Coca-Cola 50cl')).toBeInTheDocument();
+    expect(within(dialog).getByText('SKU-001')).toBeInTheDocument();
+    expect(within(dialog).getByText('Beverages')).toBeInTheDocument();
+    expect(within(dialog).getByText(formatNaira(1500))).toBeInTheDocument();
+  });
+
+  it('does not reveal a null cost price as a dash either', () => {
+    renderDrawer({
+      item: makeItem({
+        cost_price: null,
+        name: 'No Cost Item',
+        barcode: null,
+        category_id: null,
+      }),
+      categoryName: '',
+    });
+
+    const dialog = screen.getByRole('dialog', { name: 'Item details' });
+
+    expect(within(dialog).getByText('Uncategorized')).toBeInTheDocument();
+    expect(within(dialog).queryByText(formatNaira(1000))).not.toBeInTheDocument();
   });
 });

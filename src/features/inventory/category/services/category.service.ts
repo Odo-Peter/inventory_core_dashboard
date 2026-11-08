@@ -7,10 +7,13 @@ import type {
 } from '../types';
 import type { CategoryFormInput, CategoryUpdateValues } from '../schemas/category-form.schema';
 import type {
+  ChangeItemPricePayload,
   CreateItemPayload,
+  ItemImageResponse,
   ItemResponse,
   ListItemsQuery,
   ListItemsResponse,
+  PriceHistoryListResponse,
   UpdateItemPayload,
 } from '../../items/types';
 
@@ -41,6 +44,14 @@ export const listItems = async (params: ListItemsQuery = {}): Promise<ListItemsR
   const { data } = await axiosInstance.get<ListItemsResponse>('/items', {
     params,
   });
+  return data;
+};
+
+/** Exact, store-scoped barcode lookup used by the sales grid. */
+export const getItemByBarcode = async (barcode: string): Promise<ItemResponse> => {
+  const { data } = await axiosInstance.get<ItemResponse>(
+    `/items/barcode/${encodeURIComponent(barcode.trim())}`,
+  );
   return data;
 };
 
@@ -98,9 +109,6 @@ export const updateItem = async (id: string, payload: UpdateItemPayload): Promis
   if (payload.reorder_threshold !== undefined) {
     body.reorder_threshold = payload.reorder_threshold;
   }
-  if (payload.active !== undefined) {
-    body.active = payload.active;
-  }
 
   const { data } = await axiosInstance.patch<ItemResponse>(`/items/${id}`, body);
   return data;
@@ -113,5 +121,40 @@ export const deactivateItem = async (id: string): Promise<ItemResponse> => {
 
 export const getItemUnits = async (): Promise<ListItemUnitsResponse> => {
   const { data } = await axiosInstance.get<ListItemUnitsResponse>('/items/units');
+  return data;
+};
+
+export const changeItemPrice = async (
+  id: string,
+  payload: ChangeItemPricePayload,
+): Promise<ItemResponse> => {
+  const { data } = await axiosInstance.post<ItemResponse>(`/items/${id}/price`, payload);
+  return data;
+};
+
+export const reactivateItem = async (id: string): Promise<ItemResponse> => {
+  const { data } = await axiosInstance.patch<ItemResponse>(`/items/${id}`, { active: true });
+  return data;
+};
+
+export const listItemPriceHistory = async (
+  id: string,
+  params: { page: number; page_size: number },
+): Promise<PriceHistoryListResponse> => {
+  const { data } = await axiosInstance.get<PriceHistoryListResponse>(`/items/${id}/price-history`, {
+    params,
+  });
+  return data;
+};
+
+export const uploadItemImage = async (id: string, file: File): Promise<ItemImageResponse> => {
+  const body = new FormData();
+  body.append('image', file);
+  const { data } = await axiosInstance.put<ItemImageResponse>(`/items/${id}/image`, body);
+  return data;
+};
+
+export const removeItemImage = async (id: string): Promise<ItemImageResponse> => {
+  const { data } = await axiosInstance.delete<ItemImageResponse>(`/items/${id}/image`);
   return data;
 };

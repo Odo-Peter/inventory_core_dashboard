@@ -14,7 +14,7 @@ import { Input } from '@/components/ui/form/input';
 import { Spinner } from '@/components/ui/spinner';
 import { cn } from '@/lib/utils';
 
-export type ConfirmAction = 'deactivate' | 'reactivate';
+export type ConfirmAction = 'deactivate' | 'reactivate' | 'removeImage';
 
 interface ConfirmActionDialogProps {
   open: boolean;
@@ -52,6 +52,18 @@ const ACTION_CONFIG = {
     ),
     button: 'Reactivate',
     pending: 'Reactivating...',
+    requireText: false,
+  },
+  removeImage: {
+    title: () => 'Remove image',
+    description: (name: string) => (
+      <>
+        This will remove the picture from <b className="text-primary">{name}</b>. The item will show
+        without an image. You can add one again later.
+      </>
+    ),
+    button: 'Remove image',
+    pending: 'Removing...',
     requireText: false,
   },
 } as const;
@@ -173,7 +185,7 @@ function ConfirmForm({
         </Button>
         <Button
           type="submit"
-          variant={action === 'deactivate' ? 'destructive' : 'default'}
+          variant={action === 'reactivate' ? 'default' : 'destructive'}
           className={cn(action === 'reactivate' && 'bg-green-600 text-white hover:bg-green-700')}
           disabled={!canConfirm}
         >
