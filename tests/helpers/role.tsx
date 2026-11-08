@@ -7,7 +7,9 @@ import { ROLES, type Role } from '@/lib/rbac/roles';
 /** Default for tests that do not care about the role: the highest role, so every action is visible. */
 export const DEFAULT_TEST_ROLE: Role = ROLES[ROLES.length - 1];
 
-function buildStaff(role: Role): Staff {
+function buildStaff(role: Role | null): Staff | null {
+  if (!role) return null;
+
   return {
     id: 'staff-1',
     name: 'Ada Okafor',
@@ -21,12 +23,12 @@ function buildStaff(role: Role): Staff {
   };
 }
 
-/** Provides a resolved auth context for the given role, without any network calls. */
+/** Provides a resolved auth context for the given role, without any network calls. `role={null}` simulates an unresolved session. */
 export function RoleProvider({
   role = DEFAULT_TEST_ROLE,
   children,
 }: {
-  role?: Role;
+  role?: Role | null;
   children: ReactNode;
 }) {
   const value: AuthContextInterface = {
