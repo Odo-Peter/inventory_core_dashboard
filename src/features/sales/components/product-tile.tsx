@@ -37,7 +37,7 @@ export function ProductTile({ item, onSelect }: ProductTileProps) {
     >
       <div className="bg-muted relative aspect-square w-full">
         <ProductImage
-          variants={item.variants}
+          variants={item.image}
           alt={item.name}
           className="h-full w-full transition-transform duration-200 group-hover:scale-[1.02]"
         />

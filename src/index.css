@@ -170,17 +170,36 @@
     visibility: hidden;
   }
 
-  .print-receipt,
-  .print-receipt * {
-    visibility: visible;
+  #sale-receipt,
+  #sale-receipt * {
+    visibility: visible !important;
   }
 
-  .print-receipt {
-    position: absolute;
-    inset: 0 auto auto 0;
-    width: 100%;
-    max-width: none;
-    padding: 0;
-    box-shadow: none;
+  #sale-receipt {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 72mm !important;
+    max-width: 72mm !important;
+    margin: 0 !important;
+    padding: 3mm !important;
+    border: none !important;
+    box-shadow: none !important;
+    background: white !important;
+    color: black !important;
+    font-family: 'Courier New', monospace !important;
+    font-size: 10px !important;
+    line-height: 1.35 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  #sale-receipt table,
+  #sale-receipt section {
+    break-inside: auto;
+  }
+
+  #sale-receipt .break-inside-avoid {
+    break-inside: avoid;
   }
 }

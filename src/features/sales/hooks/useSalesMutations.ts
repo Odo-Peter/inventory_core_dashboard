@@ -4,17 +4,19 @@ import { queryKeys } from '@/lib/query-keys';
 
 import { createSale, printSaleReceipt } from '../services/sales.service';
 import type { CreateSalePayload } from '../types';
+import { useInvalidateAudits } from '@/features/admin/hooks/useAdminMutations';
 
 export function useCreateSale() {
   const queryClient = useQueryClient();
+  const invalidateAudits = useInvalidateAudits();
 
   return useMutation({
     mutationFn: (payload: CreateSalePayload) => createSale(payload),
     onSuccess: async () => {
-      // A sale decrements stock, so the product grid must be refreshed too.
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: queryKeys.sales.all }),
         queryClient.invalidateQueries({ queryKey: queryKeys.items.all }),
+        invalidateAudits(),
       ]);
     },
   });
@@ -22,11 +24,13 @@ export function useCreateSale() {
 
 export function usePrintSaleReceipt() {
   const queryClient = useQueryClient();
+  const invalidateAudits = useInvalidateAudits();
 
   return useMutation({
     mutationFn: (saleId: string) => printSaleReceipt(saleId),
     onSuccess: (receipt) => {
       queryClient.setQueryData(queryKeys.sales.detail(receipt.sale.id), receipt.sale);
+      invalidateAudits();
     },
   });
 }

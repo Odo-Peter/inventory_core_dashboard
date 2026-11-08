@@ -262,7 +262,7 @@ function CheckoutForm({
                   >
                     <div className="flex items-start gap-3">
                       <ProductImage
-                        variants={line.item.variants}
+                        variants={line.item.image}
                         alt={line.item.name}
                         className="size-12 shrink-0 rounded-md"
                       />

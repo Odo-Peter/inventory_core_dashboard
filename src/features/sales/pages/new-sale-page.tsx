@@ -65,7 +65,10 @@ export function NewSalePage() {
     [filters],
   );
 
-  const { data, isLoading, isFetching, isError, refetch } = useListItems(query);
+  const { data, isLoading, isFetching, isError, refetch } = useListItems({
+    ...query,
+    include_image_urls: true,
+  });
 
   const items = useMemo(() => data?.data ?? [], [data]);
   const total = data?.meta.total ?? items.length;

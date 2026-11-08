@@ -23,7 +23,7 @@ interface ReceiptDialogProps {
 export function ReceiptDialog({ open, onOpenChange, receipt, onNewSale }: ReceiptDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent>
         <DialogHeader>
           <DialogTitle>Receipt</DialogTitle>
           <DialogDescription>

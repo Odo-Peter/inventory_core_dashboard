@@ -9,10 +9,6 @@ interface ReceiptViewProps {
   className?: string;
 }
 
-/**
- * Print-friendly receipt shared by the post-sale dialog and the history
- * details drawer. Print styles live in index.css and only reveal `.print-receipt`.
- */
 export function ReceiptView({ receipt, className }: ReceiptViewProps) {
   const { sale, store } = receipt;
   const method = sale.payment?.method ?? sale.payment_method;
@@ -22,90 +18,121 @@ export function ReceiptView({ receipt, className }: ReceiptViewProps) {
     <article
       id="sale-receipt"
       data-testid="receipt-view"
-      className={cn('print-receipt bg-card mx-auto w-full max-w-sm px-4 py-6 text-sm', className)}
+      className={cn(
+        'print-receipt mx-auto w-full max-w-[80mm] bg-white py-4 font-mono text-[11px] leading-snug text-black',
+        className,
+      )}
     >
-      <header className="flex flex-col items-center gap-1 border-b border-dashed pb-3 text-center">
-        <h2 className="text-base font-semibold">{store.name}</h2>
-        {store.address ? <p className="text-muted-foreground text-xs">{store.address}</p> : null}
-        {store.phone ? <p className="text-muted-foreground text-xs">{store.phone}</p> : null}
+      {/* Store information */}
+      <header className="flex flex-col items-center gap-1 text-center">
+        <h2 className="text-base font-bold tracking-wide uppercase">{store.name}</h2>
+
+        {store.address && <p className="max-w-full text-[10px]">{store.address}</p>}
+
+        {store.phone && <p className="text-[10px]">Tel: {store.phone}</p>}
       </header>
 
-      {receipt.is_copy ? (
+      <div className="my-3 border-t border-dashed border-black" />
+
+      {receipt.is_copy && (
         <p
           data-testid="receipt-copy"
-          className="border-foreground my-3 border-y border-dashed py-1 text-center text-xs font-semibold tracking-[0.3em] uppercase"
+          className="mb-2 text-center font-bold tracking-widest uppercase"
         >
-          Copy
+          *** Copy ***
         </p>
-      ) : null}
+      )}
 
-      <div className="flex flex-col gap-1 py-3 text-xs">
+      {/* Transaction information */}
+      <section className="space-y-1">
+        <div className="flex justify-between gap-2 font-bold">
+          <span>RECEIPT NO:</span>
+          <span className="text-right">{sale.receipt_number}</span>
+        </div>
+
         <div className="flex justify-between gap-2">
-          <span className="font-medium">Receipt #{sale.receipt_number}</span>
+          <span>Date:</span>
           <time dateTime={sale.created_at}>
             {dateTimeFormatter.format(new Date(sale.created_at))}
           </time>
         </div>
-        <div className="text-muted-foreground flex justify-between gap-2">
-          <span>Cashier</span>
-          <span>{sale.staff_name}</span>
-        </div>
-      </div>
 
-      <table className="w-full border-t border-dashed text-xs">
-        <thead>
-          <tr className="text-muted-foreground">
-            <th className="py-2 text-left font-medium">Item</th>
-            <th className="py-2 text-center font-medium">Qty</th>
-            <th className="py-2 text-right font-medium">Amount</th>
-          </tr>
-        </thead>
-        <tbody>
+        <div className="flex justify-between gap-2">
+          <span>Cashier:</span>
+          <span className="text-right">{sale.staff_name}</span>
+        </div>
+      </section>
+
+      <div className="my-3 border-t border-dashed border-black" />
+
+      {/* Purchased items */}
+      <section>
+        <div className="mb-2 grid grid-cols-[1fr_auto] gap-2 font-bold uppercase">
+          <span>Description</span>
+          <span>Amount</span>
+        </div>
+
+        <div className="space-y-3">
           {sale.items.map((line) => (
-            <tr key={line.id} className="border-dashed/60 border-t">
-              <td className="py-1.5 pr-2">
-                <span className="block">{line.name}</span>
-                <span className="text-muted-foreground block font-mono text-[10px]">
-                  {line.sku}
+            <div key={line.id} className="break-inside-avoid">
+              <p className="font-semibold wrap-break-word">{line.name}</p>
+
+              {line.sku && <p className="text-[9px]">SKU: {line.sku}</p>}
+
+              <div className="mt-0.5 flex justify-between gap-2 tabular-nums">
+                <span>
+                  {line.quantity} x {formatNaira(line.unit_price)}
                 </span>
-                <span className="text-muted-foreground block text-[10px]">
-                  {formatNaira(line.unit_price)} each
-                </span>
-              </td>
-              <td className="py-1.5 text-center tabular-nums">{line.quantity}</td>
-              <td className="py-1.5 text-right tabular-nums">{formatNaira(line.line_total)}</td>
-            </tr>
+                <span className="text-right font-semibold">{formatNaira(line.line_total)}</span>
+              </div>
+            </div>
           ))}
-        </tbody>
-      </table>
-
-      <div className="flex justify-between border-t border-dashed py-2 text-sm font-semibold">
-        <span>Total</span>
-        <span data-testid="receipt-total">{formatNaira(sale.total)}</span>
-      </div>
-
-      <div className="text-muted-foreground flex flex-col gap-0.5 text-xs">
-        <div className="flex justify-between gap-2">
-          <span>Payment</span>
-          <span>{paymentMethodLabel(method)}</span>
         </div>
-        {account ? (
-          <div className="flex justify-between gap-2">
-            <span>Account</span>
-            <span>{account}</span>
-          </div>
-        ) : null}
+      </section>
+
+      <div className="my-3 border-t border-dashed border-black" />
+
+      {/* Payment summary */}
+      <section className="space-y-1">
+        <div className="flex justify-between gap-2 text-sm font-bold">
+          <span>TOTAL</span>
+          <span data-testid="receipt-total" className="text-right tabular-nums">
+            {formatNaira(sale.total)}
+          </span>
+        </div>
+
+        <div className="my-2 border-t border-dashed border-black" />
+
         <div className="flex justify-between gap-2">
-          <span>Print</span>
+          <span>Payment method:</span>
+          <span className="text-right">{paymentMethodLabel(method)}</span>
+        </div>
+
+        {account && (
+          <div className="flex justify-between gap-2">
+            <span>Account:</span>
+            <span className="text-right">{account}</span>
+          </div>
+        )}
+
+        <div className="flex justify-between gap-2">
+          <span>Print number:</span>
           <span>#{receipt.print_number}</span>
         </div>
-      </div>
+      </section>
 
-      {store.receipt_footer ? (
-        <p className="mt-4 border-t border-dashed pt-3 text-center text-xs">
-          {store.receipt_footer}
-        </p>
-      ) : null}
+      <div className="my-3 border-t border-dashed border-black" />
+
+      {/* Footer */}
+      <footer className="space-y-2 text-center">
+        {store.receipt_footer && (
+          <p className="wrap-break-word whitespace-pre-wrap">{store.receipt_footer}</p>
+        )}
+
+        <p className="font-bold tracking-wide uppercase">Thank you for your patronage!</p>
+
+        <p className="text-[9px]">Please keep this receipt for your records.</p>
+      </footer>
     </article>
   );
 }
