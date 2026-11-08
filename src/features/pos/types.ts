@@ -22,7 +22,8 @@ export const posAccountTypeOptions = [
 export interface ListPosAccountsQuery {
   page?: number;
   page_size?: number;
-  // add any extra filters your backend supports
+  active?: boolean;
+  type?: PosAccountType;
 }
 
 export interface PosAccountListResponse {
