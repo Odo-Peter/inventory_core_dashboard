@@ -3,6 +3,7 @@ import type { ListCategoriesQuery } from '@/features/inventory/category/types';
 import type { ListItemsQuery } from '@/features/inventory/items/types';
 import type { ListMovementsQuery, ListReconciliationQuery } from '@/features/inventory/stock/types';
 import type { ListPosAccountsQuery } from '@/features/pos/types';
+import type { ListSalesQuery } from '@/features/sales/types';
 
 export const queryKeys = {
   staff: {
@@ -53,5 +54,15 @@ export const queryKeys = {
     list: (params: ListPosAccountsQuery) => [...queryKeys.posAccounts.lists(), params] as const,
     details: () => [...queryKeys.posAccounts.all, 'detail'] as const,
     detail: (id: string) => [...queryKeys.posAccounts.details(), id] as const,
+  },
+  sales: {
+    all: ['sales'] as const,
+    lists: () => ['sales', 'list'] as const,
+    list: (params: ListSalesQuery) => ['sales', 'list', params] as const,
+    details: () => ['sales', 'detail'] as const,
+    detail: (id: string) => ['sales', 'detail', id] as const,
+    summaries: () => ['sales', 'summary'] as const,
+    summary: (params: ListSalesQuery) => ['sales', 'summary', params] as const,
+    paymentOptions: ['sales', 'payment-options'] as const,
   },
 } as const;

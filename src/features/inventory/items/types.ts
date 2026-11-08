@@ -6,6 +6,12 @@ export interface ItemResponse {
   sku: string;
   barcode: string | null;
   image_key: string | null;
+  /**
+   * Image URLs are not returned by the item list/get endpoints per the sales
+   * contract; they only come back from the manager image upload/delete routes.
+   * Kept optional so callers that do have them can render a product image.
+   */
+  variants?: ImageVariantUrls | null;
   name: string;
   category_id: string | null;
   unit: string;

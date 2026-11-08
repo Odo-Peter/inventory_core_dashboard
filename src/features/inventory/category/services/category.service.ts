@@ -47,6 +47,14 @@ export const listItems = async (params: ListItemsQuery = {}): Promise<ListItemsR
   return data;
 };
 
+/** Exact, store-scoped barcode lookup used by the sales grid. */
+export const getItemByBarcode = async (barcode: string): Promise<ItemResponse> => {
+  const { data } = await axiosInstance.get<ItemResponse>(
+    `/items/barcode/${encodeURIComponent(barcode.trim())}`,
+  );
+  return data;
+};
+
 export const createItem = async (payload: CreateItemPayload): Promise<ItemResponse> => {
   const formData = new FormData();
 
