@@ -15,7 +15,6 @@ import type { RecordMovementInput, StockMovementRecord } from '@/features/invent
 import {
   buildMovement,
   buildPageMeta,
-  buildReconciliationRow,
   buildStockStatus,
   movementFixtures,
   reconciliationFixtures,

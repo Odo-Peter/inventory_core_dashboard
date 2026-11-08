@@ -124,14 +124,11 @@ describe('item queries and mutations', () => {
     await act(async () => {
       await result.current.mutateAsync({
         id: 'item-1',
-        payload: { name: 'Coca-Cola Zero', active: false },
+        payload: { name: 'Coca-Cola Zero' },
       });
     });
 
-    expect(updateItem).toHaveBeenCalledWith('item-1', {
-      name: 'Coca-Cola Zero',
-      active: false,
-    });
+    expect(updateItem).toHaveBeenCalledWith('item-1', { name: 'Coca-Cola Zero' });
     expect(invalidate).toHaveBeenCalledWith({ queryKey: queryKeys.items.lists() });
     expect(invalidate).toHaveBeenCalledWith({ queryKey: queryKeys.items.detail('item-1') });
     expect(invalidate).toHaveBeenCalledWith({ queryKey: queryKeys.audits.all });

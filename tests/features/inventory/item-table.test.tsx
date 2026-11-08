@@ -26,6 +26,8 @@ function renderTable({
     onView: vi.fn(),
     onEdit: vi.fn(),
     onChangePrice: vi.fn(),
+    onChangeImage: vi.fn(),
+    onRemoveImage: vi.fn(),
     onRecordStock: vi.fn(),
     onDeactivate: vi.fn(),
     onReactivate: vi.fn(),
