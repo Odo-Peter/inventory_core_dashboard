@@ -82,7 +82,7 @@ export function PosAccountsPage() {
   return (
     <div className="flex flex-col gap-5">
       <PageHeader
-        title="POS Accounts"
+        title="Payment Accounts"
         description="Manage POS terminals and payment accounts."
         actions={
           <Can permission="posAccountsCreate">

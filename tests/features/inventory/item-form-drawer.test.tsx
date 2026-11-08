@@ -200,13 +200,12 @@ describe('ItemFormDrawer', () => {
     expect(await screen.findByRole('heading', { name: 'Edit item' })).toBeInTheDocument();
     expect(screen.getByLabelText('Item name')).toHaveValue('Coca-Cola 50cl');
     expect(screen.getByLabelText('Barcode')).toHaveValue('1234567890');
-    // Price is managed separately in edit mode, so there is no price input.
     expect(screen.queryByLabelText('Selling price')).not.toBeInTheDocument();
     expect(screen.getByText(formatNaira(1500))).toBeInTheDocument();
-    // NOTE: this is the current behaviour, not the intended one. Edit defaults put
-    // the raw kobo integer (1000) into the naira cost input instead of ₦10.00.
-    // See the "cost price corruption" note in the test report.
-    expect(screen.getByLabelText('Cost price')).toHaveValue(1000);
+
+    // Cost price is shown in naira (kobo / 100)
+    expect(screen.getByLabelText('Cost price')).toHaveValue(10);
+
     expect(screen.queryByLabelText('Reorder threshold')).not.toBeInTheDocument();
     expect(screen.queryByRole('combobox', { name: 'Status' })).not.toBeInTheDocument();
     expect(screen.getByText('Managed separately')).toBeInTheDocument();
@@ -219,11 +218,9 @@ describe('ItemFormDrawer', () => {
     await waitFor(() => {
       expect(updateItem).toHaveBeenCalledWith('item-1', {
         name: 'Coca-Cola Zero',
-        // Regression: the pre-filled "1000" is parsed as ₦1,000.00 (100000 kobo),
-        // so an untouched cost price is resubmitted with a different value.
-        cost_price: 100000,
       });
     });
+
     expect(toast.success).toHaveBeenCalledWith('Item "Coca-Cola 50cl" updated successfully');
     expect(onSuccess).toHaveBeenCalledTimes(1);
     expect(onOpenChange).toHaveBeenCalledWith(false);

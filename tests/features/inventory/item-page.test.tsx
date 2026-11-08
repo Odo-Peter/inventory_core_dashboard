@@ -278,12 +278,9 @@ describe('ItemPage', () => {
     await user.type(within(dialog).getByLabelText('Item name'), 'Coca-Cola Zero');
     await user.click(within(dialog).getByRole('button', { name: 'Update Item' }));
 
-    await waitFor(() => {
-      expect(updateItem).toHaveBeenCalledWith('item-1', {
-        name: 'Coca-Cola Zero',
-        // See item-form-drawer.test.tsx: the edit default for cost_price is the
-        // raw kobo value, which getItemChanges then reinterprets as naira.
-        cost_price: 100000,
+    await waitFor(async () => {
+      await waitFor(() => {
+        expect(updateItem).toHaveBeenCalledWith('item-1', { name: 'Coca-Cola Zero' });
       });
     });
     expect(toast.success).toHaveBeenCalledWith('Item "Coca-Cola 50cl" updated successfully');
