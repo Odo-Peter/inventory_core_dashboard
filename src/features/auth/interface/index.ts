@@ -1,3 +1,5 @@
+import type { Role } from '@/lib/rbac/roles';
+
 export interface LoginFormInterface {
   staff_code: string;
   pin: string;
@@ -8,12 +10,12 @@ export interface ChangePinInterface {
   new_pin: string;
 }
 
-interface Staff {
+export interface Staff {
   id: string;
   name: string;
   first_name: string;
   last_name: string;
-  role: string;
+  role: Role;
   store_id: string;
   must_change_pin: boolean;
   staff_code?: string;
@@ -29,6 +31,8 @@ export interface AuthTokenResponse {
 
 export interface AuthContextInterface {
   isLoading: boolean;
+  staff: Staff | null;
+  role: Role | null;
   logout: (navigate?: (path: string) => void) => Promise<void>;
   mustChangePin: boolean;
   setMustChangePin: (value: boolean) => void;
@@ -41,7 +45,7 @@ export interface MyProfile {
   name: string;
   first_name: string;
   last_name: string;
-  role: string;
+  role: Role;
   store_id: string;
   must_change_pin: boolean;
   active_shift_id: string | null;

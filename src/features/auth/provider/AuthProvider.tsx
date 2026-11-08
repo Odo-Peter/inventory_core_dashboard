@@ -108,6 +108,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const value = {
     isLoading,
+    staff: null,
+    role: null,
     logout,
     mustChangePin,
     setMustChangePin,
