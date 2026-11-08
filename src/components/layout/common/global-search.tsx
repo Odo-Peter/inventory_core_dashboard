@@ -10,7 +10,8 @@ import {
   CommandList,
 } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { navGroups } from '../nav-items';
+import { getVisibleNavGroups } from '../nav-items';
+import { useRole } from '@/lib/rbac';
 
 interface SearchProps {
   searchOpen: boolean;
@@ -19,6 +20,9 @@ interface SearchProps {
 }
 
 const GlobalSearch = ({ goTo, searchOpen, setSearchOpen }: SearchProps) => {
+  const role = useRole();
+  const groups = getVisibleNavGroups(role);
+
   return (
     <Popover open={searchOpen} onOpenChange={setSearchOpen}>
       <PopoverTrigger
@@ -48,7 +52,7 @@ const GlobalSearch = ({ goTo, searchOpen, setSearchOpen }: SearchProps) => {
           <CommandInput placeholder="Search pages..." autoFocus />
           <CommandList>
             <CommandEmpty>No results found.</CommandEmpty>
-            {navGroups.map((group) => (
+            {groups.map((group) => (
               <CommandGroup key={group.label} heading={group.label} className="lg:w-100">
                 {group.items.map((item) => {
                   const Icon = item.icon;

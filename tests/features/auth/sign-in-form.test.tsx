@@ -47,6 +47,7 @@ function renderForm() {
           <Routes>
             <Route path="/" element={<SignInForm />} />
             <Route path="/dashboard" element={<div>Dashboard destination</div>} />
+            <Route path="/sales/new" element={<div>Sales destination</div>} />
           </Routes>
         </AuthProvider>
       </MemoryRouter>
@@ -60,7 +61,7 @@ describe('SignInForm success flow', () => {
     vi.clearAllMocks();
   });
 
-  it('stores the token, shows a success toast and navigates to the dashboard', async () => {
+  it('stores the token, shows a success toast and navigates to the cashier home', async () => {
     vi.mocked(login).mockResolvedValue(tokenResponse);
     const user = userEvent.setup();
     renderForm();
@@ -70,7 +71,7 @@ describe('SignInForm success flow', () => {
     await user.click(screen.getByRole('button', { name: 'Clock In' }));
 
     expect(
-      await screen.findByText('Dashboard destination', undefined, { timeout: 2000 }),
+      await screen.findByText('Sales destination', undefined, { timeout: 2000 }),
     ).toBeInTheDocument();
     expect(sessionStorage.getItem(TOKEN_STORAGE_KEY)).toBe('issued.jwt.token');
     expect(vi.mocked(toast.success)).toHaveBeenCalledWith('Signed in successfully');

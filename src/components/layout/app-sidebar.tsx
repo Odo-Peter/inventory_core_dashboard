@@ -3,7 +3,9 @@ import { PanelLeftCloseIcon, PanelLeftOpenIcon } from 'lucide-react';
 import { cn } from 'cn';
 
 import { Button } from '@/components/ui/button';
-import { navGroups } from '@/components/layout/nav-items';
+import { getVisibleNavGroups } from '@/components/layout/nav-items';
+import { useReconciliationDriftCount } from '@/features/inventory/stock/hooks/useStockMovementQueries';
+import { useCan, useRole } from '@/lib/rbac';
 
 interface SidebarNavProps {
   collapsed?: boolean;
@@ -11,12 +13,20 @@ interface SidebarNavProps {
 }
 
 export function SidebarNav({ collapsed = false, onNavigate }: SidebarNavProps) {
+  const role = useRole();
+  const canReconcile = useCan('stockReconcile');
+  const groups = getVisibleNavGroups(role);
+
+  // Only admins can open reconciliation, so cashiers and managers never fire
+  // this request just to render the nav.
+  const { data: driftCount } = useReconciliationDriftCount(canReconcile);
+
   return (
     <nav
       aria-label={collapsed ? 'Main navigation' : 'Main'}
       className={cn('flex flex-col gap-3 p-2', collapsed && 'items-stretch')}
     >
-      {navGroups.map((group) => (
+      {groups.map((group) => (
         <div key={group.label} className="flex flex-col gap-1">
           {collapsed ? (
             <span className="border-sidebar-border mx-2 mb-1 border-t" aria-hidden="true" />
@@ -27,6 +37,8 @@ export function SidebarNav({ collapsed = false, onNavigate }: SidebarNavProps) {
           )}
           {group.items.map((item) => {
             const Icon = item.icon;
+            const showBadge =
+              item.badge === 'reconciliationDrift' && canReconcile && Boolean(driftCount);
 
             return (
               <NavLink
@@ -37,7 +49,7 @@ export function SidebarNav({ collapsed = false, onNavigate }: SidebarNavProps) {
                 title={collapsed ? item.label : undefined}
                 className={({ isActive }) =>
                   cn(
-                    'text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-sidebar-ring/50 flex h-8 items-center rounded text-sm transition-colors outline-none focus-visible:ring-2',
+                    'text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-sidebar-ring/50 relative flex h-8 items-center rounded text-sm transition-colors outline-none focus-visible:ring-2',
                     collapsed ? 'mx-auto w-9 justify-center' : 'gap-2.5 px-2.5',
                     isActive && 'bg-sidebar-accent text-sidebar-accent-foreground font-medium',
                   )
@@ -45,6 +57,19 @@ export function SidebarNav({ collapsed = false, onNavigate }: SidebarNavProps) {
               >
                 <Icon className="size-4 shrink-0" />
                 {collapsed ? <span className="sr-only">{item.label}</span> : item.label}
+                {showBadge ? (
+                  <span
+                    aria-label={`${driftCount} items need reconciliation`}
+                    title={`${driftCount} items need reconciliation`}
+                    className={cn(
+                      'ml-auto rounded-full bg-amber-500/15 px-1.5 text-[10px] font-semibold text-amber-700 dark:text-amber-400',
+                      collapsed &&
+                        'absolute top-1 right-1 ml-0 size-1.5 overflow-hidden bg-amber-500 p-0 text-transparent',
+                    )}
+                  >
+                    {driftCount}
+                  </span>
+                ) : null}
               </NavLink>
             );
           })}

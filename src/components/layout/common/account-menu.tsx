@@ -13,6 +13,7 @@ import {
 
 import EntityLogo from './entity-logo';
 import { clearSessionAvatarColor, getSessionAvatarColor } from '@/components/lib/avatar-color';
+import { Can } from '@/lib/rbac';
 
 interface AccountMenuProps {
   onSettings: () => void;
@@ -69,10 +70,12 @@ const AccountMenu = ({ onSettings, onSignOut, profile }: AccountMenuProps) => {
           </DropdownMenuLabel>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        <DropdownMenuItem className="mt-2" onClick={onSettings}>
-          <Settings />
-          Settings
-        </DropdownMenuItem>
+        <Can permission="settingsView">
+          <DropdownMenuItem className="mt-2" onClick={onSettings}>
+            <Settings />
+            Settings
+          </DropdownMenuItem>
+        </Can>
         <DropdownMenuItem variant="destructive" onClick={handleSignOut}>
           <LogOut />
           Sign out
