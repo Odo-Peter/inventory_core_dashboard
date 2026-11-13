@@ -26,9 +26,20 @@ import { setStoredToken } from '@/lib/token';
 interface ChangePinDialogProps {
   open: boolean;
   onSuccess: () => void;
+  /** Supplied by optional flows such as Settings. The forced flow omits it. */
+  onOpenChange?: (open: boolean) => void;
+  /** Optional flows can be dismissed; the forced change-PIN flow cannot. */
+  allowClose?: boolean;
+  description?: string;
 }
 
-export function ChangePinDialog({ open, onSuccess }: ChangePinDialogProps) {
+export function ChangePinDialog({
+  open,
+  onSuccess,
+  onOpenChange,
+  allowClose = false,
+  description = 'You must replace the temporary PIN before continuing to use the dashboard.',
+}: ChangePinDialogProps) {
   const { mutateAsync, isPending } = useChangePin();
 
   const form = useForm<ChangePinFormInput, unknown, ChangePinValues>({
@@ -63,13 +74,11 @@ export function ChangePinDialog({ open, onSuccess }: ChangePinDialogProps) {
     }
   }
   return (
-    <Dialog open={open} onOpenChange={() => {}}>
-      <DialogContent showCloseButton={false}>
+    <Dialog open={open} onOpenChange={onOpenChange ?? (() => {})}>
+      <DialogContent showCloseButton={allowClose}>
         <DialogHeader>
           <DialogTitle className="text-lg font-semibold">Change your PIN</DialogTitle>
-          <DialogDescription>
-            You must replace the temporary PIN before continuing to use the dashboard.
-          </DialogDescription>
+          <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
@@ -152,7 +161,17 @@ export function ChangePinDialog({ open, onSuccess }: ChangePinDialogProps) {
             </div>
 
             <DialogFooter className="mx-0 mb-0 border-t-0 bg-transparent p-0">
-              <Button type="submit" disabled={isPending} className="w-full">
+              {allowClose ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={isPending}
+                  onClick={() => onOpenChange?.(false)}
+                >
+                  Cancel
+                </Button>
+              ) : null}
+              <Button type="submit" disabled={isPending} className="flex-1">
                 {isPending ? (
                   <span className="inline-flex items-center gap-2">
                     <Spinner className="h-3.5 w-3.5" />
