@@ -43,9 +43,18 @@ export function SettingsCard({
 
 export function SettingsCardSkeleton({ title, lines = 3 }: { title: string; lines?: number }) {
   return (
-    <SettingsCard title={title}>
-      <SectionLoading lines={lines} />
-    </SettingsCard>
+    <section
+      aria-label={`Loading ${title}`}
+      aria-busy="true"
+      className="border-border bg-card rounded-lg border"
+    >
+      <header className="border-border border-b px-4 py-3">
+        <p className="text-sm font-semibold">{title}</p>
+      </header>
+      <div className="p-4">
+        <SectionLoading lines={lines} />
+      </div>
+    </section>
   );
 }
 

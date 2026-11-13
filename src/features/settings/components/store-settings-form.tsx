@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
+import { Form } from '@/components/ui/form';
 import { Spinner } from '@/components/ui/spinner';
 import { useCan } from '@/lib/rbac';
 
@@ -54,35 +55,39 @@ export function StoreSettingsForm({ store }: StoreSettingsFormProps) {
   }
 
   return (
-    <form noValidate onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-6">
-      <StoreDetailsCard store={store} form={form} readOnly={!canEdit} />
-      <ReceiptCard store={store} form={form} readOnly={!canEdit} />
+    <Form {...form}>
+      <form noValidate onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-6">
+        <StoreDetailsCard store={store} form={form} readOnly={!canEdit} />
+        <ReceiptCard store={store} form={form} readOnly={!canEdit} />
 
-      {canEdit ? (
-        <div className="flex flex-wrap items-center justify-end gap-3">
-          {!hasChanges ? <p className="text-muted-foreground text-xs">No changes to save</p> : null}
+        {canEdit ? (
+          <div className="flex flex-wrap items-center justify-end gap-3">
+            {!hasChanges ? (
+              <p className="text-muted-foreground text-xs">No changes to save</p>
+            ) : null}
 
-          <Button
-            type="button"
-            variant="outline"
-            disabled={!hasChanges || isPending}
-            onClick={resetForm}
-          >
-            Reset
-          </Button>
+            <Button
+              type="button"
+              variant="outline"
+              disabled={!hasChanges || isPending}
+              onClick={resetForm}
+            >
+              Reset
+            </Button>
 
-          <Button type="submit" disabled={!hasChanges || isPending}>
-            {isPending ? (
-              <span className="inline-flex items-center gap-2">
-                <Spinner className="h-3.5 w-3.5" />
-                Saving...
-              </span>
-            ) : (
-              'Save changes'
-            )}
-          </Button>
-        </div>
-      ) : null}
-    </form>
+            <Button type="submit" disabled={!hasChanges || isPending}>
+              {isPending ? (
+                <span className="inline-flex items-center gap-2">
+                  <Spinner className="h-3.5 w-3.5" />
+                  Saving...
+                </span>
+              ) : (
+                'Save changes'
+              )}
+            </Button>
+          </div>
+        ) : null}
+      </form>
+    </Form>
   );
 }
