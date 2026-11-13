@@ -8,6 +8,19 @@ import { TOKEN_STORAGE_KEY } from '@/lib/token';
 import { createToken } from '../helpers/token';
 import { AuthProvider } from '@/features/auth/provider/AuthProvider';
 
+// AuthProvider revokes the session through axios directly. Without this mock
+// the expired-token case sends a real request whose 401 lands during a later
+// test and signs that render out.
+vi.mock('@/lib/axiosInstance', () => ({
+  default: {
+    get: vi.fn().mockResolvedValue({ data: {} }),
+    post: vi.fn().mockResolvedValue({ data: {} }),
+    put: vi.fn().mockResolvedValue({ data: {} }),
+    patch: vi.fn().mockResolvedValue({ data: {} }),
+    delete: vi.fn().mockResolvedValue({ data: {} }),
+  },
+}));
+
 vi.mock('@/features/auth/services/auth.service', () => ({
   login: vi.fn(),
   changePin: vi.fn(),
@@ -83,6 +96,27 @@ vi.mock('@/features/inventory/stock/services/stock.service', () => ({
   receiveStock: vi.fn(),
   adjustStock: vi.fn(),
   recordDamage: vi.fn(),
+}));
+
+vi.mock('@/features/shifts/services/shift.service', () => ({
+  getCurrentShift: vi.fn().mockResolvedValue(null),
+  getShifts: vi.fn().mockResolvedValue({
+    data: [],
+    meta: { page: 1, page_size: 25, total: 0, total_pages: 0 },
+  }),
+  startShift: vi.fn(),
+  endShift: vi.fn(),
+}));
+
+vi.mock('@/features/pos/service/pos.service', () => ({
+  listPosAccounts: vi.fn().mockResolvedValue({
+    data: [],
+    meta: { page: 1, page_size: 25, total: 0, total_pages: 0 },
+  }),
+  getPosAccount: vi.fn(),
+  createPosAccount: vi.fn(),
+  updatePosAccount: vi.fn(),
+  deactivatePosAccount: vi.fn(),
 }));
 
 function renderAt(path: string) {
