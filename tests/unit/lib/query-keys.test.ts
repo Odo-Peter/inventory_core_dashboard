@@ -3,6 +3,13 @@ import { describe, expect, it } from 'vitest';
 import { queryKeys } from '@/lib/query-keys';
 import type { ListSalesQuery } from '@/features/sales/types';
 
+describe('queryKeys.store', () => {
+  it('exposes one stable current-store key', () => {
+    expect(queryKeys.store.current).toEqual(['current-store']);
+    expect(queryKeys.store.current).toBe(queryKeys.store.current);
+  });
+});
+
 describe('queryKeys.sales', () => {
   it('exposes a stable root key', () => {
     expect(queryKeys.sales.all).toEqual(['sales']);

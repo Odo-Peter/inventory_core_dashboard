@@ -45,3 +45,11 @@ export interface StoreResponse {
   created_at: string;
   updated_at: string;
 }
+
+/** Only the changed store fields are sent to PATCH /stores/current. */
+export interface UpdateStorePayload {
+  name?: string;
+  address?: string;
+  phone?: string;
+  receipt_footer?: string;
+}

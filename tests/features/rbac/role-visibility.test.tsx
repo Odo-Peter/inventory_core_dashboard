@@ -42,7 +42,19 @@ vi.mock('@/features/admin/services/admin.service', () => ({
   deactivateStaff: vi.fn(),
   reactivateStaff: vi.fn(),
   resetStaffPin: vi.fn(),
-  getCurrentStore: vi.fn().mockResolvedValue({ name: 'Main Store', id: 'store-1' }),
+  getCurrentStore: vi.fn().mockResolvedValue({
+    id: 'store-1',
+    name: 'Main Store',
+    address: '1 Main Street',
+    phone: '+2348030000000',
+    currency: 'NGN',
+    timezone: 'Africa/Lagos',
+    receipt_footer: 'Thank you for your custom',
+    active: true,
+    created_at: '2026-01-15T09:30:00.000Z',
+    updated_at: '2026-01-15T09:30:00.000Z',
+  }),
+  updateCurrentStore: vi.fn(),
   getAudits: vi
     .fn()
     .mockResolvedValue({ data: [], meta: { page: 1, page_size: 25, total: 0, total_pages: 0 } }),
@@ -101,26 +113,24 @@ function visibleLabels(role: Role | null) {
 }
 
 describe('navigation per role', () => {
-  it('cashier sees only the till, sales history, products, categories and POS accounts', () => {
+  it('cashier sees the till, sales history, products, categories, POS accounts and settings', () => {
     const groups = visibleLabels('cashier').map((group) => group.group);
 
     expect(groups).toEqual(['General', 'Inventory', 'Administration']);
     expect(visibleLabels('cashier')).toEqual([
       { group: 'General', items: ['Dashboard', 'New Sale', 'Sales History'] },
       { group: 'Inventory', items: ['Products', 'Categories'] },
-      { group: 'Administration', items: ['Payment Accounts'] },
+      { group: 'Administration', items: ['Payment Accounts', 'Settings'] },
     ]);
   });
 
-  it('manager gets stock movements, shift summary and staff, but not audits, reconciliation or settings', () => {
+  it('manager gets stock movements, shift summary, staff and settings, but not audits or reconciliation', () => {
     const labels = visibleLabels('manager').flatMap((group) => group.items);
 
     expect(labels).toEqual(
-      expect.arrayContaining(['Stock Movements', 'Shift Summary', 'Staff & Access']),
+      expect.arrayContaining(['Stock Movements', 'Shift Summary', 'Staff & Access', 'Settings']),
     );
-    expect(labels).not.toEqual(
-      expect.arrayContaining(['Stock Reconciliation', 'Audits', 'Settings']),
-    );
+    expect(labels).not.toEqual(expect.arrayContaining(['Stock Reconciliation', 'Audits']));
   });
 
   it('admin sees every item', () => {

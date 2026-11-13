@@ -5,8 +5,9 @@ import { PAYMENT_METHODS, type ListSalesQuery, type PaymentMethod } from '../typ
 
 export interface SalesFilters {
   q: string;
-  from: string; // YYYY-MM-DD
+  from: string;
   to: string;
+  sale_id: string;
   payment_method: string;
 }
 
@@ -14,6 +15,7 @@ export const emptySalesFilters: SalesFilters = {
   q: '',
   from: '',
   to: '',
+  sale_id: '',
   payment_method: '',
 };
 
@@ -21,6 +23,7 @@ export const SALE_FILTER_PARAM = {
   q: 'q',
   from: 'from',
   to: 'to',
+  sale_id: 'sale_id',
   payment_method: 'payment_method',
 } as const satisfies Record<keyof SalesFilters, string>;
 
@@ -31,6 +34,7 @@ export function isPaymentMethod(value: string): value is PaymentMethod {
 export function readSalesFilters(searchParams: URLSearchParams): SalesFilters {
   const from = searchParams.get('from') ?? '';
   const to = searchParams.get('to') ?? '';
+  const saleId = searchParams.get('sale_id') ?? '';
   const paymentMethod = searchParams.get('payment_method') ?? '';
   const receipt = (searchParams.get('q') ?? '').replace(/\D/g, '').slice(0, 9);
 
@@ -39,6 +43,7 @@ export function readSalesFilters(searchParams: URLSearchParams): SalesFilters {
     // Ignore hand-edited garbage in the URL.
     from: parseDateKey(from) ? from : '',
     to: parseDateKey(to) ? to : '',
+    sale_id: saleId,
     payment_method: isPaymentMethod(paymentMethod) ? paymentMethod : '',
   };
 }
@@ -62,5 +67,6 @@ export function toSalesParams(
     ...(isPaymentMethod(filters.payment_method) ? { payment_method: filters.payment_method } : {}),
     ...(from ? { from } : {}),
     ...(to ? { to } : {}),
+    ...(filters.sale_id ? { sale_id: filters.sale_id } : {}),
   };
 }

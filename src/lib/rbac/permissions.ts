@@ -227,9 +227,14 @@ export const PERMISSIONS = definePermissions({
 
   // Settings
   settingsView: {
+    minRole: 'cashier',
+    endpoint: 'GET /api/v1/stores/current',
+    note: 'Every signed-in role can view the store details and their own account.',
+  },
+  storeEdit: {
     minRole: 'admin',
     endpoint: 'PATCH /api/v1/stores/current',
-    note: 'Store settings are editable by admins.',
+    note: 'Only admins can change store details and the receipt footer.',
   },
 });
 
