@@ -78,8 +78,12 @@ function ItemSaleForm({
   return (
     <>
       <div className="flex flex-1 flex-col gap-4 overflow-y-auto p-4">
-        <div className="bg-muted aspect-square w-full overflow-hidden rounded-lg">
-          <ProductImage variants={item.variants} alt={item.name} className="h-full w-full" />
+        <div className="aspect-square w-full overflow-hidden rounded-lg">
+          <ProductImage
+            variants={item.image}
+            alt={item.name}
+            className="h-full w-full object-contain"
+          />
         </div>
 
         <div className="flex flex-col gap-1">

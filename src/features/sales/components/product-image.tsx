@@ -45,7 +45,7 @@ export function ProductImage({ variants, alt, className }: ProductImageProps) {
       src={src}
       alt={alt}
       onError={() => setFailed(true)}
-      className={cn('object-cover', className)}
+      className={cn('object-center', className)}
     />
   );
 }

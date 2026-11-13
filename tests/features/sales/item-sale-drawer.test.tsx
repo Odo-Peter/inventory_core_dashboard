@@ -137,7 +137,7 @@ describe('ItemSaleDrawer', () => {
   });
 
   it('renders the image variant when one is available', () => {
-    renderDrawer({ item: makeItem({ name: 'Fanta 50cl', variants: { thumb: '/fanta.jpg' } }) });
+    renderDrawer({ item: makeItem({ name: 'Fanta 50cl', image: { thumb: '/fanta.jpg' } }) });
 
     expect(screen.getByRole('img', { name: 'Fanta 50cl' })).toHaveAttribute('src', '/fanta.jpg');
   });

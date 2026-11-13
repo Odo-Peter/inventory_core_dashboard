@@ -179,7 +179,7 @@ function SaleDetails({ saleId, onClose }: { saleId: string; onClose: () => void 
         {receipt ? (
           <section className="flex flex-col gap-2">
             <h3 className="text-xs font-medium">Reprint</h3>
-            <ReceiptView receipt={receipt} className="border" />
+            <ReceiptView receipt={receipt} className="max-w-full border px-4" />
           </section>
         ) : null}
       </div>

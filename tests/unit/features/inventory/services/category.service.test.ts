@@ -10,8 +10,10 @@ import {
   listCategories,
   listItems,
   reactivateItem,
+  removeItemImage,
   updateCategory,
   updateItem,
+  uploadItemImage,
 } from '@/features/inventory/category/services/category.service';
 import { categoryFixtures, itemFixtures, itemMeta, makeItem } from '../../../../helpers/items';
 
@@ -20,6 +22,8 @@ vi.mock('@/lib/axiosInstance', () => ({
     get: vi.fn(),
     post: vi.fn(),
     patch: vi.fn(),
+    put: vi.fn(),
+    delete: vi.fn(),
   },
 }));
 
@@ -196,5 +200,28 @@ describe('inventory category.service item APIs', () => {
 
     expect(mockedAxios.patch).toHaveBeenCalledWith('/items/item-1', { active: true });
     expect(result).toEqual(reactivated);
+  });
+
+  it('uploads an item image as multipart form data and returns the variants', async () => {
+    const response = { item_id: 'item-1', image: { thumb: 'thumb.webp', full: 'full.webp' } };
+    mockedAxios.put.mockResolvedValue({ data: response });
+    const file = new File(['image'], 'cola.png', { type: 'image/png' });
+
+    const result = await uploadItemImage('item-1', file);
+
+    expect(mockedAxios.put).toHaveBeenCalledWith('/items/item-1/image', expect.any(FormData));
+    const body = mockedAxios.put.mock.calls[0]?.[1] as FormData;
+    expect(body.get('image')).toBe(file);
+    expect(result).toEqual(response);
+  });
+
+  it('removes an item image and returns the null image response', async () => {
+    const response = { item_id: 'item-1', image: null };
+    mockedAxios.delete.mockResolvedValue({ data: response });
+
+    const result = await removeItemImage('item-1');
+
+    expect(mockedAxios.delete).toHaveBeenCalledWith('/items/item-1/image');
+    expect(result).toEqual(response);
   });
 });

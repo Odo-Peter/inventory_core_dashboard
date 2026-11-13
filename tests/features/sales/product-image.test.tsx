@@ -11,6 +11,13 @@ describe('ProductImage', () => {
     expect(screen.getByTestId('product-image-placeholder')).toBeInTheDocument();
   });
 
+  it('shows a placeholder when the variants contain no usable image', () => {
+    render(<ProductImage variants={{ medium: '/medium.jpg' }} alt="Coca-Cola 50cl" />);
+
+    expect(screen.getByRole('img', { name: 'No image for Coca-Cola 50cl' })).toBeInTheDocument();
+    expect(screen.queryByRole('img', { name: 'Coca-Cola 50cl' })).not.toBeInTheDocument();
+  });
+
   it('renders the preferred image variant with the item name as alt text', () => {
     render(
       <ProductImage variants={{ thumb: '/thumb.jpg', full: '/full.jpg' }} alt="Coca-Cola 50cl" />,

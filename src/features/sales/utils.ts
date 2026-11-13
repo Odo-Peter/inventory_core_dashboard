@@ -14,7 +14,7 @@ export function paymentMethodLabel(method: PaymentMethod | null | undefined) {
 
 export function productImageUrl(variants?: ImageVariantUrls | null) {
   if (!variants) return null;
-  return variants.thumb ?? variants.medium ?? variants.full ?? variants.original ?? null;
+  return variants.thumb ?? variants.full ?? null;
 }
 
 /** True when the item should show the low-stock badge (a threshold of 0 disables it). */

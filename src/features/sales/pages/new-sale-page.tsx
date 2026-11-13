@@ -19,11 +19,16 @@ import { CheckoutDrawer } from '../components/checkout-drawer';
 import { ItemSaleDrawer } from '../components/item-sale-drawer';
 import { ProductTile } from '../components/product-tile';
 import { ReceiptDialog } from '../components/receipt-dialog';
+
 import { useCart } from '../hooks/useCart';
 import { useBarcodeLookup } from '../hooks/useSalesQueries';
 import { usePrintSaleReceipt } from '../hooks/useSalesMutations';
+import { useAuth } from '@/features/auth/hooks/useAuth';
+import { useCan } from '@/lib/rbac';
+
 import type { ReceiptResponse, Sale } from '../types';
 import { getSaleErrorInfo } from '../utils';
+import { StartShiftDialog } from '@/features/shifts/components/start-shift-dialog';
 
 const PAGE_SIZE = 40;
 
@@ -40,16 +45,20 @@ export function NewSalePage() {
 
   const [search, setSearch] = useState(filters.q);
   const [selectedItem, setSelectedItem] = useState<ItemResponse | null>(null);
+  const [receipt, setReceipt] = useState<ReceiptResponse | null>(null);
+
+  const [receiptOpen, setReceiptOpen] = useState(false);
   const [itemDrawerOpen, setItemDrawerOpen] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
-  const [receipt, setReceipt] = useState<ReceiptResponse | null>(null);
-  const [receiptOpen, setReceiptOpen] = useState(false);
+  const [startShiftOpen, setStartShiftOpen] = useState(false);
+
   const searchRef = useRef<HTMLInputElement>(null);
 
   const cart = useCart();
   const lookupBarcode = useBarcodeLookup();
   const printReceipt = usePrintSaleReceipt();
   const { data: profile } = useMyProfile();
+  const { staff } = useAuth();
 
   const { data: categoryData } = useListCategories({ page: 1, page_size: 100, active: true });
   const categories = useMemo(() => categoryData?.data ?? [], [categoryData]);
@@ -65,7 +74,10 @@ export function NewSalePage() {
     [filters],
   );
 
-  const { data, isLoading, isFetching, isError, refetch } = useListItems(query);
+  const { data, isLoading, isFetching, isError, refetch } = useListItems({
+    ...query,
+    include_image_urls: true,
+  });
 
   const items = useMemo(() => data?.data ?? [], [data]);
   const total = data?.meta.total ?? items.length;
@@ -161,6 +173,7 @@ export function NewSalePage() {
   };
 
   const activeCategory = filters.category_id;
+  const canClock = useCan('shiftClock');
 
   return (
     <div className="flex flex-col gap-5 pb-2">
@@ -190,7 +203,7 @@ export function NewSalePage() {
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             onKeyDown={handleSearchKeyDown}
-            placeholder="Search products or scan a barcode"
+            placeholder="Search products..."
             aria-label="Search products or scan a barcode"
             className="pl-9"
             containerClassName="w-full"
@@ -283,8 +296,10 @@ export function NewSalePage() {
           count={cart.count}
           total={cart.total}
           disabled={noShift}
+          canClock={canClock}
           disabledReason={noShift ? 'Clock in before making a sale' : undefined}
           onCheckout={() => setCheckoutOpen(true)}
+          onStart={() => setStartShiftOpen(true)}
         />
       </div>
 
@@ -319,6 +334,16 @@ export function NewSalePage() {
           searchRef.current?.focus();
         }}
       />
+
+      {profile && (
+        <StartShiftDialog
+          open={startShiftOpen}
+          onOpenChange={setStartShiftOpen}
+          profile={profile}
+          isLoading={isLoading}
+          store={staff?.store_name ?? 'Main Store'}
+        />
+      )}
     </div>
   );
 }

@@ -189,6 +189,21 @@ describe('CheckoutDrawer', () => {
     expect(method).toHaveTextContent('Cash');
   });
 
+  it('renders the thumb image for each cart line', () => {
+    const sprite = makeItem({
+      id: 'item-3',
+      name: 'Sprite 50cl',
+      image: { thumb: '/sprite-thumb.jpg', full: '/sprite-full.jpg' },
+    });
+    renderCheckout({ lines: [{ item: sprite, quantity: 1 }], total: sprite.current_price });
+
+    const dialog = screen.getByRole('dialog', { name: 'Checkout' });
+    expect(within(dialog).getByRole('img', { name: 'Sprite 50cl' })).toHaveAttribute(
+      'src',
+      '/sprite-thumb.jpg',
+    );
+  });
+
   it('shows an empty cart message and disables checkout', async () => {
     renderCheckout({ lines: [], total: 0 });
 

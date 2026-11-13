@@ -1,4 +1,4 @@
-import { ShoppingCartIcon } from 'lucide-react';
+import { ShoppingCartIcon, Sparkles } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { formatNaira } from '@/features/admin/staff/utils';
@@ -7,11 +7,21 @@ interface CartBarProps {
   count: number;
   total: number;
   disabled?: boolean;
+  canClock?: boolean;
   disabledReason?: string;
   onCheckout: () => void;
+  onStart: () => void;
 }
 
-export function CartBar({ count, total, disabled, disabledReason, onCheckout }: CartBarProps) {
+export function CartBar({
+  count,
+  total,
+  disabled,
+  canClock,
+  disabledReason,
+  onCheckout,
+  onStart,
+}: CartBarProps) {
   if (count <= 0) return null;
 
   return (
@@ -30,15 +40,23 @@ export function CartBar({ count, total, disabled, disabledReason, onCheckout }: 
         </div>
       </div>
 
-      <Button
-        type="button"
-        size="lg"
-        disabled={disabled}
-        onClick={onCheckout}
-        title={disabledReason}
-      >
-        Checkout
-      </Button>
+      <div className="flex gap-2">
+        {disabled && canClock && (
+          <Button variant="secondary" onClick={onStart}>
+            <Sparkles />
+            Start Shift
+          </Button>
+        )}
+        <Button
+          type="button"
+          size="lg"
+          disabled={disabled}
+          onClick={onCheckout}
+          title={disabledReason}
+        >
+          Checkout
+        </Button>
+      </div>
     </div>
   );
 }

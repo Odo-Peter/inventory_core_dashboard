@@ -7,7 +7,7 @@ import { formatNaira } from '@/features/admin/staff/utils';
 
 describe('CartBar', () => {
   it('renders nothing for an empty cart', () => {
-    render(<CartBar count={0} total={0} onCheckout={vi.fn()} />);
+    render(<CartBar count={0} total={0} onCheckout={vi.fn()} onStart={vi.fn()} />);
 
     expect(screen.queryByRole('region', { name: 'Cart' })).not.toBeInTheDocument();
   });
@@ -15,7 +15,7 @@ describe('CartBar', () => {
   it('summarises the cart and starts checkout', async () => {
     const user = userEvent.setup();
     const onCheckout = vi.fn();
-    render(<CartBar count={3} total={5500} onCheckout={onCheckout} />);
+    render(<CartBar count={3} total={5500} onCheckout={onCheckout} onStart={vi.fn()} />);
 
     const cart = screen.getByRole('region', { name: 'Cart' });
     expect(cart).toHaveTextContent('3 items');
@@ -26,7 +26,7 @@ describe('CartBar', () => {
   });
 
   it('uses the singular label for one item', () => {
-    render(<CartBar count={1} total={1500} onCheckout={vi.fn()} />);
+    render(<CartBar count={1} total={1500} onCheckout={vi.fn()} onStart={vi.fn()} />);
 
     expect(screen.getByRole('region', { name: 'Cart' })).toHaveTextContent('1 item');
   });
@@ -39,6 +39,7 @@ describe('CartBar', () => {
         disabled
         disabledReason="Clock in before making a sale"
         onCheckout={vi.fn()}
+        onStart={vi.fn()}
       />,
     );
 

@@ -35,7 +35,9 @@ describe('ReceiptDialog', () => {
     const dialog = screen.getByRole('dialog', { name: 'Receipt' });
     expect(dialog).toHaveTextContent('The sale is recorded.');
     expect(screen.getByTestId('receipt-view')).toBeInTheDocument();
-    expect(screen.getByText('Receipt #1042')).toBeInTheDocument();
+    // The receipt layout now labels the number instead of using "Receipt #1042".
+    expect(screen.getByText('RECEIPT NO:')).toBeInTheDocument();
+    expect(screen.getByText('1042')).toBeInTheDocument();
   });
 
   it('prints the receipt', async () => {

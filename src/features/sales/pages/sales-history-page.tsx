@@ -86,7 +86,6 @@ export function SalesHistoryPage() {
     [setSearchParams],
   );
 
-  // A stale URL like ?page=99 would strand the user on an empty page.
   useEffect(() => {
     if (meta && meta.total_pages > 0 && page > meta.total_pages) {
       handlePageChange(meta.total_pages);

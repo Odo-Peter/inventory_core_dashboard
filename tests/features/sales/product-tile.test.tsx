@@ -72,14 +72,20 @@ describe('ProductTile', () => {
     expect(onSelect).not.toHaveBeenCalled();
   });
 
-  it('renders the image variant when one is available', () => {
+  it('renders the thumb image variant when one is available', () => {
     render(
       <ProductTile
-        item={makeItem({ name: 'Fanta 50cl', variants: { thumb: '/fanta.jpg' } })}
+        item={makeItem({
+          name: 'Fanta 50cl',
+          image: { thumb: '/fanta-thumb.jpg', full: '/fanta-full.jpg' },
+        })}
         onSelect={vi.fn()}
       />,
     );
 
-    expect(screen.getByRole('img', { name: 'Fanta 50cl' })).toHaveAttribute('src', '/fanta.jpg');
+    expect(screen.getByRole('img', { name: 'Fanta 50cl' })).toHaveAttribute(
+      'src',
+      '/fanta-thumb.jpg',
+    );
   });
 });

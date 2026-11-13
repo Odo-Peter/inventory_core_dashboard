@@ -14,8 +14,10 @@ import {
   useCreateItem,
   useDeactivateItem,
   useReactivateItem,
+  useRemoveItemImage,
   useUpdateCategory,
   useUpdateItem,
+  useUploadItemImage,
 } from '@/features/inventory/category/hooks/useCategoryMutations';
 import {
   changeItemPrice,
@@ -26,8 +28,10 @@ import {
   listCategories,
   listItems,
   reactivateItem,
+  removeItemImage,
   updateCategory,
   updateItem,
+  uploadItemImage,
 } from '@/features/inventory/category/services/category.service';
 import { queryKeys } from '@/lib/query-keys';
 import type { CreateItemPayload } from '@/features/inventory/items/types';
@@ -45,6 +49,8 @@ vi.mock('@/features/inventory/category/services/category.service', () => ({
   reactivateItem: vi.fn(),
   changeItemPrice: vi.fn(),
   getItemUnits: vi.fn(),
+  uploadItemImage: vi.fn(),
+  removeItemImage: vi.fn(),
 }));
 
 function createWrapper() {
@@ -177,6 +183,43 @@ describe('item queries and mutations', () => {
     });
 
     expect(changeItemPrice).toHaveBeenCalledWith('item-1', { new_price: 200000 });
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: queryKeys.items.all });
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: queryKeys.audits.all });
+  });
+
+  it('uploads an item image and invalidates the item and audit caches', async () => {
+    const response = { item_id: 'item-1', image: { thumb: 'thumb.webp', full: 'full.webp' } };
+    vi.mocked(uploadItemImage).mockResolvedValue(response);
+    const { queryClient, wrapper } = createWrapper();
+    const invalidate = vi.spyOn(queryClient, 'invalidateQueries');
+    const file = new File(['image'], 'cola.png', { type: 'image/png' });
+
+    const { result } = renderHook(() => useUploadItemImage(), { wrapper });
+    let data: Awaited<ReturnType<typeof uploadItemImage>> | undefined;
+    await act(async () => {
+      data = await result.current.mutateAsync({ id: 'item-1', file });
+    });
+
+    expect(uploadItemImage).toHaveBeenCalledWith('item-1', file);
+    expect(data).toEqual(response);
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: queryKeys.items.all });
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: queryKeys.audits.all });
+  });
+
+  it('removes an item image and invalidates the item and audit caches', async () => {
+    const response = { item_id: 'item-1', image: null };
+    vi.mocked(removeItemImage).mockResolvedValue(response);
+    const { queryClient, wrapper } = createWrapper();
+    const invalidate = vi.spyOn(queryClient, 'invalidateQueries');
+
+    const { result } = renderHook(() => useRemoveItemImage(), { wrapper });
+    let data: Awaited<ReturnType<typeof removeItemImage>> | undefined;
+    await act(async () => {
+      data = await result.current.mutateAsync('item-1');
+    });
+
+    expect(removeItemImage).toHaveBeenCalledWith('item-1');
+    expect(data).toEqual(response);
     expect(invalidate).toHaveBeenCalledWith({ queryKey: queryKeys.items.all });
     expect(invalidate).toHaveBeenCalledWith({ queryKey: queryKeys.audits.all });
   });
