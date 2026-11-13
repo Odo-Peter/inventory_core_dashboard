@@ -1,12 +1,5 @@
-import { PlaceholderPage } from '@/features/placeholders/pages/placeholder-page';
+import { SettingsPage } from '@/features/settings/pages/settings-page';
 
 export function SettingsRoute() {
-  return (
-    <PlaceholderPage
-      title="Settings"
-      description="Store and app preferences."
-      emptyTitle="Settings coming soon"
-      emptyDescription="Preferences will appear here."
-    />
-  );
+  return <SettingsPage />;
 }

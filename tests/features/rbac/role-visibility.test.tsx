@@ -42,7 +42,19 @@ vi.mock('@/features/admin/services/admin.service', () => ({
   deactivateStaff: vi.fn(),
   reactivateStaff: vi.fn(),
   resetStaffPin: vi.fn(),
-  getCurrentStore: vi.fn().mockResolvedValue({ name: 'Main Store', id: 'store-1' }),
+  getCurrentStore: vi.fn().mockResolvedValue({
+    id: 'store-1',
+    name: 'Main Store',
+    address: '1 Main Street',
+    phone: '+2348030000000',
+    currency: 'NGN',
+    timezone: 'Africa/Lagos',
+    receipt_footer: 'Thank you for your custom',
+    active: true,
+    created_at: '2026-01-15T09:30:00.000Z',
+    updated_at: '2026-01-15T09:30:00.000Z',
+  }),
+  updateCurrentStore: vi.fn(),
   getAudits: vi
     .fn()
     .mockResolvedValue({ data: [], meta: { page: 1, page_size: 25, total: 0, total_pages: 0 } }),
