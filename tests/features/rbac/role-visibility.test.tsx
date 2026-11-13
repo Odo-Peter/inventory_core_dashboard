@@ -101,26 +101,24 @@ function visibleLabels(role: Role | null) {
 }
 
 describe('navigation per role', () => {
-  it('cashier sees only the till, sales history, products, categories and POS accounts', () => {
+  it('cashier sees the till, sales history, products, categories, POS accounts and settings', () => {
     const groups = visibleLabels('cashier').map((group) => group.group);
 
     expect(groups).toEqual(['General', 'Inventory', 'Administration']);
     expect(visibleLabels('cashier')).toEqual([
       { group: 'General', items: ['Dashboard', 'New Sale', 'Sales History'] },
       { group: 'Inventory', items: ['Products', 'Categories'] },
-      { group: 'Administration', items: ['Payment Accounts'] },
+      { group: 'Administration', items: ['Payment Accounts', 'Settings'] },
     ]);
   });
 
-  it('manager gets stock movements, shift summary and staff, but not audits, reconciliation or settings', () => {
+  it('manager gets stock movements, shift summary, staff and settings, but not audits or reconciliation', () => {
     const labels = visibleLabels('manager').flatMap((group) => group.items);
 
     expect(labels).toEqual(
-      expect.arrayContaining(['Stock Movements', 'Shift Summary', 'Staff & Access']),
+      expect.arrayContaining(['Stock Movements', 'Shift Summary', 'Staff & Access', 'Settings']),
     );
-    expect(labels).not.toEqual(
-      expect.arrayContaining(['Stock Reconciliation', 'Audits', 'Settings']),
-    );
+    expect(labels).not.toEqual(expect.arrayContaining(['Stock Reconciliation', 'Audits']));
   });
 
   it('admin sees every item', () => {

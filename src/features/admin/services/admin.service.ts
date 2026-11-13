@@ -1,6 +1,6 @@
 import axiosInstance from '@/lib/axiosInstance';
 
-import type { Staff, StaffResponse, StoreResponse } from '../staff/types';
+import type { Staff, StaffResponse, StoreResponse, UpdateStorePayload } from '../staff/types';
 
 import type { StaffFormInput, StaffUpdateValues } from '../schemas/staff-form.schema';
 import type { AdminPinValues } from '../schemas/admin-pin.schema';
@@ -57,6 +57,11 @@ export const getStaff = async (id: string): Promise<Staff> => {
 
 export const getCurrentStore = async (): Promise<StoreResponse> => {
   const { data } = await axiosInstance.get<StoreResponse>('/stores/current');
+  return data;
+};
+
+export const updateCurrentStore = async (payload: UpdateStorePayload): Promise<StoreResponse> => {
+  const { data } = await axiosInstance.patch<StoreResponse>('/stores/current', payload);
   return data;
 };
 
