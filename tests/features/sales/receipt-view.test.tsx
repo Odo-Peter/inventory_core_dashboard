@@ -16,22 +16,25 @@ describe('ReceiptView', () => {
 
     expect(within(view).getByRole('heading', { name: 'Test Store' })).toBeInTheDocument();
     expect(within(view).getByText('1 Main Street')).toBeInTheDocument();
-    expect(within(view).getByText('+2348030000000')).toBeInTheDocument();
+    expect(within(view).getByText('Tel: +2348030000000')).toBeInTheDocument();
     expect(within(view).getByText('Thank you for your custom')).toBeInTheDocument();
 
-    expect(within(view).getByText('Receipt #1042')).toBeInTheDocument();
+    // The receipt layout now labels the number instead of using "Receipt #1042".
+    expect(within(view).getByText('RECEIPT NO:')).toBeInTheDocument();
+    expect(within(view).getByText(String(receipt.sale.receipt_number))).toBeInTheDocument();
     expect(within(view).getByText('Ada Okafor')).toBeInTheDocument();
     expect(within(view).getByText('Coca-Cola 50cl')).toBeInTheDocument();
-    expect(within(view).getByText('SKU-001')).toBeInTheDocument();
-    expect(within(view).getByText(`${formatNaira(1500)} each`)).toBeInTheDocument();
+    expect(within(view).getByText('SKU: SKU-001')).toBeInTheDocument();
     expect(within(view).getByText('Bottled Water 75cl')).toBeInTheDocument();
 
     expect(within(view).getByTestId('receipt-total')).toHaveTextContent(formatNaira(3800));
 
-    const rows = within(view).getAllByRole('row');
-    expect(rows).toHaveLength(3);
-    expect(within(rows[1]).getByText('2')).toBeInTheDocument();
-    expect(within(rows[1]).getByText(formatNaira(3000))).toBeInTheDocument();
+    // Lines are no longer table rows; each line still shows quantity, unit price, and total.
+    const [cola] = receipt.sale.items;
+    expect(
+      within(view).getByText(`${cola.quantity} x ${formatNaira(cola.unit_price)}`),
+    ).toBeInTheDocument();
+    expect(within(view).getByText(formatNaira(cola.line_total))).toBeInTheDocument();
   });
 
   it('shows the payment method and account label from the payment record', () => {
