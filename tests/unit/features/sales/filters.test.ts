@@ -79,21 +79,26 @@ describe('sales filters', () => {
 
   it('maps the receipt number and payment method to API params', () => {
     expect(
-      toSalesParams({ q: '1042', from: '', to: '', payment_method: 'bank_transfer' }, 2, 25),
+      toSalesParams(
+        { q: '1042', from: '', to: '', payment_method: 'bank_transfer', sale_id: 'sale_12345' },
+        2,
+        25,
+      ),
     ).toEqual({
       page: 2,
       page_size: 25,
       q: '1042',
       payment_method: 'bank_transfer',
+      sale_id: 'sale_12345',
     });
   });
 
   it('drops a receipt number that is not purely numeric', () => {
     expect(
-      toSalesParams({ q: 'abc', from: '', to: '', payment_method: '' }, 1, 25),
+      toSalesParams({ q: 'abc', from: '', to: '', payment_method: '', sale_id: '' }, 1, 25),
     ).not.toHaveProperty('q');
     expect(
-      toSalesParams({ q: '10 42', from: '', to: '', payment_method: '' }, 1, 25),
+      toSalesParams({ q: '10 42', from: '', to: '', payment_method: '', sale_id: '' }, 1, 25),
     ).not.toHaveProperty('q');
   });
 
@@ -101,7 +106,11 @@ describe('sales filters', () => {
     const { from, to } = resolveRange('2026-10-01', '2026-10-07');
 
     expect(
-      toSalesParams({ q: '', from: '2026-10-01', to: '2026-10-07', payment_method: '' }, 1, 25),
+      toSalesParams(
+        { q: '', from: '2026-10-01', to: '2026-10-07', payment_method: '', sale_id: '' },
+        1,
+        25,
+      ),
     ).toEqual({ page: 1, page_size: 25, from, to });
 
     expect(from).toBe('2026-10-01T00:00:00.000Z');
@@ -111,8 +120,8 @@ describe('sales filters', () => {
   it('supports an open-ended range', () => {
     const { from } = resolveRange('2026-10-01', '');
 
-    expect(toSalesParams({ q: '', from: '2026-10-01', to: '', payment_method: '' }, 1, 25)).toEqual(
-      { page: 1, page_size: 25, from },
-    );
+    expect(
+      toSalesParams({ q: '', from: '2026-10-01', to: '', payment_method: '', sale_id: '' }, 1, 25),
+    ).toEqual({ page: 1, page_size: 25, from });
   });
 });

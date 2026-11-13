@@ -12,7 +12,7 @@ export function SettingsPage() {
   const { data: store, isPending, isError, refetch } = useSettingsStore();
 
   return (
-    <div className="mx-auto flex w-full max-w-3xl flex-col gap-6">
+    <div className="flex flex-col gap-6">
       <PageHeader title="Settings" description="Store and app preferences." />
 
       <AccountCard storeName={store?.name} />

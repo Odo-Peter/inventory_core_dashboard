@@ -1,4 +1,4 @@
-import type { UseFormReturn } from 'react-hook-form';
+import { Controller, type UseFormReturn } from 'react-hook-form';
 
 import { FormControl, FormField, FormItem } from '@/components/ui/form';
 import { Input } from '@/components/ui/form/input';
@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/form/input';
 import type { StoreSettingsFormInput, StoreSettingsValues } from '../schemas/store-settings.schema';
 import type { StoreResponse } from '../types';
 import { DetailGrid, DetailRow, SettingsCard } from './settings-card';
+import PhoneInputField from '@/components/ui/form/phone-input';
 
 type SettingsForm = UseFormReturn<StoreSettingsFormInput, unknown, StoreSettingsValues>;
 
@@ -79,22 +80,23 @@ export function StoreDetailsCard({ store, form, readOnly }: StoreDetailsCardProp
             )}
           />
 
-          <FormField
+          {/* Phone number */}
+          <Controller
             control={form.control}
             name="phone"
-            render={({ field }) => (
-              <FormItem>
-                <FormControl>
-                  <Input
-                    htmlFor="store-phone"
-                    label="Phone"
-                    placeholder="+2348030000000"
-                    error={!!errors.phone}
-                    errorText={errors.phone?.message}
-                    {...field}
-                  />
-                </FormControl>
-              </FormItem>
+            render={({ field, fieldState }) => (
+              <PhoneInputField
+                label="Phone"
+                htmlFor="store-phone"
+                value={field.value}
+                onChange={(val) => field.onChange(val)}
+                onBlur={field.onBlur}
+                country="ng"
+                lockCountry
+                required
+                error={!!fieldState.error}
+                errorText={fieldState.error?.message}
+              />
             )}
           />
         </div>
