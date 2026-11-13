@@ -3,6 +3,7 @@ import { LoadErrorState } from '@/components/states';
 
 import { AccountCard } from '../components/account-card';
 import { SettingsCardSkeleton } from '../components/settings-card';
+import { ShortcutsCard } from '../components/shortcuts-card';
 import { StoreFactsCard } from '../components/store-facts-card';
 import { StoreSettingsForm } from '../components/store-settings-form';
 import { useSettingsStore } from '../hooks/useSettingsQueries';
@@ -34,6 +35,8 @@ export function SettingsPage() {
           <StoreFactsCard store={store} />
         </>
       ) : null}
+
+      <ShortcutsCard />
     </div>
   );
 }
