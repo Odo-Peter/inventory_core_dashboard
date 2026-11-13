@@ -18,6 +18,7 @@ describe('sales filters', () => {
       from: '',
       to: '',
       payment_method: '',
+      sale_id: '',
     });
   });
 
@@ -27,6 +28,7 @@ describe('sales filters', () => {
       from: 'from',
       to: 'to',
       payment_method: 'payment_method',
+      sale_id: 'sale_id',
     });
   });
 
@@ -37,6 +39,7 @@ describe('sales filters', () => {
         from: '2026-10-01',
         to: '2026-10-07',
         payment_method: 'card',
+        sale_id: 'sale-12345678',
       }),
     );
 
@@ -45,6 +48,7 @@ describe('sales filters', () => {
       from: '2026-10-01',
       to: '2026-10-07',
       payment_method: 'card',
+      sale_id: 'sale-12345678',
     });
   });
 
@@ -59,10 +63,11 @@ describe('sales filters', () => {
         from: '2026-13-40',
         to: 'tomorrow',
         payment_method: 'cheque',
+        sale_id: '',
       }),
     );
 
-    expect(filters).toEqual({ q: '', from: '', to: '', payment_method: '' });
+    expect(filters).toEqual({ q: '', from: '', to: '', payment_method: '', sale_id: '' });
   });
 
   it('validates payment methods', () => {

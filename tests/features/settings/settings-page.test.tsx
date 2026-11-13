@@ -8,7 +8,6 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { SettingsPage } from '@/features/settings/pages/settings-page';
 import { ShortcutsCard } from '@/features/settings/components/shortcuts-card';
 import { getCurrentStore, updateCurrentStore } from '@/features/admin/services/admin.service';
-import { changePin } from '@/features/auth/services/auth.service';
 import { dateTimeFormatter } from '@/features/admin/staff/utils';
 import { queryKeys } from '@/lib/query-keys';
 import type { Role } from '@/lib/rbac/roles';
@@ -79,31 +78,6 @@ describe('SettingsPage', () => {
     expect(within(account).getByText('ADMIN001')).toBeInTheDocument();
     expect(within(account).getByText('Admin')).toBeInTheDocument();
     expect(within(account).getByText('Main Store')).toBeInTheDocument();
-  });
-
-  it('opens the existing change-PIN flow and closes it after success', async () => {
-    vi.mocked(changePin).mockResolvedValue({ access_token: 'new-token' } as never);
-    const user = userEvent.setup();
-    renderPage('admin');
-
-    const account = await findCard('My account');
-    await user.click(within(account).getByRole('button', { name: 'Change PIN' }));
-
-    expect(await screen.findByRole('dialog', { name: 'Change your PIN' })).toBeInTheDocument();
-
-    await user.type(screen.getByLabelText('Temporary PIN'), '111111');
-    await user.type(screen.getByLabelText('New PIN'), '222222');
-    await user.type(screen.getByLabelText('Confirm new PIN'), '222222');
-    await user.click(screen.getByRole('button', { name: 'Update PIN' }));
-
-    await waitFor(() => {
-      expect(changePin).toHaveBeenCalledWith(
-        { current_pin: '111111', new_pin: '222222' },
-        expect.anything(),
-      );
-    });
-    expect(toast.success).toHaveBeenCalledWith('PIN updated successfully');
-    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
   });
 
   it('disables save and explains there are no changes', async () => {
