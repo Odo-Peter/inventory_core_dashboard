@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { ApiError } from '@/lib/api-error';
+import type { ImageVariantUrls } from '@/features/inventory/items/types';
 import {
   clampQuantity,
   getSaleErrorInfo,
@@ -33,19 +34,18 @@ describe('productImageUrl', () => {
     expect(productImageUrl({})).toBeNull();
   });
 
-  it('prefers the smallest variant then falls back in order', () => {
+  it('prefers the thumb variant by default and falls back to full', () => {
+    expect(productImageUrl({ thumb: 'thumb.jpg', full: 'full.jpg' })).toBe('thumb.jpg');
+    expect(productImageUrl({ full: 'full.jpg' } as ImageVariantUrls)).toBe('full.jpg');
+  });
+
+  it('ignores legacy variants and returns null when thumb and full are missing', () => {
     expect(
       productImageUrl({
-        thumb: 'thumb.jpg',
         medium: 'medium.jpg',
-        full: 'full.jpg',
         original: 'original.jpg',
-      }),
-    ).toBe('thumb.jpg');
-
-    expect(productImageUrl({ medium: 'medium.jpg', full: 'full.jpg' })).toBe('medium.jpg');
-    expect(productImageUrl({ full: 'full.jpg', original: 'original.jpg' })).toBe('full.jpg');
-    expect(productImageUrl({ original: 'original.jpg' })).toBe('original.jpg');
+      } as ImageVariantUrls),
+    ).toBeNull();
   });
 });
 
