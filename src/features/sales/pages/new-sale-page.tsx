@@ -24,6 +24,7 @@ import { useCart } from '../hooks/useCart';
 import { useBarcodeLookup } from '../hooks/useSalesQueries';
 import { usePrintSaleReceipt } from '../hooks/useSalesMutations';
 import { useAuth } from '@/features/auth/hooks/useAuth';
+import { useCan } from '@/lib/rbac';
 
 import type { ReceiptResponse, Sale } from '../types';
 import { getSaleErrorInfo } from '../utils';
@@ -172,6 +173,7 @@ export function NewSalePage() {
   };
 
   const activeCategory = filters.category_id;
+  const canClock = useCan('shiftClock');
 
   return (
     <div className="flex flex-col gap-5 pb-2">
@@ -294,6 +296,7 @@ export function NewSalePage() {
           count={cart.count}
           total={cart.total}
           disabled={noShift}
+          canClock={canClock}
           disabledReason={noShift ? 'Clock in before making a sale' : undefined}
           onCheckout={() => setCheckoutOpen(true)}
           onStart={() => setStartShiftOpen(true)}

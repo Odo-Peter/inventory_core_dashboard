@@ -7,6 +7,7 @@ interface CartBarProps {
   count: number;
   total: number;
   disabled?: boolean;
+  canClock?: boolean;
   disabledReason?: string;
   onCheckout: () => void;
   onStart: () => void;
@@ -16,6 +17,7 @@ export function CartBar({
   count,
   total,
   disabled,
+  canClock,
   disabledReason,
   onCheckout,
   onStart,
@@ -39,7 +41,7 @@ export function CartBar({
       </div>
 
       <div className="flex gap-2">
-        {disabled && (
+        {disabled && canClock && (
           <Button variant="secondary" onClick={onStart}>
             <Sparkles />
             Start Shift
