@@ -14,6 +14,7 @@ import {
   listCategories,
   listItems,
   reactivateItem,
+  removeItemImage,
   updateItem,
 } from '@/features/inventory/category/services/category.service';
 import { recordMovement } from '@/features/inventory/stock/services/stock.service';
@@ -49,6 +50,8 @@ vi.mock('@/features/inventory/category/services/category.service', () => ({
   reactivateItem: vi.fn(),
   changeItemPrice: vi.fn(),
   getItemUnits: vi.fn(),
+  uploadItemImage: vi.fn(),
+  removeItemImage: vi.fn(),
 }));
 
 vi.mock('@/features/inventory/stock/services/stock.service', () => ({
@@ -417,5 +420,54 @@ describe('ItemPage', () => {
       expect(reactivateItem).toHaveBeenCalledWith('item-2');
     });
     expect(toast.success).toHaveBeenCalledWith('Item reactivated');
+  });
+
+  it('labels the image action as Add image when the item has no image', async () => {
+    const user = userEvent.setup();
+    renderPage();
+
+    await screen.findByText('Coca-Cola 50cl');
+    const menu = await openItemRowActions(user, 'Coca-Cola 50cl');
+
+    expect(within(menu).getByRole('menuitem', { name: 'Add image' })).toBeInTheDocument();
+    expect(within(menu).queryByRole('menuitem', { name: 'Remove image' })).not.toBeInTheDocument();
+  });
+
+  it('offers replace and remove image actions when the item has an image_key', async () => {
+    vi.mocked(listItems).mockResolvedValue(
+      listItemsResponse([makeItem({ image_key: 'items/item-1.webp' })]),
+    );
+    const user = userEvent.setup();
+    renderPage();
+
+    await screen.findByText('Coca-Cola 50cl');
+    const menu = await openItemRowActions(user, 'Coca-Cola 50cl');
+
+    expect(within(menu).getByRole('menuitem', { name: 'Replace image' })).toBeInTheDocument();
+    expect(within(menu).getByRole('menuitem', { name: 'Remove image' })).toBeInTheDocument();
+    expect(within(menu).queryByRole('menuitem', { name: 'Add image' })).not.toBeInTheDocument();
+  });
+
+  it('removes an item image after confirmation and refreshes the listing', async () => {
+    vi.mocked(listItems).mockResolvedValue(
+      listItemsResponse([makeItem({ image_key: 'items/item-1.webp' })]),
+    );
+    vi.mocked(removeItemImage).mockResolvedValue({ item_id: 'item-1', image: null });
+    const user = userEvent.setup();
+    renderPage();
+
+    await screen.findByText('Coca-Cola 50cl');
+    const menu = await openItemRowActions(user, 'Coca-Cola 50cl');
+    await user.click(within(menu).getByRole('menuitem', { name: 'Remove image' }));
+
+    const dialog = await screen.findByRole('dialog', { name: 'Remove image' });
+    expect(within(dialog).getByText(/This will remove the picture/)).toBeInTheDocument();
+    await user.click(within(dialog).getByRole('button', { name: 'Remove image' }));
+
+    await waitFor(() => {
+      expect(removeItemImage).toHaveBeenCalledWith('item-1');
+    });
+    expect(toast.success).toHaveBeenCalledWith('Image removed');
+    await waitFor(() => expect(vi.mocked(listItems).mock.calls.length).toBeGreaterThan(1));
   });
 });
