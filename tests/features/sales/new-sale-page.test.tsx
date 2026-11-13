@@ -174,7 +174,12 @@ describe('NewSalePage', () => {
     expect(await screen.findByRole('button', { name: 'Beverages' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'All' })).toHaveAttribute('aria-pressed', 'true');
 
-    expect(listItems).toHaveBeenCalledWith({ page: 1, page_size: 40, active: true });
+    expect(listItems).toHaveBeenCalledWith({
+      page: 1,
+      page_size: 40,
+      active: true,
+      include_image_urls: true,
+    });
     expect(listCategories).toHaveBeenCalledWith({ page: 1, page_size: 100, active: true });
   });
 
@@ -195,6 +200,7 @@ describe('NewSalePage', () => {
         active: true,
         q: 'cola',
         category_id: 'category-1',
+        include_image_urls: true,
       }),
     );
   });
@@ -213,6 +219,7 @@ describe('NewSalePage', () => {
         page_size: 40,
         active: true,
         q: 'water',
+        include_image_urls: true,
       }),
     );
   });
@@ -234,6 +241,7 @@ describe('NewSalePage', () => {
         page_size: 40,
         active: true,
         category_id: 'category-1',
+        include_image_urls: true,
       }),
     );
 
@@ -241,7 +249,12 @@ describe('NewSalePage', () => {
 
     await waitFor(() => expect(search()).toBe(''));
     await waitFor(() =>
-      expect(listItems).toHaveBeenLastCalledWith({ page: 1, page_size: 40, active: true }),
+      expect(listItems).toHaveBeenLastCalledWith({
+        page: 1,
+        page_size: 40,
+        active: true,
+        include_image_urls: true,
+      }),
     );
   });
 
