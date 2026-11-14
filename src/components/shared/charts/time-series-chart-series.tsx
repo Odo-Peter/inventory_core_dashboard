@@ -28,6 +28,7 @@ export function ChartSeries({ data, series, type, stacked, highlightedIndex }: C
               stroke={color}
               strokeWidth={2}
               dot={false}
+              isAnimationActive={false}
             />
           );
         }
@@ -43,6 +44,7 @@ export function ChartSeries({ data, series, type, stacked, highlightedIndex }: C
               fill={color}
               fillOpacity={0.18}
               stackId={stackId}
+              isAnimationActive={false}
             />
           );
         }
@@ -56,6 +58,7 @@ export function ChartSeries({ data, series, type, stacked, highlightedIndex }: C
             radius={[4, 4, 0, 0]}
             maxBarSize={44}
             stackId={stackId}
+            isAnimationActive={false}
           >
             {index === 0 && highlightedIndex !== null
               ? data.map((_, pointIndex) => (

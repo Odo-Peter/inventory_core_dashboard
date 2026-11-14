@@ -11,6 +11,7 @@ import {
   type ChartConfig,
 } from '@/components/ui/chart';
 import { ChartSeries } from './time-series-chart-series';
+import { tooltipRow } from './time-series-chart-tooltip';
 import { resolveHighlightedIndex } from './time-series-chart.utils';
 
 export type TimeSeriesPoint = Record<string, string | number>;
@@ -75,6 +76,7 @@ export function TimeSeriesChart({
       role="img"
       aria-label={ariaLabel}
       data-chart-type={type}
+      data-stacked={stacked ? 'true' : undefined}
       className={cn('w-full', className)}
     >
       {isEmpty ? (
@@ -116,14 +118,7 @@ export function TimeSeriesChart({
             <ChartTooltip
               content={
                 <ChartTooltipContent
-                  formatter={(value, name) => (
-                    <div className="flex flex-1 items-center justify-between gap-3">
-                      <span className="text-muted-foreground">{String(name)}</span>
-                      <span className="font-mono font-medium tabular-nums">
-                        {formatValue(value)}
-                      </span>
-                    </div>
-                  )}
+                  formatter={(value, name) => tooltipRow(value, name, formatValue)}
                 />
               }
             />

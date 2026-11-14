@@ -19,11 +19,13 @@ export function SalesOverviewChart() {
     const daily = data?.daily ?? [];
     const points = daily.map((day) => ({ date: day.date, total: day.total }));
     const weekTotal = daily.reduce((sum, day) => sum + day.total, 0);
-    const bestDay = daily.reduce<(typeof daily)[number] | null>(
-      (best, day) => (best === null || day.total > best.total ? day : best),
-      null,
-    );
     const hasSales = weekTotal > 0;
+    const bestDay = hasSales
+      ? daily.reduce<(typeof daily)[number] | null>(
+          (best, day) => (best === null || day.total > best.total ? day : best),
+          null,
+        )
+      : null;
 
     return {
       points,
