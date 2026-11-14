@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
-import { koboToNairaInput, parseNairaPreview, parseNairaToKobo } from '@/lib/money';
+import {
+  koboToNairaInput,
+  formatNairaCompact,
+  parseNairaPreview,
+  parseNairaToKobo,
+} from '@/lib/money';
 
 describe('parseNairaToKobo', () => {
   it.each([
@@ -30,6 +35,34 @@ describe('parseNairaToKobo', () => {
 
   it('exposes the same function as parseNairaPreview', () => {
     expect(parseNairaPreview).toBe(parseNairaToKobo);
+  });
+});
+
+describe('formatNairaCompact', () => {
+  it.each([
+    [null, '₦0'],
+    [undefined, '₦0'],
+    [Number.NaN, '₦0'],
+    [Number.POSITIVE_INFINITY, '₦0'],
+    [0, '₦0'],
+    [99, '₦0.99'],
+    [10_000, '₦100'],
+    [100_000, '₦1k'],
+    [150_000, '₦1.5k'],
+    [123_456, '₦1.2k'],
+    [100_000_000, '₦1M'],
+    [150_000_000, '₦1.5M'],
+  ])('formats %j kobo as %j', (kobo, expected) => {
+    expect(formatNairaCompact(kobo)).toBe(expected);
+  });
+
+  it('formats negative amounts without throwing', () => {
+    expect(formatNairaCompact(-150_000)).toBe('-₦1.5k');
+  });
+
+  it('handles very large amounts without throwing', () => {
+    expect(() => formatNairaCompact(Number.MAX_SAFE_INTEGER)).not.toThrow();
+    expect(formatNairaCompact(Number.MAX_SAFE_INTEGER)).toContain('₦');
   });
 });
 

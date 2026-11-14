@@ -17,3 +17,26 @@ export function koboToNairaInput(kobo: number | null | undefined): string {
 }
 
 export const parseNairaPreview = parseNairaToKobo;
+
+const compactUnit = (value: number) => {
+  const rounded = Math.round(value * 10) / 10;
+  return Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(1);
+};
+
+/**
+ * Compact kobo formatter for chart axes: 0 -> ₦0, 100000 -> ₦1k,
+ * 150000 -> ₦1.5k, 100000000 -> ₦1M. Never throws.
+ */
+export function formatNairaCompact(kobo: number | null | undefined): string {
+  if (kobo == null || !Number.isFinite(kobo)) return '₦0';
+
+  const naira = kobo / 100;
+  const sign = naira < 0 ? '-' : '';
+  const absolute = Math.abs(naira);
+
+  if (absolute >= 1_000_000) return `${sign}₦${compactUnit(absolute / 1_000_000)}M`;
+  if (absolute >= 1_000) return `${sign}₦${compactUnit(absolute / 1_000)}k`;
+  if (absolute === 0) return '₦0';
+
+  return `${sign}₦${absolute.toFixed(2).replace(/\.?0+$/, '')}`;
+}

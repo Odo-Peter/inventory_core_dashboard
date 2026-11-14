@@ -16,6 +16,7 @@ export function useRecordMovement() {
         // stock_quantity is shown on the products page. Replace with your real
         // item query key (from useCategoryQueries) if it isn't ['items'].
         queryClient.invalidateQueries({ queryKey: queryKeys.items.all }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.all }),
         invalidateAudits(),
       ]);
     },

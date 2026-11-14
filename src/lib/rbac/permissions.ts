@@ -218,6 +218,11 @@ export const PERMISSIONS = definePermissions({
     minRole: 'cashier',
     endpoint: 'GET /api/v1/sales/summary',
   },
+  salesOverview: {
+    minRole: 'cashier',
+    endpoint: 'GET /api/v1/sales/overview',
+    note: 'Cashiers see own sales; managers and admins see the store.',
+  },
   salesOwnScope: {
     minRole: 'cashier',
     endpoint: 'GET /api/v1/sales',

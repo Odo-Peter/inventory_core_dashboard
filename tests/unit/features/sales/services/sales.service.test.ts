@@ -5,6 +5,7 @@ import {
   createSale,
   getPaymentOptions,
   getSale,
+  getSalesOverview,
   getSalesSummary,
   listSales,
   printSaleReceipt,
@@ -17,6 +18,7 @@ import {
   makeSaleListItem,
   salesSummary,
 } from '../../../../helpers/sales';
+import { makeSalesOverview } from '../../../../helpers/dashboard';
 
 vi.mock('@/lib/axiosInstance', () => ({
   default: {
@@ -116,6 +118,16 @@ describe('sales.service', () => {
     await getSalesSummary();
 
     expect(mockedAxios.get).toHaveBeenCalledWith('/sales/summary', { params: {} });
+  });
+
+  it('loads the seven-day sales overview', async () => {
+    const overview = makeSalesOverview();
+    mockedAxios.get.mockResolvedValue({ data: overview });
+
+    const result = await getSalesOverview();
+
+    expect(mockedAxios.get).toHaveBeenCalledWith('/sales/overview');
+    expect(result).toEqual(overview);
   });
 
   it('records a receipt print for a sale', async () => {

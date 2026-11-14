@@ -7,6 +7,7 @@ import type {
   PaymentOptionsResponse,
   ReceiptResponse,
   Sale,
+  SalesOverviewResponse,
   SalesSummaryResponse,
 } from '../types';
 
@@ -34,6 +35,12 @@ export const getSalesSummary = async (
   params: ListSalesQuery = {},
 ): Promise<SalesSummaryResponse> => {
   const { data } = await axiosInstance.get<SalesSummaryResponse>('/sales/summary', { params });
+  return data;
+};
+
+/** Seven-day dashboard aggregate ending today in the store timezone. */
+export const getSalesOverview = async (): Promise<SalesOverviewResponse> => {
+  const { data } = await axiosInstance.get<SalesOverviewResponse>('/sales/overview');
   return data;
 };
 

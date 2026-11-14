@@ -90,6 +90,20 @@ vi.mock('@/features/sales/services/sales.service', () => ({
   createSale: vi.fn(),
   getPaymentOptions: vi.fn().mockResolvedValue({ cash: { method: 'cash', accounts: [] } }),
   getSalesSummary: vi.fn(),
+  getSalesOverview: vi.fn().mockResolvedValue({
+    timezone: 'Africa/Lagos',
+    scope: 'store',
+    today: { date: '2026-11-14', total: 0, count: 0, by_method: [] },
+    daily: [
+      { date: '2026-11-08', total: 0, count: 0 },
+      { date: '2026-11-09', total: 0, count: 0 },
+      { date: '2026-11-10', total: 0, count: 0 },
+      { date: '2026-11-11', total: 0, count: 0 },
+      { date: '2026-11-12', total: 0, count: 0 },
+      { date: '2026-11-13', total: 0, count: 0 },
+      { date: '2026-11-14', total: 0, count: 0 },
+    ],
+  }),
   printSaleReceipt: vi.fn(),
 }));
 
@@ -200,8 +214,12 @@ describe('app router', () => {
     expect(screen.getByRole('navigation')).toBeInTheDocument();
     expect(screen.getByText('Stocktake Dashboard')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Dashboard' })).toHaveAttribute('aria-current', 'page');
-    expect(screen.getByText("Today's sales")).toBeInTheDocument();
-    expect(screen.getByText('$1,284.50')).toBeInTheDocument();
+    expect(screen.getByText('Sales today')).toBeInTheDocument();
+    expect(screen.getByText('Transactions')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Add New Sale' })).toHaveAttribute(
+      'href',
+      '/sales/new',
+    );
     expect(screen.queryByRole('button', { name: /theme/i })).not.toBeInTheDocument();
   });
 

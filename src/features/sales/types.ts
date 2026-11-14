@@ -126,6 +126,31 @@ export interface SaleFilters {
   payment_method: string;
 }
 
+export interface SalesOverviewPaymentMethod {
+  method: PaymentMethod;
+  total: number;
+  count: number;
+}
+
+export interface SalesOverviewDay {
+  /** Calendar day in the store timezone, `YYYY-MM-DD`. */
+  date: string;
+  total: number;
+  count: number;
+}
+
+export interface SalesOverviewToday extends SalesOverviewDay {
+  by_method: SalesOverviewPaymentMethod[];
+}
+
+export interface SalesOverviewResponse {
+  timezone: string;
+  scope: 'own' | 'store';
+  today: SalesOverviewToday;
+  /** Exactly seven entries, oldest first, ending today in the store timezone. */
+  daily: SalesOverviewDay[];
+}
+
 export interface CartLine {
   item: import('@/features/inventory/items/types').ItemResponse;
   quantity: number;

@@ -10,6 +10,17 @@ describe('queryKeys.store', () => {
   });
 });
 
+describe('queryKeys.dashboard', () => {
+  it('exposes a stable root key', () => {
+    expect(queryKeys.dashboard.all).toEqual(['dashboard']);
+  });
+
+  it('nests the overview key under the root', () => {
+    expect(queryKeys.dashboard.overview).toEqual(['dashboard', 'overview']);
+    expect(queryKeys.dashboard.overview.slice(0, 1)).toEqual(queryKeys.dashboard.all);
+  });
+});
+
 describe('queryKeys.sales', () => {
   it('exposes a stable root key', () => {
     expect(queryKeys.sales.all).toEqual(['sales']);

@@ -177,6 +177,7 @@ describe('sales mutations', () => {
     expect(createSale).toHaveBeenCalledWith(payload);
     expect(invalidate).toHaveBeenCalledWith({ queryKey: queryKeys.sales.all });
     expect(invalidate).toHaveBeenCalledWith({ queryKey: queryKeys.items.all });
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: queryKeys.dashboard.all });
   });
 
   it('stores the sale from a receipt print in the detail cache', async () => {
