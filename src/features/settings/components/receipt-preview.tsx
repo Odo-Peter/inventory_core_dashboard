@@ -82,7 +82,7 @@ export function ReceiptPreview({ store, values }: ReceiptPreviewProps) {
 
   return (
     <div className="flex flex-col gap-2">
-      <ReceiptView receipt={receipt} className="border-border rounded border px-3" />
+      <ReceiptView receipt={receipt} className="border-border mx-0 rounded border px-3" />
 
       {footerEmpty ? (
         <p

@@ -62,7 +62,7 @@ export function DetailRow({ label, children }: { label: string; children: ReactN
   return (
     <div className="flex min-w-0 flex-col gap-0.5">
       <dt className="text-muted-foreground text-xs">{label}</dt>
-      <dd className="text-sm font-medium break-words">{children}</dd>
+      <dd className="text-sm font-medium wrap-break-word">{children}</dd>
     </div>
   );
 }
