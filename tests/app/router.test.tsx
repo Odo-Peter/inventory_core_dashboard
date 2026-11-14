@@ -216,6 +216,10 @@ describe('app router', () => {
     expect(screen.getByRole('link', { name: 'Dashboard' })).toHaveAttribute('aria-current', 'page');
     expect(screen.getByText('Sales today')).toBeInTheDocument();
     expect(screen.getByText('Transactions')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Add New Sale' })).toHaveAttribute(
+      'href',
+      '/sales/new',
+    );
     expect(screen.queryByRole('button', { name: /theme/i })).not.toBeInTheDocument();
   });
 

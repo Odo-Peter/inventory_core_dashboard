@@ -8,6 +8,9 @@ import { getVisibleNavGroups } from '@/components/layout/nav-items';
 import { SidebarNav } from '@/components/layout/app-sidebar';
 import { StaffAccessPage } from '@/features/admin/staff/pages/staff-access-page';
 import { listStaff } from '@/features/admin/services/admin.service';
+import { MetricCards } from '@/features/dashboard/components/metric-cards';
+import { RecentSales } from '@/features/dashboard/components/recent-sales';
+import { SalesOverviewChart } from '@/features/dashboard/components/sales-overview-chart';
 import { ItemDetailsDrawer } from '@/features/inventory/items/components/item-details-drawer';
 import { ItemPage } from '@/features/inventory/items/pages/item-page';
 import {
@@ -17,8 +20,9 @@ import {
 } from '@/features/inventory/category/services/category.service';
 import { getStockStatus } from '@/features/inventory/stock/services/stock.service';
 import { SalesHistoryPage } from '@/features/sales/pages/sales-history-page';
-import { listSales } from '@/features/sales/services/sales.service';
+import { listSales, getSalesOverview } from '@/features/sales/services/sales.service';
 import { staffFixtures } from '../../helpers/staff';
+import { makeSalesOverview } from '../../helpers/dashboard';
 import {
   categoryFixtures,
   itemMeta,
@@ -93,6 +97,7 @@ vi.mock('@/features/sales/services/sales.service', () => ({
   getSale: vi.fn(),
   createSale: vi.fn(),
   getPaymentOptions: vi.fn(),
+  getSalesOverview: vi.fn(),
   getSalesSummary: vi.fn(),
   printSaleReceipt: vi.fn(),
 }));
@@ -320,5 +325,56 @@ describe('sales history per role', () => {
       await screen.findByRole('heading', { name: 'Sales History', level: 1 }),
     ).toBeInTheDocument();
     expect(screen.queryByText(/Showing your sales only/)).not.toBeInTheDocument();
+  });
+});
+
+describe('dashboard widgets per role', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(getSalesOverview).mockResolvedValue(makeSalesOverview());
+    vi.mocked(listSales).mockResolvedValue(emptyPage as never);
+    vi.mocked(listItems).mockResolvedValue(listItemsResponse([], { ...itemMeta, total: 2 }));
+  });
+
+  function renderDashboard(role: Role | null) {
+    return render(
+      <QueryClientProvider client={queryClient()}>
+        <RoleProvider role={role}>
+          <MemoryRouter>
+            <MetricCards />
+            <SalesOverviewChart />
+            <RecentSales />
+          </MemoryRouter>
+        </RoleProvider>
+      </QueryClientProvider>,
+    );
+  }
+
+  it('labels the sales metric as the cashier’s own sales', async () => {
+    vi.mocked(getSalesOverview).mockResolvedValue(makeSalesOverview({ scope: 'own' }));
+
+    renderDashboard('cashier');
+
+    expect(await screen.findByText('Your sales today')).toBeInTheDocument();
+    expect(await screen.findByText('Sales overview')).toBeInTheDocument();
+    expect(await screen.findByText('Recent sales')).toBeInTheDocument();
+  });
+
+  it('labels the sales metric as the store total for managers', async () => {
+    renderDashboard('manager');
+
+    expect(await screen.findByText('Sales today')).toBeInTheDocument();
+    expect(screen.queryByText('Your sales today')).not.toBeInTheDocument();
+  });
+
+  it('hides every dashboard widget from an unknown role', () => {
+    renderDashboard(null);
+
+    expect(screen.queryByText('Sales today')).not.toBeInTheDocument();
+    expect(screen.queryByText('Low stock items')).not.toBeInTheDocument();
+    expect(screen.queryByText('Sales overview')).not.toBeInTheDocument();
+    expect(screen.queryByText('Recent sales')).not.toBeInTheDocument();
+    expect(getSalesOverview).not.toHaveBeenCalled();
+    expect(listSales).not.toHaveBeenCalled();
   });
 });

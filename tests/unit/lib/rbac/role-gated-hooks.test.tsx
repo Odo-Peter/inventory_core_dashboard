@@ -23,6 +23,7 @@ import { useListPosAccounts } from '@/features/pos/hooks/usePosQueries';
 import {
   listSales,
   getPaymentOptions,
+  getSalesOverview,
   getSalesSummary,
 } from '@/features/sales/services/sales.service';
 import {
@@ -30,6 +31,7 @@ import {
   usePaymentOptions,
   useSalesSummary,
 } from '@/features/sales/hooks/useSalesQueries';
+import { useSalesOverview } from '@/features/dashboard/hooks/useDashboardQueries';
 import {
   getStockStatus,
   listReconciliation,
@@ -69,6 +71,7 @@ vi.mock('@/features/sales/services/sales.service', () => ({
   listSales: vi.fn(),
   getSale: vi.fn(),
   getPaymentOptions: vi.fn(),
+  getSalesOverview: vi.fn(),
   getSalesSummary: vi.fn(),
   createSale: vi.fn(),
   printSaleReceipt: vi.fn(),
@@ -157,6 +160,12 @@ const gatedHooks: Array<{
     service: () => getSalesSummary,
   },
   {
+    name: 'useSalesOverview',
+    permission: 'salesOverview',
+    run: () => useSalesOverview(),
+    service: () => getSalesOverview,
+  },
+  {
     name: 'useListStockMovements',
     permission: 'stockView',
     run: () => useListStockMovements({ page: 1, page_size: 25 }),
@@ -217,6 +226,7 @@ describe('role-gated query hooks', () => {
     vi.mocked(listSales).mockResolvedValue(page as never);
     vi.mocked(getPaymentOptions).mockResolvedValue({} as never);
     vi.mocked(getSalesSummary).mockResolvedValue({} as never);
+    vi.mocked(getSalesOverview).mockResolvedValue({} as never);
     vi.mocked(listStockMovements).mockResolvedValue(page as never);
     vi.mocked(getStockStatus).mockResolvedValue({} as never);
     vi.mocked(listReconciliation).mockResolvedValue({ ...page, data: [] } as never);

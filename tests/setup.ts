@@ -1,5 +1,6 @@
 import '@testing-library/jest-dom/vitest';
 import { cleanup } from '@testing-library/react';
+import { cloneElement, type ReactElement } from 'react';
 import { afterEach, beforeEach, vi } from 'vitest';
 
 class ResizeObserverMock {
@@ -9,6 +10,21 @@ class ResizeObserverMock {
 }
 
 globalThis.ResizeObserver = ResizeObserverMock as unknown as typeof ResizeObserver;
+
+// Recharts sizes charts through ResizeObserver, which jsdom never fires. Render
+// every ResponsiveContainer at a fixed size so the SVG is deterministic.
+vi.mock('recharts', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('recharts')>();
+
+  return {
+    ...actual,
+    ResponsiveContainer: ({ children }: { children: ReactElement }) =>
+      cloneElement(children as ReactElement<{ width?: number; height?: number }>, {
+        width: 640,
+        height: 176,
+      }),
+  };
+});
 
 // jsdom does not implement printing. Every test gets a mock so components can
 // call window.print() and assert on it.

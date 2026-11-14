@@ -168,6 +168,7 @@ describe('useRecordMovement', () => {
       queryKey: queryKeys.movementKeys.status('item-1'),
     });
     expect(invalidate).toHaveBeenCalledWith({ queryKey: queryKeys.items.all });
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: queryKeys.dashboard.all });
     expect(invalidate).toHaveBeenCalledWith({ queryKey: queryKeys.audits.all });
   });
 
