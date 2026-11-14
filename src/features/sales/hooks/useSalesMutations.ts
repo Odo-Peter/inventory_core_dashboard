@@ -16,6 +16,7 @@ export function useCreateSale() {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: queryKeys.sales.all }),
         queryClient.invalidateQueries({ queryKey: queryKeys.items.all }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.all }),
         invalidateAudits(),
       ]);
     },

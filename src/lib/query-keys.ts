@@ -32,6 +32,10 @@ export const queryKeys = {
   profile: {
     me: ['my-profile'] as const,
   },
+  dashboard: {
+    all: ['dashboard'] as const,
+    overview: ['dashboard', 'overview'] as const,
+  },
   audits: {
     all: ['audits'] as const,
     lists: ['audits', 'list'] as const,
