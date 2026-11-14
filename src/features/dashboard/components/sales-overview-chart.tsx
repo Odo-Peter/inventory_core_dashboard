@@ -1,20 +1,47 @@
-import { cn } from 'cn';
+import { useMemo } from 'react';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { salesOverview } from '@/features/dashboard/data/dashboard-data';
+import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
+import { TimeSeriesChart } from '@/components/shared/charts';
+import { formatNaira } from '@/features/admin/staff/utils';
+import { formatNairaCompact } from '@/lib/money';
+import { useCan } from '@/lib/rbac';
 
-const currency = new Intl.NumberFormat('en-US', {
-  style: 'currency',
-  currency: 'USD',
-});
-
-const totals = salesOverview.map((point) => point.total);
-const maxTotal = Math.max(...totals);
-const weekTotal = totals.reduce((total, value) => total + value, 0);
-const averageTotal = weekTotal / salesOverview.length;
-const bestDay = salesOverview.reduce((best, point) => (point.total > best.total ? point : best));
+import { useSalesOverview } from '../hooks/useDashboardQueries';
+import { formatDateKey } from '../lib/date-key';
 
 export function SalesOverviewChart() {
+  const canView = useCan('salesOverview');
+  const { data, isLoading, isError, refetch } = useSalesOverview();
+
+  const summary = useMemo(() => {
+    const daily = data?.daily ?? [];
+    const points = daily.map((day) => ({ date: day.date, total: day.total }));
+    const weekTotal = daily.reduce((sum, day) => sum + day.total, 0);
+    const bestDay = daily.reduce<(typeof daily)[number] | null>(
+      (best, day) => (best === null || day.total > best.total ? day : best),
+      null,
+    );
+    const hasSales = weekTotal > 0;
+
+    return {
+      points,
+      weekTotal,
+      bestDay,
+      bestLabel: bestDay ? formatDateKey(bestDay.date) : '—',
+      hasSales,
+      average: Math.round(weekTotal / Math.max(daily.length, 1)),
+    };
+  }, [data]);
+
+  if (!canView) return null;
+
+  const { points, weekTotal, bestDay, bestLabel, hasSales, average } = summary;
+  const ariaLabel = hasSales
+    ? `Sales over the last 7 days. Total ${formatNaira(weekTotal)}. Best day ${bestLabel} at ${formatNaira(bestDay?.total ?? 0)}.`
+    : `Sales over the last 7 days. No sales. Total ${formatNaira(0)}.`;
+
   return (
     <Card>
       <CardHeader className="flex flex-row items-start justify-between gap-4">
@@ -23,68 +50,57 @@ export function SalesOverviewChart() {
           <CardDescription className="text-xs">Last 7 days</CardDescription>
         </div>
         <div className="text-right">
-          <p className="text-lg font-medium tracking-tight tabular-nums">
-            {currency.format(weekTotal)}
-          </p>
+          {isLoading ? (
+            <Skeleton className="ml-auto h-6 w-24" />
+          ) : (
+            <p className="text-lg font-medium tracking-tight tabular-nums">
+              {isError ? '—' : formatNaira(weekTotal)}
+            </p>
+          )}
           <p className="text-muted-foreground text-xs">Total</p>
         </div>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
-        <div
-          role="img"
-          aria-label={`Sales over the last 7 days. Total ${currency.format(weekTotal)}. Best day ${bestDay.day} at ${currency.format(bestDay.total)}.`}
-          className="flex flex-col gap-2"
-        >
-          <div className="relative h-44">
-            <div
-              aria-hidden="true"
-              className="pointer-events-none absolute inset-0 flex flex-col justify-between"
-            >
-              <div className="border-border/60 border-t" />
-              <div className="border-border/60 border-t" />
-              <div className="border-border/60 border-t" />
-              <div className="border-border/60 border-t" />
-            </div>
-            <div className="relative grid h-full grid-cols-7 items-end gap-2">
-              {salesOverview.map((point) => {
-                const isBestDay = point.day === bestDay.day;
-                const height = Math.round((point.total / maxTotal) * 100);
-
-                return (
-                  <div key={point.day} className="flex h-full items-end justify-center">
-                    <div
-                      className={cn(
-                        'w-full max-w-10 rounded-t-sm',
-                        isBestDay ? 'bg-primary' : 'bg-chart-2/60',
-                      )}
-                      style={{ height: `${height}%` }}
-                      title={`${point.day}: ${currency.format(point.total)}`}
-                    />
-                  </div>
-                );
-              })}
-            </div>
+        {isLoading ? (
+          <Skeleton className="h-44 w-full" />
+        ) : isError ? (
+          <div
+            role="alert"
+            className="border-border flex flex-col items-center justify-center gap-2 rounded-lg border px-4 py-8 text-center"
+          >
+            <p className="text-sm font-medium">Couldn't load the sales overview</p>
+            <Button variant="outline" size="sm" onClick={() => refetch()}>
+              Retry
+            </Button>
           </div>
-          <div className="text-muted-foreground grid grid-cols-7 gap-2 text-center text-[11px]">
-            {salesOverview.map((point) => (
-              <span key={point.day} className={cn(point.day === bestDay.day && 'text-foreground')}>
-                {point.day}
+        ) : (
+          <>
+            <TimeSeriesChart
+              data={points}
+              xKey="date"
+              series={[{ key: 'total', label: 'Sales' }]}
+              type="bar"
+              highlight="max"
+              xTickFormatter={(value) => formatDateKey(String(value))}
+              valueFormatter={formatNaira}
+              yTickFormatter={formatNairaCompact}
+              ariaLabel={ariaLabel}
+              emptyState={<p>No sales in the last 7 days</p>}
+            />
+
+            <div className="text-muted-foreground flex flex-wrap items-center justify-between gap-2 border-t pt-3 text-xs">
+              <span>
+                Best day: <span className="text-foreground font-medium">{bestLabel}</span>
               </span>
-            ))}
-          </div>
-        </div>
-
-        <div className="text-muted-foreground flex flex-wrap items-center justify-between gap-2 border-t pt-3 text-xs">
-          <span>
-            Best day: <span className="text-foreground font-medium">{bestDay.day}</span>
-          </span>
-          <span>
-            Average day:{' '}
-            <span className="text-foreground font-medium tabular-nums">
-              {currency.format(averageTotal)}
-            </span>
-          </span>
-        </div>
+              <span>
+                Average day:{' '}
+                <span className="text-foreground font-medium tabular-nums">
+                  {formatNaira(average)}
+                </span>
+              </span>
+            </div>
+          </>
+        )}
       </CardContent>
     </Card>
   );
